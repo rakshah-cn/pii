@@ -198,7 +198,7 @@ class Repository:
         return [r["token"] for r in tx.query("SELECT token FROM token_mappings WHERE conversation_id = ? AND borrower_id = ? AND status = 'ACTIVE' ORDER BY pii_type, seq", (conversation_id, borrower_id))]
 
     def borrowers_in_conversation(self, tx, conversation_id):
-        return [r["borrower_id"] for r in tx.query("SELECT DISTINCT borrower_id FROM vault_records WHERE conversation_id = ?", (conversation_id,))]
+        return [r["borrower_id"] for r in tx.query("SELECT DISTINCT borrower_id FROM vault_records WHERE conversation_id = ? ORDER BY borrower_id", (conversation_id,))]      # a fixed order: callers lock these borrowers one by one (PostgreSQL), and two callers locking in different orders could deadlock
 
     def revoke_mapping(self, tx, conversation_id, token):
         r = tx.one("SELECT vault_id FROM token_mappings WHERE conversation_id = ? AND token = ? AND status = 'ACTIVE'", (conversation_id, token))

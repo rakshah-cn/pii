@@ -137,9 +137,10 @@ def test_an_audit_retry_uses_its_own_idempotency_key():
     keys = []; always_once = [{"label": "PHONE", "start": 0, "end": 3, "source": "rules"}]
     gw = mk(audit_detector=Stub(per_call=[always_once, []])); real = gw.vault.tokenize_batch
     gw.vault.tokenize_batch = lambda *a, **k: keys.append(k["idempotency_key"]) or real(*a, **k)
-    out = gw.handle("c", "C", T, request_id="R7")
+    out = gw.handle("c", "C", T, request_id="R7", borrower_id="B7")
     assert out["status"] == "ok" and out["retries"] == 1 and len(keys) == 2 and keys[0] != keys[1] and keys[0].endswith(":t0") and keys[1].endswith(":t1"), (out, keys)
-    assert keys[0][:-3] == keys[1][:-3] and keys[0] == Gateway._idem_key("R7", 0), "same request id -> same key base, so a client retry replays"
+    assert keys[0][:-3] == keys[1][:-3] and keys[0] == Gateway._idem_key("B7", "c", "R7", 0), "same borrower + conversation + request id -> same key base, so a client retry replays"
+    assert Gateway._idem_key("B8", "c", "R7", 0) != keys[0] and Gateway._idem_key("B7", "c2", "R7", 0) != keys[0], "another borrower / conversation reusing the id gets its own key"
 
 
 def test_a_vault_that_fails_while_tokenising_leaves_no_half_built_conversation_state():

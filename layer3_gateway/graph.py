@@ -12,7 +12,9 @@ Use:  gw = Gateway();  out = gw.handle("call-1", "Customer", "my number is 98450
 """
 import collections
 import concurrent.futures
+import contextlib
 import hashlib
+import json
 import os
 import re
 import threading
@@ -27,6 +29,7 @@ from layer1_detection.detector import Detector
 from layer1_detection.name_memory import NameMemory, _parts as _name_parts
 from layer1_detection.normalise import normalise
 from layer2_vault.core.errors import VaultDenied, VaultError
+from layer2_vault.services.context_service import MAX_BYTES as CONTEXT_MAX_BYTES
 from layer3_gateway import audit as au
 from layer3_gateway import llm as llmmod
 from layer3_gateway import router
@@ -43,6 +46,17 @@ OVERMASK_BLOCK = au.UTILITY_MAX_SHARE   # ... and is BLOCKED above 85% (audit ch
 DETECT_TIMEOUT = 10.0      # seconds; None is NOT allowed to mean 'wait forever'
 MAX_STUCK_DETECTIONS = 3   # abandoned (timed-out) detector calls tolerated before failing closed outright
 HISTORY_TTL = 900.0        # seconds (15 min): everything the gateway remembers about a conversation is dropped after this much idle time (DPDP: no raw text kept longer than needed)
+MAX_MESSAGE_CHARS = int(os.environ.get("GATEWAY_MAX_MESSAGE_CHARS", "4000"))   # a real turn is far shorter (the longest of 210,000 synthetic turns: 392 characters). One huge message must not be able to freeze the process.
+LOCK_STRIPES = 64          # same-conversation requests take one of these locks around memory + tokenise (striped: bounded memory, no clean-up, no lock ordering problem: a request holds one at a time)
+NOT_REMEMBERED = ("empty_or_invalid_input", "invalid_request", "message_too_long")   # reasons whose raw text must never be kept in memory or in the shared context
+_ID = re.compile(r"[A-Za-z0-9_.:\-]{1,128}")
+
+
+def _is_id(v):
+    """Identifiers go into events, stores and the audit chain: only the safe alphabet is accepted (free text in an id would bypass every 'no free text' rule downstream)."""
+    return isinstance(v, str) and _ID.fullmatch(v) is not None
+
+
 LOG_MAX = 10000            # the in-memory (masked) log keeps the newest entries only
 REPLAY_CACHE_MAX = 1000    # this process's local copy of sanitised, TOKENISED replies (bounded). The SOURCE OF TRUTH is the encrypted shared context in the vault (below)
 CONTEXT_REPLIES = 8        # replies per conversation kept in the vault context: enough for a client retrying its last few requests, small enough to stay far below the size cap
@@ -66,6 +80,7 @@ class GatewayState(TypedDict, total=False):
     reason: str
     reply: str              # rehydrated reply for the borrower only (never stored)
     raw_values: list        # raw values masked on the first pass (memory only; used by the audit survival check)
+    issued: list            # tokens the vault issued for THIS message (all attempts): the only token-shaped strings the audit may blank
     audit: str              # clean | retry | fail
     audit_results: dict     # COUNTS per check, never values
     trace: list
@@ -147,6 +162,8 @@ def http_status(reason):
     r = reason or ""
     if r.startswith("consent_denied") or r == "consent_denied":
         return 403
+    if r == "message_too_long":
+        return 413
     if r in ("empty_or_invalid_input", "invalid_request"):
         return 422
     if r in ("over_masking", "residual_pii_after_retries"):
@@ -186,6 +203,7 @@ class Gateway:
         self.name_tokens = {}          # conversation_id -> {name part (casefold): token of the full name}
         self.names = {}                # conversation_id -> NameMemory: parts of detected names, whole conversation (memory only, never logged)
         self._trim_lock = threading.Lock()
+        self._stripes = [threading.Lock() for _ in range(LOCK_STRIPES)]
         self.graph = self._build()
         if sweep_interval:
             self._start_sweeper(sweep_interval)
@@ -206,11 +224,11 @@ class Gateway:
         self.ctx_version.pop(conversation_id, None)
         self.last_seen.pop(conversation_id, None)
         self.owner_of.pop(conversation_id, None)
-        for k in [k for k in list(self.replies) if k[1] == conversation_id]:
+        for k in [k for k in list(self.replies) if k[1] == conversation_id]:           # list(): a C-level copy; iterating the live dict while another thread adds to it raises
             self.replies.pop(k, None)
         self.names.pop(conversation_id, None)
         self.name_tokens.pop(conversation_id, None)
-        for k in [k for k in self.entity_tokens if k[0] == conversation_id]:
+        for k in [k for k in list(self.entity_tokens) if k[0] == conversation_id]:
             self.entity_tokens.pop(k, None)
 
     # ---- the LLM call (stub: replace with llm.make_bedrock_llm(...); it only ever receives masked text)
@@ -218,6 +236,18 @@ class Gateway:
     def _stub_llm(masked_text):
         toks = list(dict.fromkeys(TOKEN.findall(masked_text)))
         return "Thank you. We have noted " + ", ".join(toks) + "." if toks else "Thank you. Noted."
+
+    @contextlib.contextmanager
+    def _stripe(self, cid, wait=30.0):
+        """The lock for one conversation (shared by the conversations that hash to it): taken around the memory + tokenise steps, so two requests of ONE conversation can never swap each
+        other's pending token references (found by review: a name was rehydrated as a phone number). A bounded wait: if it cannot be had the request fails closed."""
+        lock = self._stripes[hash(cid) % LOCK_STRIPES]
+        if not lock.acquire(timeout=wait):
+            raise TimeoutError("conversation_busy")
+        try:
+            yield
+        finally:
+            lock.release()
 
     # ---- nodes -------------------------------------------------------------------------------
     def forget_borrower(self, borrower_id):
@@ -257,11 +287,27 @@ class Gateway:
     # ---- shared conversation context: several gateway processes can serve one conversation ------------------------------------
     def _snapshot(self, cid):
         nm = self.names.get(cid)
-        return {"v": 1, "n": self.turns.get(cid, 0), "history": self.history.get(cid, [])[-HISTORY_TURNS:], "names": dict(nm.parts) if nm else {},
-                "name_tokens": {k: v for k, v in self.name_tokens.get(cid, {}).items() if isinstance(v, str)},
-                "entities": [[k[1], dict(rec)] for k, rec in self.entity_tokens.items() if k[0] == cid and isinstance(rec["token"], str)],
+        snap = {"v": 1, "n": self.turns.get(cid, 0), "history": list(self.history.get(cid, []))[-HISTORY_TURNS:], "names": dict(nm.parts) if nm else {},
+                "name_tokens": {k: v for k, v in list(self.name_tokens.get(cid, {}).items()) if isinstance(v, str)},
+                "entities": [[k[1], dict(rec)] for k, rec in list(self.entity_tokens.items()) if k[0] == cid and isinstance(rec["token"], str)],
                 # sanitised, tokenised replies of the latest requests: lets ANY process answer a client retry without calling the LLM again (stored encrypted, expires, erased with the borrower)
-                "replies": [[k[0], k[2], v] for k, v in self.replies.items() if k[1] == cid and len(v) <= CONTEXT_REPLY_MAX_CHARS][-CONTEXT_REPLIES:]}
+                "replies": [[k[0], k[2], v] for k, v in list(self.replies.items()) if k[1] == cid and len(v) <= CONTEXT_REPLY_MAX_CHARS][-CONTEXT_REPLIES:]}
+        return self._fit(snap)
+
+    def _fit(self, snap):
+        """The vault refuses a context over its size limit, and the refusal was silent (other processes then got no shared context). Drop the OLDEST replies, then the oldest turns, until it fits."""
+        limit, trimmed = CONTEXT_MAX_BYTES - 1024, False
+        while len(json.dumps(snap, ensure_ascii=False, separators=(",", ":")).encode("utf-8")) > limit:
+            if snap["replies"]:
+                snap["replies"].pop(0)
+            elif len(snap["history"]) > 1:
+                snap["history"].pop(0)
+            else:
+                break
+            trimmed = True
+        if trimmed:
+            self.context_stats["trimmed"] += 1
+        return snap
 
     def _apply(self, cid, state):
         if not isinstance(state, dict) or state.get("v") != 1:
@@ -270,8 +316,8 @@ class Gateway:
         self.turns[cid] = int(state.get("n", len(self.history[cid])))
         nm = NameMemory(); nm.parts = dict(state.get("names", {})); self.names[cid] = nm
         self.name_tokens[cid] = dict(state.get("name_tokens", {}))
-        for k in [k for k in self.entity_tokens if k[0] == cid]:
-            self.entity_tokens.pop(k)
+        for k in [k for k in list(self.entity_tokens) if k[0] == cid]:
+            self.entity_tokens.pop(k, None)
         for ent, rec in state.get("entities", []):
             self.entity_tokens[(cid, ent)] = rec
         for req, h, reply in state.get("replies", []):
@@ -318,10 +364,22 @@ class Gateway:
 
     def _initialize(self, st):
         """Start of the request: events, input validation, and the Layer 4 consent / purpose check. A 'no' (or a Layer 4 that cannot answer) blocks before ANY detection."""
-        ev = self.events.begin(st.get("request_id"), st.get("borrower_id"), st.get("purpose"))
+        ids_ok = _is_id(st.get("request_id")) and _is_id(st.get("conversation_id")) and all(st.get(k) is None or _is_id(st.get(k)) for k in ("borrower_id", "consent_id"))
+        ev = self.events.begin(st.get("request_id") if _is_id(st.get("request_id")) else None, st.get("borrower_id") if _is_id(st.get("borrower_id")) else None, st.get("purpose"))
         base = {"_ev": ev, "_t0": time.perf_counter(), "trace": ["initialize"]}
         text = st.get("text", "")
+        if not ids_ok:                                                     # an identifier with free text in it must never reach an event, a store or the audit chain
+            ev.add("L3_STARTED")
+            return {**base, "status": "blocked", "reason": "invalid_request"}
         if not isinstance(text, str) or not text.strip():
+            ev.add("L3_STARTED")
+            return {**base, "status": "blocked", "reason": "empty_or_invalid_input"}
+        if len(text) > MAX_MESSAGE_CHARS:
+            ev.add("L3_STARTED")
+            return {**base, "status": "blocked", "reason": "message_too_long"}
+        try:
+            text.encode("utf-8")
+        except UnicodeEncodeError:                                         # a lone surrogate: it could not be hashed, stored or sent to a model
             ev.add("L3_STARTED")
             return {**base, "status": "blocked", "reason": "empty_or_invalid_input"}
         d = self.consent.check(st.get("borrower_id"), st.get("purpose", "service"), st.get("consent_id"))
@@ -338,6 +396,11 @@ class Gateway:
 
     def _detect(self, st):
         t = time.perf_counter()
+        cid = st["conversation_id"]
+        if st.get("erased"):                                               # the vault says this borrower is erased: nothing about this message may be processed or remembered
+            return {"status": "blocked", "reason": "vault_error:borrower_not_active", "trace": st["trace"] + ["detect"]}
+        self.last_seen.setdefault(cid, self.clock())                       # a TTL clock and an owner exist from the moment any memory is made, even if this message ends up blocked
+        self.owner_of.setdefault(cid, st.get("borrower_id") if st.get("borrower_id") is not None else f"conv:{cid}")
         prior = self.history.get(st["conversation_id"], [])[-HISTORY_TURNS:]
         turns = prior + [{"speaker": st["speaker"], "text": st["text"]}]
         self._stuck = [f for f in self._stuck if not f.done()]
@@ -354,9 +417,10 @@ class Gateway:
         except Exception as e:                           # any detector failure -> fail closed
             return {"status": "blocked", "reason": f"detector_error:{type(e).__name__}", "trace": st["trace"] + ["detect"]}
         self._trim_model_cache()
-        nm = self.names.setdefault(st["conversation_id"], NameMemory())
-        spans = spans + nm.find(st["text"], spans)       # a name said earlier than the window is still masked (source='memory')
-        nm.update(st["text"], spans)
+        with self._stripe(cid):
+            nm = self.names.setdefault(cid, NameMemory())
+            spans = spans + nm.find(st["text"], spans)       # a name said earlier than the window is still masked (source='memory')
+            nm.update(st["text"], spans)
         spans = merge_spans(spans)
         st["_ev"].add("L1_DETECT_COMPLETE", spans=len(spans), ms=round((time.perf_counter() - t) * 1000, 2))
         return {"spans": spans, "trace": st["trace"] + ["detect"]}
@@ -424,41 +488,54 @@ class Gateway:
             parts[k] = fix(parts[k])
             if isinstance(parts[k], _Pending):
                 del parts[k]
-        for k in [k for k in self.entity_tokens if k[0] == cid]:
-            rec = self.entity_tokens[k]
+        for k in [k for k in list(self.entity_tokens) if k[0] == cid]:
+            rec = self.entity_tokens.get(k)
+            if rec is None:
+                continue
             rec["token"] = fix(rec["token"])
             if isinstance(rec["token"], _Pending):
-                del self.entity_tokens[k]
+                self.entity_tokens.pop(k, None)
 
     @staticmethod
-    def _idem_key(request_id, attempt):
-        """Idempotency key for the vault, derived from the gateway request_id: a hash, so any request id (short, odd characters) gives a key the vault accepts and the id itself is not
-        stored there. The attempt number is part of it: an audit retry sends a DIFFERENT batch and must not collide with the first."""
-        import hashlib
-        return f"gw:{hashlib.sha256(str(request_id).encode()).hexdigest()[:32]}:t{attempt}"
+    def _idem_key(borrower_id, conversation_id, request_id, attempt):
+        """Idempotency key for the vault: a hash of borrower + conversation + request id, so a key always fits what the vault accepts and the ids themselves are not stored there. The borrower and
+        conversation are part of it because another borrower reusing the same request id must not collide with (and be refused by) this one. The attempt number is part of it too: an audit
+        retry sends a DIFFERENT batch and must not collide with the first."""
+        h = hashlib.sha256("\x00".join((str(borrower_id), str(conversation_id), str(request_id))).encode()).hexdigest()[:32]
+        return f"gw:{h}:t{attempt}"
 
     def _tokenise(self, st):
         t = time.perf_counter()
         cid, text, rid = st["conversation_id"], st["work_text"], st["request_id"]
         spans = sorted(st.get("spans", []), key=lambda x: x["start"])
         items, deferred, refs = [], [], {}
-        try:
-            known = set(self.vault.tokens(cid)) if any(s.get("token") for s in spans) else set()
-            for s in spans:
-                refs[id(s)] = self._plan_span(st, s, text[s["start"]:s["end"]], known, items, deferred)
-            answers = [tok for tok, _ in self.vault.tokenize_batch(cid, st.get("borrower_id"), st["purpose"], items, idempotency_key=self._idem_key(rid, st.get("retries", 0)), request_id=rid)] if items else []
-            self._settle_refs(cid, answers)
-            resolve = lambda r: answers[r.k] if isinstance(r, _Pending) else r
-            for ref, piece, joined in deferred:
-                self.vault.extend(cid, resolve(ref), piece=piece, joined=joined)
-            masked = substitute(text, spans, {k: resolve(v) for k, v in refs.items()})
-        except VaultError as e:                                       # vault cannot encrypt/store: never send raw
-            self._settle_refs(cid, None)
-            return {"status": "blocked", "reason": f"vault_error:{e.code}", "trace": st["trace"] + ["tokenise"]}
-        except Exception as e:
-            self._settle_refs(cid, None)
-            return {"status": "blocked", "reason": f"vault_error:{type(e).__name__}", "trace": st["trace"] + ["tokenise"]}
-        upd = {"masked_text": masked, "trace": st["trace"] + ["tokenise"]}
+        with self._stripe(cid):                                       # plan -> vault batch -> settle is ONE step per conversation (no other request may see the pending references in between)
+            try:
+                known = set(self.vault.tokens(cid, borrower_id=st.get("borrower_id"))) if any(s.get("token") for s in spans) else set()      # THIS borrower's tokens only
+                for s in spans:
+                    refs[id(s)] = self._plan_span(st, s, text[s["start"]:s["end"]], known, items, deferred)
+                answers = [tok for tok, _ in self.vault.tokenize_batch(cid, st.get("borrower_id"), st["purpose"], items,
+                                                                       idempotency_key=self._idem_key(st.get("borrower_id"), cid, rid, st.get("retries", 0)), request_id=rid)] if items else []
+                self._settle_refs(cid, answers)
+                resolve = lambda r: answers[r.k] if isinstance(r, _Pending) else r
+                for ref, piece, joined in deferred:
+                    self.vault.extend(cid, resolve(ref), piece=piece, joined=joined)
+                resolved = {k: resolve(v) for k, v in refs.items()}
+                masked = substitute(text, spans, resolved)
+            except VaultError as e:                                   # vault cannot encrypt/store: never send raw
+                self._settle_refs(cid, None)
+                out = {"status": "blocked", "reason": f"vault_error:{e.code}", "trace": st["trace"] + ["tokenise"]}
+                if e.code == "borrower_not_active":                    # the vault confirms an erasure: flush everything remembered about this borrower (also when shared_context is off)
+                    self.forget(cid)
+                    self.forget_borrower(st["borrower_id"] if st.get("borrower_id") is not None else f"conv:{cid}")
+                    self.context_stats["erasure_flushed"] += 1
+                    out["erased"] = True
+                return out
+            except Exception as e:
+                self._settle_refs(cid, None)
+                return {"status": "blocked", "reason": f"vault_error:{type(e).__name__}", "trace": st["trace"] + ["tokenise"]}
+        upd = {"masked_text": masked, "trace": st["trace"] + ["tokenise"],
+               "issued": sorted(set(st.get("issued", [])) | {v for v in resolved.values() if isinstance(v, str)})}
         if st.get("retries", 0) == 0:                    # first pass: remember what was masked, for the audit survival check
             upd["raw_values"] = [text[s["start"]:s["end"]] for s in spans]
         st["_ev"].add("L2_TOKENISE_COMPLETE", values=len(items), spans=len(spans), ms=round((time.perf_counter() - t) * 1000, 2), attempt=st.get("retries", 0))
@@ -468,10 +545,18 @@ class Gateway:
         return {"clean": "clean", "retry": "retry"}.get(st.get("audit"), "fail")
 
     def _final_audit(self, st):
+        """Any failure of the audit itself (a broken scanner, an unexpected exception) blocks the message: the audit is a gate, never a best effort."""
+        try:
+            return self._final_audit_checks(st)
+        except Exception as e:
+            st["_ev"].add("L3_AUDIT_FAILED", reason="audit_error")
+            return {"audit": "fail", "status": "blocked", "reason": f"audit_error:{type(e).__name__}", "trace": st["trace"] + ["final_audit"]}
+
+    def _final_audit_checks(self, st):
         """Independent re-scan of the MASKED text. Anything still found is masked again (max 2 retries) or the message is blocked.
         Checks: 1 digit tripwire, 2 spoken-number tripwire, 3 survival (values this turn + values the vault holds), 4 utility (over-masking); extras: second pattern family, Layer-1 rules re-scan."""
         cid, masked, ev = st["conversation_id"], st["masked_text"], st["_ev"]
-        neutral = router._blank(masked)                  # placeholders contain words like NUMBER and digits: blank them (same length) so they cannot trigger the checks
+        neutral = router._blank(masked, st.get("issued", ()))   # blank ONLY the tokens the vault issued for this message (same length): a token-shaped string the user typed stays visible to the checks
         t = st["trace"] + ["final_audit"]
         trip = au.tripwire(neutral)
         digits, spoken = [f for f in trip if f["label"] == "DIGITS"], [f for f in trip if f["label"] == "DIGIT_WORDS"]
@@ -537,9 +622,10 @@ class Gateway:
     def _sanitise(self, st):
         cid = st["conversation_id"]
         try:
-            clean, stats = router.sanitise(st["llm_reply"], self.vault.tokens(cid), self.audit_detector)
-        except VaultError as e:
-            return {"status": "blocked", "reason": f"vault_error:{e.code}", "trace": st["trace"] + ["sanitise"]}
+            clean, stats = router.sanitise(st["llm_reply"], self.vault.tokens(cid, borrower_id=st.get("borrower_id")), self.audit_detector)       # THIS borrower's tokens only
+        except Exception as e:
+            reason = f"vault_error:{e.code}" if isinstance(e, VaultError) else f"sanitise_error:{type(e).__name__}"
+            return {"status": "blocked", "reason": reason, "trace": st["trace"] + ["sanitise"]}
         # the log gets the masked incoming text + the TOKENISED reply, never rehydrated text
         if not st.get("replayed"):
             self._log({"conversation_id": cid, "text": st["masked_text"], "reply_masked": clean, "warnings": st.get("warnings", [])})
@@ -551,9 +637,10 @@ class Gateway:
     def _rehydrate_route(self, st):
         cid = st["conversation_id"]
         try:
-            reply, log_entry = router.route(st["reply_masked"], st.get("audience", "borrower"), lambda toks: self.vault.rehydrate_many(cid, toks))
-        except VaultError as e:
-            return {"status": "blocked", "reply": "", "reason": f"rehydration_failed:{e.code}", "trace": st["trace"] + ["rehydrate_route"]}
+            reply, log_entry = router.route(st["reply_masked"], st.get("audience", "borrower"),
+                                            lambda toks: self.vault.rehydrate_many(cid, toks, borrower_id=st.get("borrower_id"), purpose=st.get("purpose")))     # only THIS borrower's tokens, made for THIS purpose
+        except Exception as e:
+            return {"status": "blocked", "reply": "", "reason": f"rehydration_failed:{e.code if isinstance(e, VaultError) else type(e).__name__}", "trace": st["trace"] + ["rehydrate_route"]}
         return {"reply": reply, "log_entry": log_entry, "status": "ok", "trace": st["trace"] + ["rehydrate_route"]}
 
     def _log(self, entry):
@@ -562,7 +649,7 @@ class Gateway:
             del self.log[: LOG_MAX // 10]                 # keep the newest; the masked log must not grow without limit
 
     def _block(self, st):
-        self._log({"conversation_id": st.get("conversation_id"), "blocked": st.get("reason", "unknown")})
+        self._log({"conversation_id": st.get("conversation_id") if _is_id(st.get("conversation_id")) else None, "blocked": st.get("reason", "unknown")})
         ev = st.get("_ev")
         if ev:
             ev.add("L3_BLOCKED", reason=(st.get("reason", "unknown").split(":")[0]))
@@ -590,11 +677,16 @@ class Gateway:
         """Returns a SANITISED result (no raw input, no raw spans/values, and no residual text for blocked messages).
         internal=True returns the whole graph state (raw data included): for tests/diagnostics inside the trust boundary."""
         t0 = time.perf_counter()
-        out = self.graph.invoke({"request_id": request_id or "gw-" + uuid.uuid4().hex[:12], "conversation_id": conversation_id, "speaker": speaker, "text": text,
-                                 "trace": [], "audience": audience, "borrower_id": borrower_id, "purpose": purpose, "consent_id": consent_id})
+        rid = request_id or "gw-" + uuid.uuid4().hex[:12]
+        try:
+            out = self.graph.invoke({"request_id": rid, "conversation_id": conversation_id, "speaker": speaker, "text": text,
+                                     "trace": [], "audience": audience, "borrower_id": borrower_id, "purpose": purpose, "consent_id": consent_id})
+        except Exception as e:                                                       # fail closed: whatever escaped a node, the message is BLOCKED and the audit trail says so (it used to raise)
+            out = self._crashed(rid, conversation_id, borrower_id, purpose, e)
         if self.clock() - self._last_sweep > min(30.0, self.history_ttl / 4):          # lazy sweep: the idle TTL holds even without the background thread
             self.purge_idle()
-        if isinstance(text, str) and not out.get("replayed") and not out.get("erased") and out.get("reason") not in ("empty_or_invalid_input",) and not str(out.get("reason", "")).startswith("consent"):
+        if (isinstance(text, str) and len(text) <= MAX_MESSAGE_CHARS and not out.get("replayed") and not out.get("erased") and out.get("reason") not in NOT_REMEMBERED
+                and not str(out.get("reason", "")).startswith("consent") and self._encodable(text)):
             h = self.history.setdefault(conversation_id, []); h.append({"speaker": speaker, "text": text}); del h[:-HISTORY_TURNS]     # bounded: only the window is ever used
             self.turns[conversation_id] = self.turns.get(conversation_id, 0) + 1
             self.last_seen[conversation_id] = self.clock()
@@ -624,6 +716,35 @@ class Gateway:
         safe["ms"] = ms
         return safe
 
+    @staticmethod
+    def _encodable(text):
+        try:
+            text.encode("utf-8")
+            return True
+        except UnicodeEncodeError:
+            return False
+
+    def _crashed(self, rid, cid, borrower_id, purpose, exc):
+        """A blocked result for an exception that escaped a node (nothing was sent anywhere unaudited: every node that talks to the model sits behind the audit, which is itself guarded)."""
+        reason = f"gateway_error:{type(exc).__name__}"
+        safe_rid, safe_cid = (rid if _is_id(rid) else None), (cid if _is_id(cid) else None)
+        out = {"status": "blocked", "reason": reason, "reply": "", "request_id": safe_rid, "conversation_id": safe_cid, "trace": ["error"]}
+        try:
+            ev = self.events.begin(safe_rid, borrower_id if _is_id(borrower_id) else None, purpose)
+            ev.add("L3_STARTED")
+            ev.add("L3_BLOCKED", reason="gateway_error")
+            out["_ev"] = ev
+        except Exception:
+            pass
+        if safe_cid is not None:
+            try:
+                with self._stripe(safe_cid, wait=5.0):
+                    self._settle_refs(safe_cid, None)                                # no pending token reference may outlive a crashed request
+            except Exception:
+                pass
+        self._log({"conversation_id": safe_cid, "blocked": reason})
+        return out
+
     def process(self, request: dict) -> dict[str, Any]:
         """The gateway API: {request_id, borrower_id, conversation_id, purpose, text[, speaker, audience, consent_id]} ->
         {status: success|degraded|blocked, borrower_reply, log_entry, request_id[, http_status, reason]}. Blocked answers carry a CODE only, never text."""
@@ -634,8 +755,9 @@ class Gateway:
                         borrower_id=request["borrower_id"], purpose=request["purpose"], consent_id=request.get("consent_id"), request_id=request["request_id"])
         if r["status"] == "blocked":
             reason = r.get("reason", "blocked")
-            return {"status": "blocked", "http_status": http_status(reason), "reason": reason.split(":")[0] if reason.startswith(("consent", "vault_error", "detector_error", "llm_error", "rehydration_failed")) else reason,
-                    "request_id": request["request_id"], "borrower_reply": "", "log_entry": ""}
+            return {"status": "blocked", "http_status": http_status(reason),
+                    "reason": reason.split(":")[0] if reason.startswith(("consent", "vault_error", "detector_error", "llm_error", "rehydration_failed", "gateway_error", "audit_error", "sanitise_error")) else reason,
+                    "request_id": request["request_id"] if _is_id(request["request_id"]) else None, "borrower_reply": "", "log_entry": ""}
         return {"status": "success" if r["status"] == "ok" else r["status"], "request_id": request["request_id"], "borrower_reply": r.get("reply", ""), "log_entry": r.get("log_entry", ""),
                 "pre_llm_ms": r.get("pre_llm_ms")}
 

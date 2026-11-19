@@ -64,12 +64,14 @@ _FMT = re.compile("[\u00ad\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2
 _TAG = re.compile(r"</?(?:br|p|div|span|li|ul|ol|td|tr)\b[^<>]{0,12}>", re.I)                       # layout tags a client may paste between digits
 
 
-def _clean(text):
-    """-> (clean, idx). clean = the text with exotic digits mapped to 0-9 and layout tags blanked (both same length) and invisible format characters REMOVED, so none of them can split a
-    number or a word. idx[i] = position in the ORIGINAL text of clean[i]; None when the two are identical index for index. Findings are mapped back with _back()."""
+def _normal(text):
+    """Exotic digits mapped to 0-9 and layout tags blanked: both ONE character for one character, so positions are unchanged."""
     t = text if text.isascii() else text.translate(_DIGITS)
-    if "<" in t:
-        t = _TAG.sub(lambda m: " " * len(m.group()), t)
+    return _TAG.sub(lambda m: " " * len(m.group()), t) if "<" in t else t
+
+
+def _strip(t):
+    """-> (clean, idx): invisible format characters REMOVED, so none of them can split a number or a word. idx[i] = position in `t` of clean[i]; None when nothing was removed."""
     if t.isascii() or not _FMT.search(t):
         return t, None
     out, idx, pos = [], [], 0
@@ -77,6 +79,10 @@ def _clean(text):
         out.append(t[pos:m.start()]); idx.extend(range(pos, m.start())); pos = m.end()
     out.append(t[pos:]); idx.extend(range(pos, len(t)))
     return "".join(out), idx
+
+
+def _clean(text):
+    return _strip(_normal(text))
 
 
 def _back(idx, a, b):
@@ -170,12 +176,21 @@ def _hit(a, b, rng):
 
 
 def tripwire(text):
-    c, idx = _clean(text)
+    t = _normal(text)
+    c, idx = _strip(t)
     out = []
     for m in _DIGIT_RUN.finditer(c):
         if not _is_amount_or_date(c, m):
             a, b = _back(idx, m.start(), m.end())
             out.append({"label": "DIGITS", "start": a, "end": b, "source": "audit-tripwire"})
+    out += _spoken(c, idx)
+    if idx is not None:                          # invisible characters were present: they may have been used INSIDE words (removed above) or BETWEEN words (a separator): read both ways
+        out += _spoken(_FMT.sub(" ", t), None)
+    return out
+
+
+def _spoken(c, idx):
+    out = []
     excl = _amount_ranges(c)
     run, gap = [], 0
     for m in _TOKEN.finditer(c):

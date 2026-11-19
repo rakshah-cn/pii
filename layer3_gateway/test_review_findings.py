@@ -127,20 +127,20 @@ def test_an_oversized_message_is_refused_before_any_work():
 
 
 def test_the_independent_audit_patterns_take_linear_time_on_hostile_text():
-    for hostile in ("a-" * 2000, "1 " * 2000, "x@" + "a-" * 2000, "a." * 2000, "1" * 4000, "a1-" * 1300, " ".join(["nine"] * 800)):
+    for hostile in ("a-" * 10000, "1 " * 10000, "x@" + "a-" * 10000, "a." * 10000, "1" * 20000, "a1-" * 7000, " ".join(["nine"] * 4000), "1st " * 5000 + "nine " * 5000):
         t0 = time.perf_counter(); au.tripwire(hostile); au.family2(hostile); dt = time.perf_counter() - t0
         assert dt < 0.25, f"{hostile[:12]!r}.. {dt:.2f}s"
 
 
 def test_a_long_context_still_fits_the_vault_size_limit_so_other_processes_keep_the_shared_context():
-    long_turn = "बहुत लंबा संदेश " * 250                                         # ~4,000 Devanagari characters = 3 bytes each
+    long_turn = "बहुत" * 997                                                      # 3,988 Devanagari characters = 3 bytes each: six of them are ~72 KB, over the vault's 64 KB limit
     gw = mk(); vault_saved = []
     real = gw.vault.save_context
     gw.vault.save_context = lambda cid, b, state: (vault_saved.append(json.dumps(state, ensure_ascii=False)), real(cid, b, state))[1]
     for i in range(8):
-        gw.handle("c1", "Customer", long_turn[:3900], borrower_id="A", purpose="collections", request_id=f"R-{i}")
+        gw.handle("c1", "Customer", long_turn, borrower_id="A", purpose="collections", request_id=f"R-{i}")
     assert gw.context_stats["save_failed"] == 0 and gw.context_stats["saved"] == 8, dict(gw.context_stats)
-    assert all(len(s.encode("utf-8")) <= 65536 for s in vault_saved)
+    assert all(len(s.encode("utf-8")) <= 65536 for s in vault_saved) and gw.context_stats["trimmed"] > 0
 
 
 # ============================================================ MEDIUM 5: an erased borrower's name parts stayed in gateway memory
@@ -150,7 +150,7 @@ def _memory(gw):
 
 def test_after_an_erasure_the_next_message_leaves_no_name_parts_in_memory():
     t1, t2 = "Ramesh Kumar here", "Suresh Patil here"
-    gw = mk(detector=ByText({t1: [sp(t1, "Ramesh Kumar", "PERSON")], t2: [sp(t2, "Suresh Patil", "PERSON")]}))
+    gw = mk(detector=ByText({t1: [sp(t1, "Ramesh Kumar", "PERSON", "model")], t2: [sp(t2, "Suresh Patil", "PERSON", "model")]}))
     assert gw.handle("c1", "Customer", t1, borrower_id="A", purpose="collections")["status"] == "ok" and "ramesh" in _memory(gw)
     assert gw.vault.svc.deletion.erase(EraseRequest(job_id="J-1", borrower_id="A"), _ERASURE).status == "COMPLETED"
     out = gw.handle("c1", "Customer", t2, borrower_id="A", purpose="collections")
@@ -160,7 +160,7 @@ def test_after_an_erasure_the_next_message_leaves_no_name_parts_in_memory():
 
 def test_a_vault_that_refuses_a_borrower_makes_the_gateway_forget_that_borrower_even_without_shared_context():
     t1, t2 = "Ramesh Kumar here", "Suresh Patil here"
-    gw = mk(detector=ByText({t1: [sp(t1, "Ramesh Kumar", "PERSON")], t2: [sp(t2, "Suresh Patil", "PERSON")]}), shared_context=False)
+    gw = mk(detector=ByText({t1: [sp(t1, "Ramesh Kumar", "PERSON", "model")], t2: [sp(t2, "Suresh Patil", "PERSON", "model")]}), shared_context=False)
     gw.handle("c1", "Customer", t1, borrower_id="A", purpose="collections")
     gw.vault.svc.deletion.erase(EraseRequest(job_id="J-1", borrower_id="A"), _ERASURE)
     assert gw.handle("c1", "Customer", t2, borrower_id="A", purpose="collections")["status"] == "blocked"
@@ -169,7 +169,7 @@ def test_a_vault_that_refuses_a_borrower_makes_the_gateway_forget_that_borrower_
 
 def test_memory_made_by_a_blocked_message_is_still_covered_by_the_idle_ttl():
     now = [1000.0]; t1 = "Ramesh Kumar here"
-    gw = mk(detector=ByText({t1: [sp(t1, "Ramesh Kumar", "PERSON")]}), clock=lambda: now[0], history_ttl=900, audit_detector=Stub(boom=RuntimeError("audit down")))
+    gw = mk(detector=ByText({t1: [sp(t1, "Ramesh Kumar", "PERSON", "model")]}), clock=lambda: now[0], history_ttl=900, audit_detector=Stub(boom=RuntimeError("audit down")))
     assert gw.handle("c9", "Customer", t1, borrower_id="A", purpose="collections")["status"] == "blocked"       # blocked AFTER detection already stored the name
     assert "ramesh" in _memory(gw)
     now[0] += 901; gw.purge_idle()

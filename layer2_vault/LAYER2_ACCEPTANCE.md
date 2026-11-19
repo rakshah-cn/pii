@@ -1,8 +1,8 @@
 # Layer 2: final acceptance table (after the Phase 1-6 improvements)
 
-Status words: **Done** = built and tested here. **Done, with limits** = built and tested, but a stated limit applies. **Not done** = not built. "Tested" means a test in `tests/` passes on SQLite and PostgreSQL unless noted. Nothing here has been independently reviewed since the earlier adversarial review.
+Status words: **Done** = built and tested here. **Done, with limits** = built and tested, but a stated limit applies. **Not done** = not built. "Tested" means a test in `tests/` passes on SQLite and PostgreSQL unless noted. Phases 1-6 had one independent review round on 20 Nov (three fresh read-only reviewers; findings and fixes in `README.md`, tests in `tests/test_review_findings.py`); it found real defects, all fixed or listed under the limits below. That is one round, not an audit.
 
-Test totals (this machine, final run): **224 passed + 8 skipped on SQLite; 232 passed, 0 skipped on PostgreSQL (with a scratch cluster)**. The 135 tests that existed before the roadmap all still pass. Gateway suite on this vault: 36/37 (the one failure reads the legacy vault's private `_rows`); erasure suite 13/13; legacy vault 24/24.
+Test totals (this machine; 20 Nov, after the independent-review fixes): **263 passed + 10 skipped on SQLite; 273 passed, 0 skipped on PostgreSQL (with a scratch cluster, including the restricted-roles test, which now also runs every app operation as `vault_app` under the tightened grants)**. Earlier totals in this file (224 / 232) are superseded. The 135 tests that existed before the roadmap all still pass. Gateway suite on this vault: 36/37 (the one failure reads the legacy vault's private `_rows`); erasure suite 13/13; legacy vault 24/24.
 
 | Area | Status | Evidence | Remaining limits |
 |---|---|---|---|
