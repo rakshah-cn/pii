@@ -26,7 +26,8 @@ def run(kms, key_id, make_unreachable=None, out=print):
         try:
             ok, detail = fn()
         except Exception as e:
-            ok, detail = False, f"crashed: {type(e).__name__}"
+            code = (getattr(e, "response", None) or {}).get("Error", {}).get("Code")           # AWS error CODE only (AccessDeniedException, NotFoundException ...): never its message, which names accounts and keys
+            ok, detail = False, f"crashed: {type(e).__name__}" + (f" ({code})" if code else "")
         res.append((name, ok, detail)); out(f"[{'PASS' if ok else 'FAIL'}] {name}: {detail}")
     secret = os.urandom(32); box = {}
     def seal():

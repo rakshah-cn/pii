@@ -71,7 +71,7 @@ class FallbackVault:
         return [(rid, float(np.dot(q, v))) for rid, v in rows if len(v) == len(q) and float(np.dot(q, v)) >= threshold]
 
     def find_unmapped_copies(self, borrower_id, search_corpus):
-        return any(k in ("strong", "address", "name_full") for k in self.erasure_scan(borrower_id, [search_corpus]))
+        return any(k in ("strong", "address", "name_full", "name_embedded") for k in self.erasure_scan(borrower_id, [search_corpus]))
 
     def destroy_borrower(self, borrower_id, role="erasure", job_id=None):
         n = len([e for e in self._e if e["borrower_id"] == borrower_id])

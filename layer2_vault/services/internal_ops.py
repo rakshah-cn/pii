@@ -30,6 +30,9 @@ class InternalOps:
 
     # ---- a number said in pieces keeps ONE token: replace its stored value by the joined value
     def extend(self, conversation_id, token, caller, piece=None, joined=None):
+        """Returns the token that now stands for the joined value: `token` itself, or - when the joined value is one this borrower already holds in this conversation (the same number said
+        again, in pieces) - THAT token. In the second case nothing is changed: the piece keeps what was actually said at that moment. (Before, the vault refused with 'value_collision' and the
+        gateway blocked the borrower's message: found by the browser rehearsal of the demo story.)"""
         c = self.ctx
         c.require(caller, "tokenize")
         with c.db.transaction() as tx:
@@ -49,6 +52,10 @@ class InternalOps:
                 return token
             if len(new) > c.settings.max_value_len:
                 raise ValidationFailed("bad_value")                                                               # the same limit tokenise enforces
+            digs = [(row["pii_type"], v, blind_index(c.keys.blind_key(v), row["borrower_id"], row["conversation_id"], row["purpose_id"], row["pii_type"], new)) for v in c.keys.versions]
+            for h in c.repo.find_by_digests_batch(tx, row["borrower_id"], row["conversation_id"], row["purpose_id"], digs).values():
+                if h["vault_id"] != row["vault_id"] and not any(x is not None and x <= now for x in (h["m_expires"], h["r_expires"])):
+                    return h["token"]                                                                             # the same scope, type and value already has a live token: use it
             counter = c.repo.allocate_nonces(tx, key["key_id"], 1, c.settings.key_usage_limit)     # every encryption under a DEK takes a counter, not only first inserts
             nonce, ct = enc.encrypt(dek, new, enc.record_aad(row["borrower_id"], row["conversation_id"], row["vault_id"], row["pii_type"], row["key_id"]), nonce=c.nonces.nonce(counter))
             c.repo.update_cipher(tx, row["vault_id"], ct, nonce)
@@ -118,7 +125,7 @@ class InternalOps:
                                    if r["status"] in LIVE_STATUSES and r["key_id"] == key["key_id"]])    # expired-but-not-yet-deleted data still exists: scan for it too
 
     def erasure_scan(self, borrower_id, texts, caller, mode="values"):
-        """One category per text: 'strong' | 'address' | 'name_full' | 'name_single' | None. mode='collapsed' ignores formatting
+        """One category per text: 'strong' | 'address' | 'name_full' | 'name_embedded' | 'name_single' | None. mode='collapsed' ignores formatting
         (long identifiers only, so only 'strong' or None). Nothing else leaves the vault."""
         mat = self._sealed(borrower_id, caller, "erasure_scan", len(texts))
         out = [mat.classify_collapsed(t) if mode == "collapsed" else mat.classify(t) for t in texts]
@@ -143,7 +150,7 @@ class InternalOps:
 
     def find_unmapped_copies(self, borrower_id, search_corpus, caller):
         """True if `search_corpus` contains this borrower's raw PII (phone / ID code / address / full name). A single bool."""
-        return any(k in ("strong", "address", "name_full") for k in self.erasure_scan(borrower_id, [search_corpus], caller))
+        return any(k in ("strong", "address", "name_full", "name_embedded") for k in self.erasure_scan(borrower_id, [search_corpus], caller))       # conservative: an embedded name still counts as 'maybe a copy remains'
 
     def match_borrower(self, borrower_id, texts, caller, min_len=4):
         """The safer alternative to decrypt_for_erasure: which of these texts still contain any of the borrower's values?

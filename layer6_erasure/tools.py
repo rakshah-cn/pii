@@ -3,7 +3,7 @@ Raw personal values never reach this layer at all: the sealed methods hand text 
 trust boundary and returns only categories, scores or a bool (layer2_vault/core/sealed_match.py).
 
 Evidence kinds:  registry | conversation | derivative | raw_strong | raw_address | raw_name_unique |
-                 raw_name_corroborated | raw_name_ambiguous | embedding_probe | embedding_probe_text
+                 raw_name_corroborated | raw_name_ambiguous | raw_name_embedded | embedding_probe | embedding_probe_text
 Strength:        certain (delete) | probabilistic (delete, flagged in audit) | ambiguous (never auto-deleted)
 """
 from .embed import embed
@@ -23,7 +23,7 @@ def hit(store, rid, evidence, strength, snippet="", score=None):
 # ------------------------------------------------------------------ sealed scanning (matching happens INSIDE the vault)
 class SealedScanner:
     """The agent is BLIND to personal data. Every method here sends store text (or vectors) to the vault and gets back a
-    category per text ('strong' | 'address' | 'name_full' | 'name_single' | None), a score per vector row, or a bool.
+    category per text ('strong' | 'address' | 'name_full' | 'name_embedded' | 'name_single' | None), a score per vector row, or a bool.
     There is no call that returns a borrower's values, so none can reach agent state, traces or the audit record."""
 
     def __init__(self, vault, registry):
@@ -44,15 +44,18 @@ class SealedScanner:
                 out.append(hit(store, rid, "raw_strong", "certain"))
             elif k == "address":
                 out.append(hit(store, rid, "raw_address", "certain"))
-            elif k in ("name_full", "name_single"):
-                # NAME-ONLY matches are weak evidence: a one-word name ('Sanjay') is far too common, and a
-                # full name may be shared. Delete only when something ties the record to THIS borrower.
+            elif k in ("name_full", "name_single", "name_embedded"):
+                # NAME-ONLY matches are weak evidence: a one-word name ('Sanjay') is far too common, a
+                # full name may be shared, and a full name may be only the tail of a LONGER name ('A. Yadav' in
+                # 'Arjun A. Yadav' - another person). Delete only when something ties the record to THIS borrower.
                 if any(c in text for c in convs):
                     out.append(hit(store, rid, "raw_name_corroborated", "certain"))
                 elif k == "name_full" and unique:
                     out.append(hit(store, rid, "raw_name_unique", "certain"))
                 elif k == "name_single":
                     out.append(hit(store, rid, "raw_name_single_token", "ambiguous"))
+                elif k == "name_embedded":
+                    out.append(hit(store, rid, "raw_name_embedded", "ambiguous"))
                 else:
                     out.append(hit(store, rid, "raw_name_ambiguous", "ambiguous"))
         return out
@@ -86,7 +89,7 @@ class SealedScanner:
         kinds = self.vault.erasure_scan(borrower_id, texts) if texts else []
         return [hit("file:" + os.path.relpath(p, root), "-", "unmanaged_file", "ambiguous",
                     "(file holds this borrower's values; no adapter can edit it)")
-                for p, k in zip(paths, kinds) if k in ("strong", "address", "name_full")]
+                for p, k in zip(paths, kinds) if k in ("strong", "address", "name_full", "name_embedded")]
 
     def vector_probe(self, adapters, borrower_id):
         """Nearest-neighbour probe built from the borrower's own identifiers INSIDE the vault (the query vector never leaves it).
@@ -99,7 +102,7 @@ class SealedScanner:
             for rid, score in self.vault.erasure_probe(borrower_id, a.embeddings(), embed, T_LO):
                 text, meta = rows.get(rid, ("", {}))
                 if meta.get("text"):                   # has a payload: exact sweeps already judge it
-                    if score >= T_HI and self.vault.erasure_scan(borrower_id, [text])[0] not in ("strong", "address", "name_full"):
+                    if score >= T_HI and self.vault.erasure_scan(borrower_id, [text])[0] not in ("strong", "address", "name_full", "name_embedded"):
                         out.append(hit(a.name, rid, "embedding_probe_text", "ambiguous", "", score))
                     continue
                 strength = "probabilistic" if score >= T_HI else "ambiguous"

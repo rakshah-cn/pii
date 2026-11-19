@@ -276,6 +276,34 @@ def test_exactly_one_hash_chained_erasure_record_per_request():
     assert audit.verify_chain()[0] and all(r["borrower_hash"] and "B000" not in json.dumps(r) for r in recs)
 
 
+# ---- the name-collision found by the scale evidence (EVIDENCE.md): erasing "A. Yadav" deleted a record of "Arjun A. Yadav"
+def test_a_name_inside_a_longer_name_is_not_a_full_name_match_but_is_still_reported():
+    from layer2_vault.core.sealed_match import SealedMaterial
+    m = SealedMaterial(["A. Yadav"])
+    for text in ("Hello, am I speaking with Arjun A. Yadav?", "Arjun A. Yadav called about EMI", "A. Yadav Singh asked for a callback", "Call note: Priya A. Yadav reachable",
+                 "DEBUG payload name=Arjun A. Yadav mobile=7477050393 status=retry", '{"full_name": "Arjun A. Yadav", "mobile": "x"}', "(Arjun A. Yadav) asked", 'A. Yadav "Singh" noted'):
+        assert m.classify(text) == "name_embedded", text                                          # inside a longer capitalised name: probably someone else
+    for text in ("Hello, am I speaking with A. Yadav?", "Call note: A. Yadav reachable on the phone", "DEBUG payload name=A. Yadav mobile=1", "Summarise the repayment history of A. Yadav", '{"full_name": "A. Yadav", "mobile": "x"}',
+                 "Dear A. Yadav, thanks", "Mr A. Yadav asked", "Customer: A. Yadav", "a. yadav", "A. Yadav 9845012345 loan", "Thanks A. Yadav"):
+        assert m.classify(text) == "name_full", text                                              # the name stands on its own (or next to a title / greeting / punctuation)
+    assert m.classify("one A. Yadav here and later Arjun A. Yadav") == "name_full", "any clean occurrence is enough"
+    assert SealedMaterial(["Arjun A. Yadav"]).classify("Hello, am I speaking with Arjun A. Yadav?") == "name_full"
+
+
+def test_another_borrowers_longer_name_is_not_deleted_and_the_request_is_partial():
+    root, vault, reg, audit, app, truth = _setup()
+    b = next(k for k, t in truth["borrowers"].items() if len(t["values"]["name"].split()) >= 2 and not reg.borrowers_sharing_name(k))
+    name = truth["borrowers"][b]["values"]["name"]
+    st = adapters.JsonlStore(os.path.join(root, "logs.jsonl"), "logs", "logs")
+    st.put({"id": "LX-OTHER", "conversation_id": None, "text": f"Hello, am I speaking with Zubin {name}?", "consent": {"purpose": "service"}})     # a DIFFERENT person whose name ends with this one
+    st.put({"id": "LX-OWN", "conversation_id": None, "text": f"Summarise the repayment history of {name}", "consent": {"purpose": "service"}})           # this borrower's own name-only copy
+    out = erase(app, _req(b))
+    pres = present(root)["logs"]
+    assert "LX-OTHER" in pres, "another person's record must survive"
+    assert "LX-OWN" not in pres, "this borrower's own clean name-only copy is still erased"
+    assert out["status"] == "PARTIAL" and any(u["id"] == "LX-OTHER" and u["reason"] == "raw_name_embedded" for u in out["record"]["unresolved"]), out["record"]["unresolved"]
+
+
 if __name__ == "__main__":
     n = 0
     for k, v in sorted(globals().items()):

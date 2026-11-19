@@ -293,6 +293,21 @@ def test_stuck_llm_calls_are_capped_instead_of_piling_up_threads():
     gate.set()
 
 
+# ============================================================ found by the browser rehearsal (the demo story): repeating a number in pieces was BLOCKED
+def test_a_number_repeated_in_pieces_is_joined_to_the_token_it_already_has_instead_of_blocking():
+    from layer1_detection.detector import Detector
+    seen = []
+    gw = Gateway(detector=Detector(use_rules=True, use_model=False), audit_detector=Detector(use_rules=True, use_model=False), llm=lambda m: (seen.append(m), "noted " + m)[1], sweep_interval=None)
+    say = lambda text: gw.handle("c1", "Customer", text, borrower_id="B1", purpose="collections", internal=True)
+    a = say("Hi, my mobile number is 9845012345.")
+    b = say("Sure, my number is nine eight four five")
+    c = say("zero one two three four five")
+    assert a["status"] == b["status"] == c["status"] == "ok", (a.get("reason"), b.get("reason"), c.get("reason"))
+    assert "<PHONE_1>" in a["masked_text"] and "<PHONE_2>" in b["masked_text"] and c["masked_text"] == "<PHONE_1>", (a["masked_text"], b["masked_text"], c["masked_text"])
+    assert "9845012345" in c["reply"], "the borrower's reply to the last piece carries the whole number"
+    assert not any(re.search(r"\d{4}|nine|zero", s.lower()) for s in seen), seen
+
+
 if __name__ == "__main__":
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     bad = 0

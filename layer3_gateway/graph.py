@@ -518,9 +518,16 @@ class Gateway:
                                                                        idempotency_key=self._idem_key(st.get("borrower_id"), cid, rid, st.get("retries", 0)), request_id=rid)] if items else []
                 self._settle_refs(cid, answers)
                 resolve = lambda r: answers[r.k] if isinstance(r, _Pending) else r
+                merged = {}
                 for ref, piece, joined in deferred:
-                    self.vault.extend(cid, resolve(ref), piece=piece, joined=joined)
-                resolved = {k: resolve(v) for k, v in refs.items()}
+                    cur = resolve(ref)
+                    got = self.vault.extend(cid, cur, piece=piece, joined=joined)
+                    if isinstance(got, str) and got != cur:                  # the number, put together, is one already held under another token: THAT token stands for it from now on
+                        merged[cur] = got
+                        for key, rec in list(self.entity_tokens.items()):
+                            if key[0] == cid and rec.get("token") == cur:
+                                rec["token"] = got
+                resolved = {k: merged.get(resolve(v), resolve(v)) for k, v in refs.items()}
                 masked = substitute(text, spans, resolved)
             except VaultError as e:                                   # vault cannot encrypt/store: never send raw
                 self._settle_refs(cid, None)

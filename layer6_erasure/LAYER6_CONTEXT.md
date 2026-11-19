@@ -142,7 +142,10 @@ is only as good as the discovery methods behind it. "Verified" means "I looked w
 3. **The embedding is a mock** (hashed bag-of-words, `embed.py`). A real learned embedding model behaves differently; there the probe
    is a candidate generator only (the code already treats it that way: probabilistic hits are flagged).
 4. **Names are the weak spot.** Name-only copies are deleted only with corroboration. A real borrower with a common name will
-   often finish PARTIAL. That is intended, and it needs a human.
+   often finish PARTIAL. That is intended, and it needs a human. **Name inside a longer name (fixed 20 Nov, found by the scale evidence):** erasing "A. Yadav" once deleted another borrower's record that said "Arjun A. Yadav"
+   (1 wrong deletion at 3,000 borrowers). The vault matcher now returns `name_embedded` when the full name is only part of a longer CAPITALISED name (a capitalised word or an initial touching it, that is not a
+   title / greeting / role word) and Layer 6 reports that record as ambiguous (`raw_name_embedded`, status PARTIAL) instead of deleting it. LIMITS: it needs capital letters, so Devanagari / Kannada / Tamil and
+   all-lowercase text still match as a plain full name; in ALL-CAPS text any neighbouring word counts; records tied to the borrower by a conversation id or the lineage registry are still deleted either way.
 5. **Verify is blind to anything the methods cannot see** (section 5): an encrypted blob, an image, a screenshot, a format no
    adapter reads (only flagged if raw bytes match), a store outside the root directory.
 6. **Backups and replicas are out of reach.** A database backup taken before the erasure still holds the old wrapped key; with

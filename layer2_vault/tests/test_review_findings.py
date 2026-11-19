@@ -262,5 +262,19 @@ def test_a_second_process_indexes_new_values_under_the_rotated_blind_index_versi
     again = p2.tokenizer.tokenize(tok_req(PH, [("PHONE", PH)], rid="c"), g); assert again.mappings[0].token == "<PHONE_1>" and len(q(p1, "SELECT 1 FROM vault_records")) == 2, "same value, same token"
 
 
+# ---- found by the browser rehearsal: a number said again in pieces, which joins to a value already held in the conversation, blocked the message (value_collision)
+def test_joining_pieces_into_a_value_the_conversation_already_holds_hands_back_that_token():
+    s, v = make(); g = who(s, GW)
+    t1 = v.tokenizer.tokenize(tok_req(f"call {PH}", [("PHONE", PH)], rid="a"), g).mappings[0].token                    # the whole number, said once
+    t2 = v.tokenizer.tokenize(tok_req("it is 9845", [("PHONE", "9845")], rid="b"), g).mappings[0].token                # the first piece of the same number, said again
+    assert t1 != t2 and len(q(v, "SELECT 1 FROM vault_records")) == 2
+    assert v.internal.extend("C1", t2, g, joined=PH) == t1, "the joined number already has a token: use it"
+    assert v.rehydration.rehydrate(reh_req([t2]), g).values == {t2: "9845"}, "the piece keeps what was actually said at that moment"
+    assert len(q(v, "SELECT 1 FROM vault_records")) == 2 and len(q(v, "SELECT 1 FROM blind_indexes")) == 2, "no extra record, no index change"
+    t3 = v.tokenizer.tokenize(tok_req("again 98111", [("PHONE", "98111")], rid="c"), g).mappings[0].token
+    assert v.internal.extend("C1", t3, g, joined="9811122233") == t3, "a joined value nobody holds yet is still extended in place"
+    assert v.rehydration.rehydrate(reh_req([t3]), g).values == {t3: "9811122233"}
+
+
 if __name__ == "__main__":
     run(globals())
