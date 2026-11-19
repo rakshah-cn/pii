@@ -172,7 +172,7 @@ compat.py  ModularVault adapter so old callers (gateway, L6, L8) work unchanged
 **Run:** `python -m layer2_vault.tests.run_all` (SQLite). PostgreSQL: set `VAULT_TEST_DB_URL='postgresql://USER@/DB?host=/var/run/postgresql'`; add `VAULT_TEST_SUPER_URL` (a scratch cluster where you are superuser) to also run the restricted-roles and cross-cluster restore tests, otherwise they are reported SKIPPED. Benchmark: `python -m layer2_vault.benchmark`.
 
 **Measured:** 234 tests pass on SQLite (9 skipped), 242 on PostgreSQL. 50 values on PostgreSQL ~5 ms per request. At 16 concurrent clients on one process, tokenisation alone reached p99 43-84 ms.
-**Limits:** real AWS KMS untested (fake client only); decrypted master secret sits in process memory; PostgreSQL tested locally only (unix socket, no TLS, no replication); roles SQL not DBA-reviewed; backup scheduling and key custody are the operator's job and a restore undoes later erasures until replayed from the L7 chain; nonce uniqueness after a DB restore is only probabilistically defended (rotate DEKs after a restore); auth is static bearer tokens (in-memory throttle, no mTLS/OIDC); conversation-scope erase is not a crypto-shred; Python cannot zero key memory.
+**Limits:** real AWS KMS tested once (20 Nov, 8/8 smoke checks; least-privilege key policy, throttling, failover unverified); decrypted master secret sits in process memory; PostgreSQL tested locally only (unix socket, no TLS, no replication); roles SQL not DBA-reviewed; backup scheduling and key custody are the operator's job and a restore undoes later erasures until replayed from the L7 chain; nonce uniqueness after a DB restore is only probabilistically defended (rotate DEKs after a restore); auth is static bearer tokens (in-memory throttle, no mTLS/OIDC); conversation-scope erase is not a crypto-shred; Python cannot zero key memory.
 
 ---------------------------------------------------------------------------------------------------
 
@@ -311,7 +311,7 @@ Receives: gateway events (L3), consent write events (L4), erasure records (L6).
 1. All numbers are synthetic or mock. Hidden-corpus scores will be lower by an unknown amount. Names (92.8% fully masked) and addresses (90.5%) are the weakest types; 2.0% of gold values leak end to end (names 8 of 11 leaks).
 2. The 5th language is our guess (Marathi); word lists and templates are not native-reviewed.
 3. Erasure stores and the embedding are MOCKS; the real layout was never provided.
-4. Real AWS KMS, real Bedrock at volume, and real PostgreSQL deployment (TLS, replication, DBA review) are untested.
+4. Real AWS KMS was tested once (20 Nov, 8/8 smoke checks; not least-privilege policy, throttling or failover); real Bedrock at volume and real PostgreSQL deployment (TLS, replication, DBA review) are untested.
 5. The 50 ms budget holds at about 4 concurrent clients per process on 16 cores; beyond that add cores or machines (output stays identical across processes).
 6. L4 has no consent registry; L5 is not wired into the gateway; L7 `append` is O(n); no write freeze or trigger endpoint for erasure; backups undo erasures until replayed.
 7. Synthetic data caveats: PII-free share 16.5% (target 30%), thin test/final cells, `corpus_final` still untouched (keep it that way until the final measurement).

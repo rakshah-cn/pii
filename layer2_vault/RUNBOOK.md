@@ -25,7 +25,7 @@ Useful checks (all read-only):
 **You:** restore access to the key (KMS key policy / IAM role / the secret in the environment) and restart. **Do not** create a replacement secret.
 **Verify:** `GET /vault/health` -> `key_material: true`; rehydrate a known token.
 **Tests:** `test_missing_master_key_blocks_encryption_and_rehydration_and_health_says_so`, `test_the_kms_provider_unseals_the_master_secret_and_fails_closed_otherwise`, `test_a_revoked_key_version_fails_closed...`, `test_a_restored_backup_with_an_unloaded_master_version_stays_unreadable`.
-**Not covered:** real AWS KMS (the provider is tested against a fake client only: key policy, encryption-context condition, throttling and regional failover are unverified).
+**Not covered:** real AWS KMS was exercised once (20 Nov, 8 of 8 checks, see the KMS section below); a least-privilege key policy with the encryption-context condition, throttling, regional failover and CloudTrail alerting are still unverified.
 
 ## 3. KEK rotation fails (or you want to migrate to a new master secret version)
 Procedure (all versions you need must be loaded: `VAULT_MASTER_KEY_V1`, `VAULT_MASTER_KEY_V2`):
@@ -86,8 +86,9 @@ A backup is the past. **Restoring it undoes every erasure made after it** - test
 
 ---
 
-## Managed key protection: plan for AWS KMS (built and tested only against a fake KMS client)
+## Managed key protection: AWS KMS (tested against a fake client and once against real AWS KMS)
 **What exists:** `AwsKmsMasterKeyProvider`. The master secret is stored only as a KMS-encrypted blob (`VAULT_KMS_CIPHERTEXT_V<n>`, base64) bound to an encryption context (`app`, `purpose`, `version`), so a blob cannot be replayed as another version. At start-up the process calls `kms:Decrypt`; if KMS is unreachable the vault does not start.
+**Real run (20 Nov):** `python -m layer2_vault.ops.kms_smoke_test` passed 8 of 8 against a real key (symmetric, ap-southeast-2; the IAM user was both key administrator and user; no encryption-context condition). One Decrypt took about 205 ms from this machine, paid once at start-up: for the real deployment create the key in **ap-south-1**. Create it in the console (KMS -> Customer managed keys -> Create key -> Symmetric -> Encrypt and decrypt) and run the test with `AWS_DEFAULT_REGION=<the key's region> VAULT_KMS_KEY_ID=<key id>`; the key id only exists in the region it was created in.
 **Steps to adopt:**
 1. Create a symmetric customer-managed KMS key; key policy lets the vault's IAM role `kms:Decrypt` only, with a condition on the encryption context; operators get `kms:Encrypt` for provisioning only.
 2. Run `seal_master_secret(kms_client, key_id, version, secret)` once; store the output as `VAULT_KMS_CIPHERTEXT_V1` and set `VAULT_KMS_KEY_ID`; **remove `VAULT_MASTER_KEY`** from the environment and from every file.

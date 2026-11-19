@@ -6,7 +6,8 @@ key (create one first with `aws kms create-key`, ~$1/month, deletion waits 7 day
   3 a blob replayed under another version's context is refused         4 a tampered blob is refused         5 the wrong key id is refused
   6 an unreachable KMS endpoint fails closed and leaks no endpoint / key id        7 the vault starts from KMS-sealed config only (no VAULT_MASTER_KEY) and round-trips a value
   8 how long one Decrypt takes (the start-up cost of the design)
-The same checks run offline against a fake client in tests/test_crypto_lifecycle.py, so the LOGIC is tested; only the real service behaviour needs this script."""
+The same checks run offline against a fake client in tests/test_crypto_lifecycle.py, so the LOGIC is tested; only the real service behaviour needs this script.
+RESULT 20 Nov: 8 of 8 PASS against real AWS KMS (ap-southeast-2; check 6 simulates an unreachable endpoint, it is not a real AWS outage)."""
 import base64
 import os
 import statistics
