@@ -1,5 +1,7 @@
 """Layer 3 spec tests: consent gate, batch tokenise + idempotency, the 4-part audit and the fail-closed matrix, LLM timeout handling, sanitise / route, Layer 7 events.
 Run from the project root:   python -m layer3_gateway.test_gateway_spec        (stub detector: these test the guardrails, not detection quality)"""
+import os
+os.environ.setdefault("VAULT_ALLOW_EPHEMERAL", "1")      # these tests use throw-away vaults on purpose; test_gateway_spec checks the refusal
 import json
 import os
 import re
@@ -485,6 +487,15 @@ def test_an_amount_with_rs_and_an_ordinal_is_quiet_but_a_phone_number_never_hide
         assert not au.tripwire(quiet), quiet
     for loud in ("pay Rs 9845012345 now", "Rs. 9845012345", "INR 9845012345", "call 9845012345th", "pay \u20b99845012345"):
         assert any(f["label"] == "DIGITS" for f in au.tripwire(loud)), loud
+
+
+def test_a_gateway_without_vault_configuration_refuses_to_start_instead_of_using_a_throwaway_vault():
+    from layer2_vault.tests.test_secure_defaults import env
+    with env(VAULT_MASTER_KEY=None, VAULT_ALLOW_EPHEMERAL=None, VAULT_DB_PATH=None, VAULT_DB_URL=None):
+        try:
+            Gateway(detector=Stub(), audit_detector=Stub()); raise AssertionError("a default gateway must not start without a configured vault")
+        except RuntimeError as e:
+            assert "VAULT_MASTER_KEY" in str(e)
 
 
 # ---------------------------------------------------------------- vault swap, status mapping

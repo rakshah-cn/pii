@@ -89,7 +89,7 @@ def get_vault():
     """Returns (vault, 'modular'|'fallback'). The modular, database-backed Layer 2 vault (VaultClient: the gateway's client) is used when it works; otherwise the mock."""
     try:
         from layer3_gateway.vault_client import VaultClient
-        v = VaultClient()
+        v = VaultClient(ephemeral=True)          # demo / test vault: uses VAULT_MASTER_KEY and the database path if set, otherwise an explicit throw-away one
         if all(hasattr(v, m) for m in NEEDED):
             return v, "modular"
     except Exception:

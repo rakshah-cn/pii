@@ -7,6 +7,8 @@ from layer2_vault.schemas.vault_schemas import DetectedEntity, EraseRequest, Reh
 from layer2_vault.services import build_services
 
 RT = "tok-retention-0000000000000"
+import os as _os
+_os.environ.setdefault("VAULT_ALLOW_EPHEMERAL", "1")                # the test suites use throw-away vaults on purpose (test_secure_defaults checks the refusal)
 GW, ER, LI, KO, AU = ("tok-gateway-0000000000000000", "tok-erasure-0000000000000000", "tok-lineage-0000000000000000",
                       "tok-keyops-00000000000000000", "tok-audit-00000000000000000")
 

@@ -153,7 +153,7 @@ class Gateway:
                  consent=None, events=None, llm_timeout=llmmod.DEFAULT_TIMEOUT, shared_context=True):
         self.detector = detector or make_detector(model=True)
         self.audit_detector = audit_detector or Detector(use_rules=True, use_model=False)  # fast, deterministic
-        self.vault = self._as_client(vault) if vault is not None else VaultClient(path=os.environ.get("VAULT_DB_PATH"))   # the modular, database-backed Layer 2 vault
+        self.vault = self._as_client(vault) if vault is not None else VaultClient()   # the modular, database-backed Layer 2 vault: needs VAULT_MASTER_KEY + VAULT_DB_URL / VAULT_DB_PATH (or an explicit dev opt-out)
         self.consent = consent or ConsentGate()                                            # Layer 4
         self.events = events or Events()                                                   # Layer 7 (in-memory sink by default)
         self.llm = llm or self._stub_llm

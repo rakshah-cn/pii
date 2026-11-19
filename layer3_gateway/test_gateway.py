@@ -1,6 +1,8 @@
 """Graph-logic tests with a STUB detector (fast, no model). They check the guardrails, not detection quality.
 Run from the project root:   python -m layer3_gateway.test_gateway
 """
+import os
+os.environ.setdefault("VAULT_ALLOW_EPHEMERAL", "1")      # these tests use throw-away vaults on purpose; test_gateway_spec checks the refusal
 import time
 
 import json

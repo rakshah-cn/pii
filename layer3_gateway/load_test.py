@@ -69,7 +69,7 @@ def main():
     L = ["# Gateway under concurrent load", "", f"Machine: {platform.machine()}, {os.cpu_count()} CPUs. {len(rows)} conversations ({sum(len(r['turns']) for r in rows)} messages) from data/corpus_test.jsonl (synthetic), "
          "one gateway process, N client threads. Real detector with the model cache defeated (every message runs the model). LLM stubbed. 'pre-LLM' = entry -> LLM boundary (the 50 ms budget); 'wall' = time the caller waits per message incl. queueing.", ""]
     fps = {}
-    backends = [("File SQLite (WAL)", lambda: (VaultClient(path=os.path.join(tempfile.mkdtemp(), "g.db"))))]
+    backends = [("File SQLite (WAL)", lambda: (VaultClient(path=os.path.join(tempfile.mkdtemp(), "g.db"), ephemeral=True)))]
     if a.pg:
         from layer2_vault.config.settings import Settings
         backends.append(("PostgreSQL 16, pooled (min 4 / max 16)", lambda: VaultClient(settings=Settings.for_testing(db_url=a.pg + ("&" if "?" in a.pg else "?") + "pool_min=4&pool_max=16&schema=ld_" + uuid.uuid4().hex[:8]))))

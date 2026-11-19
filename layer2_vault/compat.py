@@ -1,11 +1,14 @@
 """ModularVault: the legacy single-file Vault interface (put/get/tokens/extend/scan_text/entries_for_borrower/...) implemented on top
 of the new modular services, so the gateway (Layer 3) and erasure agent (Layer 6) can run on it unchanged.
 This adapter runs IN-PROCESS with trusted identities; it is an integration shim, NOT an authentication boundary.
-Differences from the legacy vault: consent_id / source are not stored here (Layer 4 / Layer 5 own those); a missing master secret
-is an error (no session key); get() returns None instead of raising when the token cannot be rehydrated."""
+Differences from the legacy vault: consent_id / source are not stored here (Layer 4 / Layer 5 own those); get() returns None
+instead of raising when the token cannot be rehydrated.
+SAFE BY DEFAULT: without services/settings it REFUSES to start unless a master secret (VAULT_MASTER_KEY) and a database
+(VAULT_DB_URL, VAULT_DB_PATH or path=) are configured - it never invents a random key or an in-memory database (data would vanish
+on restart). Tests and demos opt out explicitly: ephemeral=True or VAULT_ALLOW_EPHEMERAL=1."""
 import uuid
 
-from .config.settings import ServiceIdentity, Settings
+from .config.settings import ServiceIdentity, ServiceRegistry, Settings
 from .core.errors import VaultDenied, VaultError, VaultUnavailable
 from .schemas.vault_schemas import EraseRequest, RehydrateRequest
 from .services import build_services
@@ -15,15 +18,23 @@ _ERASURE = ServiceIdentity("compat-erasure", frozenset({"erase", "erasure_sweep"
 
 
 class ModularVault:
-    def __init__(self, master_key: bytes = None, path: str = None, services=None, settings=None):
+    def __init__(self, master_key: bytes = None, path: str = None, services=None, settings=None, ephemeral: bool = False):
         if services is None:
             import os
-            if master_key is None and os.environ.get("VAULT_MASTER_KEY"):
+            if settings is None:                                                  # an explicit Settings object is the caller's own configuration: used as given
                 from .config.settings import decode_secret
-                master_key = decode_secret(os.environ["VAULT_MASTER_KEY"])         # the same secret the project keeps in .env
-            settings = settings or Settings.for_testing(master_secrets={1: master_key or os.urandom(32)},
-                                                        db_url=f"sqlite:///{path}" if path else "sqlite:///:memory:",
-                                                        rehydrate_policy={p: frozenset({"borrower_reply"}) for p in ("service", "collections", "collection", "compliance", "analytics", "model_improvement")})
+                ephemeral = ephemeral or os.environ.get("VAULT_ALLOW_EPHEMERAL") == "1"
+                if master_key is None and os.environ.get("VAULT_MASTER_KEY"):
+                    master_key = decode_secret(os.environ["VAULT_MASTER_KEY"])     # the same secret the project keeps in .env
+                db_url = os.environ.get("VAULT_DB_URL") or (f"sqlite:///{path or os.environ['VAULT_DB_PATH']}" if (path or os.environ.get("VAULT_DB_PATH")) else None)
+                if not ephemeral:
+                    if master_key is None:
+                        raise RuntimeError("VAULT_MASTER_KEY is not set: refusing to start a vault with a throw-away key (set it; tests and demos may pass ephemeral=True or set VAULT_ALLOW_EPHEMERAL=1)")
+                    if db_url is None:
+                        raise RuntimeError("No vault database is configured (VAULT_DB_URL or VAULT_DB_PATH): refusing to use an in-memory database that would lose everything on restart "
+                                           "(tests and demos may pass ephemeral=True or set VAULT_ALLOW_EPHEMERAL=1)")
+                settings = Settings(master_secrets={1: master_key or os.urandom(32)}, db_url=db_url or "sqlite:///:memory:", registry=ServiceRegistry(),
+                                    rehydrate_policy={p: frozenset({"borrower_reply"}) for p in ("service", "collections", "collection", "compliance", "analytics", "model_improvement")}).validate()
             services = build_services(settings)
         self.svc = services
 

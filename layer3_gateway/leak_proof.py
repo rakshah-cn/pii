@@ -71,7 +71,7 @@ def load_rows(n, seed, path="data/corpus_test.jsonl"):
 
 
 def replay(rows, detector, off=(), mode="single"):
-    vault = VaultClient()
+    vault = VaultClient(ephemeral=True)
     mk = lambda: Gateway(detector=detector, audit_detector=Detector(use_rules=True, use_model=False), vault=vault, llm=lambda m: "ok")
     by_type, by_render = collections.defaultdict(lambda: [0, 0, 0]), collections.defaultdict(lambda: [0, 0, 0])
     msgs = blocked = retried = fam2 = rescan = 0

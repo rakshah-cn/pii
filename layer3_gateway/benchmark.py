@@ -69,7 +69,7 @@ def main():
     L = ["# Layer 3 gateway: latency to the LLM boundary", "", f"Machine: {platform.machine()}, {os.cpu_count()} CPUs. Detector = the gateway's own configuration (rules + spoken engine + Chitragupta int8, model on the newest turn). "
          "Synthetic dev conversations, fake values. LLM stubbed and not timed. Budget: p95 < 50 ms.", ""]
     with tempfile.TemporaryDirectory() as d:
-        l, s1 = run_backend("File SQLite (WAL)", VaultClient(path=f"{d}/gw.db"), rows, detector); L += l
+        l, s1 = run_backend("File SQLite (WAL)", VaultClient(path=f"{d}/gw.db", ephemeral=True), rows, detector); L += l
     if a.pg:
         from layer2_vault.config.settings import Settings
         url = a.pg + ("&" if "?" in a.pg else "?") + "pool_min=4&pool_max=16&schema=gwb_" + uuid.uuid4().hex[:8]
