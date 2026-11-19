@@ -23,9 +23,10 @@ class VaultClient(ModularVault):
         return self.svc.tokenizer.tokenize_values(self._owner(borrower_id, conversation_id), conversation_id, purpose, [tuple(i) for i in items],
                                                   _GATEWAY, request_id, idempotency_key)
 
-    def load_context(self, conversation_id, borrower_id, newer_than=None):
-        """Shared conversation context from the vault (encrypted there): None | (version, None) if unchanged since `newer_than` | (version, state)."""
-        return self.svc.context.load(self._owner(borrower_id, conversation_id), conversation_id, _GATEWAY, newer_than)
+    def load_context(self, conversation_id, borrower_id, newer_than=None, strict=False):
+        """Shared conversation context from the vault (encrypted there): None | (version, None) if unchanged since `newer_than` | (version, state).
+        strict=True raises VaultDenied('borrower_not_active') for a borrower that is erased / being erased."""
+        return self.svc.context.load(self._owner(borrower_id, conversation_id), conversation_id, _GATEWAY, newer_than, strict)
 
     def save_context(self, conversation_id, borrower_id, state):
         return self.svc.context.save(self._owner(borrower_id, conversation_id), conversation_id, state, _GATEWAY)

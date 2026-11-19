@@ -18,6 +18,7 @@ import re
 import threading
 import time
 import uuid
+import weakref
 from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -25,7 +26,7 @@ from langgraph.graph import END, START, StateGraph
 from layer1_detection.detector import Detector
 from layer1_detection.name_memory import NameMemory, _parts as _name_parts
 from layer1_detection.normalise import normalise
-from layer2_vault.core.errors import VaultError
+from layer2_vault.core.errors import VaultDenied, VaultError
 from layer3_gateway import audit as au
 from layer3_gateway import llm as llmmod
 from layer3_gateway import router
@@ -41,6 +42,8 @@ OVERMASK_WARN = 0.6        # a message longer than 20 characters whose tokenised
 OVERMASK_BLOCK = au.UTILITY_MAX_SHARE   # ... and is BLOCKED above 85% (audit check 4)
 DETECT_TIMEOUT = 10.0      # seconds; None is NOT allowed to mean 'wait forever'
 MAX_STUCK_DETECTIONS = 3   # abandoned (timed-out) detector calls tolerated before failing closed outright
+HISTORY_TTL = 900.0        # seconds (15 min): everything the gateway remembers about a conversation is dropped after this much idle time (DPDP: no raw text kept longer than needed)
+LOG_MAX = 10000            # the in-memory (masked) log keeps the newest entries only
 REPLAY_CACHE_MAX = 1000    # sanitised, TOKENISED replies kept so a retried request does not call the LLM again (bounded; lost on restart)
 MODEL_CACHE_MAX = 2000     # Layer 1's model keeps an in-memory result cache that is ALWAYS on (use_cache=False only stops the disk copy): bounded here so a long-running gateway cannot grow without limit
 SAFE_KEYS = ("request_id", "conversation_id", "status", "reason", "masked_text", "reply", "reply_masked", "log_entry", "trace", "retries",
@@ -73,6 +76,7 @@ class GatewayState(TypedDict, total=False):
     warnings: list
     llm_reply: str
     replayed: bool          # True when the reply came from the retry cache (the LLM was not called again)
+    erased: bool            # the vault says this borrower is erased / being erased: nothing about this message may be remembered
     reply_masked: str       # the tokenised reply: this is what gets logged
     log_entry: str
     pre_llm_ms: float       # entry -> LLM dispatch boundary (the 50 ms budget covers this)
@@ -150,7 +154,8 @@ def http_status(reason):
 
 class Gateway:
     def __init__(self, detector=None, audit_detector=None, vault=None, llm=None, detect_timeout=DETECT_TIMEOUT, overmask_action="block",
-                 consent=None, events=None, llm_timeout=llmmod.DEFAULT_TIMEOUT, shared_context=True):
+                 consent=None, events=None, llm_timeout=llmmod.DEFAULT_TIMEOUT, shared_context=True,
+                 history_ttl=HISTORY_TTL, sweep_interval=60.0, clock=None):
         self.detector = detector or make_detector(model=True)
         self.audit_detector = audit_detector or Detector(use_rules=True, use_model=False)  # fast, deterministic
         self.vault = self._as_client(vault) if vault is not None else VaultClient()   # the modular, database-backed Layer 2 vault: needs VAULT_MASTER_KEY + VAULT_DB_URL / VAULT_DB_PATH (or an explicit dev opt-out)
@@ -169,10 +174,17 @@ class Gateway:
         self.shared_context = shared_context and hasattr(self.vault, "load_context")
         self.ctx_version = {}          # conversation_id -> version of the shared context this process last saw / wrote
         self.context_stats = collections.Counter()
+        self.clock = clock or time.monotonic
+        self.history_ttl = history_ttl
+        self.last_seen = {}            # conversation_id -> clock() of its last processed message (drives the idle TTL)
+        self.owner_of = {}             # conversation_id -> borrower id (or "conv:<id>"): lets an erasure flush every conversation of a borrower
+        self._last_sweep = self.clock()
         self.name_tokens = {}          # conversation_id -> {name part (casefold): token of the full name}
         self.names = {}                # conversation_id -> NameMemory: parts of detected names, whole conversation (memory only, never logged)
         self._trim_lock = threading.Lock()
         self.graph = self._build()
+        if sweep_interval:
+            self._start_sweeper(sweep_interval)
 
     @staticmethod
     def _as_client(vault):
@@ -184,10 +196,14 @@ class Gateway:
         raise TypeError("Gateway needs a layer2_vault VaultClient (the modular vault); the legacy single-file Vault is no longer supported")
 
     def forget(self, conversation_id):
-        """Drop every in-memory trace of a conversation (history, joined-number state, name parts). Erasure hook."""
+        """Drop every in-memory trace of a conversation (raw history, joined-number state, name parts, retry-cache replies). Erasure hook; also used by the idle TTL."""
         self.history.pop(conversation_id, None)
         self.turns.pop(conversation_id, None)
         self.ctx_version.pop(conversation_id, None)
+        self.last_seen.pop(conversation_id, None)
+        self.owner_of.pop(conversation_id, None)
+        for k in [k for k in list(self.replies) if k[1] == conversation_id]:
+            self.replies.pop(k, None)
         self.names.pop(conversation_id, None)
         self.name_tokens.pop(conversation_id, None)
         for k in [k for k in self.entity_tokens if k[0] == conversation_id]:
@@ -200,6 +216,40 @@ class Gateway:
         return "Thank you. We have noted " + ", ".join(toks) + "." if toks else "Thank you. Noted."
 
     # ---- nodes -------------------------------------------------------------------------------
+    def forget_borrower(self, borrower_id):
+        """Flush EVERY conversation this process remembers for a borrower (erasure hook). Returns how many were dropped."""
+        cids = [c for c, o in list(self.owner_of.items()) if o == borrower_id]
+        for c in cids:
+            self.forget(c)
+        return len(cids)
+
+    def purge_idle(self):
+        """Drop every conversation idle for longer than history_ttl. Returns how many."""
+        now, n = self.clock(), 0
+        for cid, t in list(self.last_seen.items()):
+            if now - t > self.history_ttl:
+                self.forget(cid); n += 1
+        self._last_sweep = now
+        self.context_stats["expired"] += n
+        return n
+
+    def _start_sweeper(self, interval):
+        """A daemon thread enforces the idle TTL even when the process gets no traffic. It holds only a weak reference, so it never keeps a gateway alive."""
+        ref = weakref.ref(self)
+
+        def loop():
+            while True:
+                time.sleep(interval)
+                g = ref()
+                if g is None:
+                    return
+                try:
+                    g.purge_idle()
+                except Exception:
+                    pass
+                del g
+        threading.Thread(target=loop, daemon=True, name="gateway-ttl-sweeper").start()
+
     # ---- shared conversation context: several gateway processes can serve one conversation ------------------------------------
     def _snapshot(self, cid):
         nm = self.names.get(cid)
@@ -221,17 +271,32 @@ class Gateway:
 
     def _sync_in(self, cid, borrower_id):
         """If ANOTHER process advanced this conversation since we last looked, adopt its memory (one cheap version check; the context is only decrypted when it changed)."""
+        """Returns True when the vault says this borrower is ERASED / being erased (everything we remember about them has then been flushed)."""
         if not self.shared_context:
-            return
+            return False
+        known = self.ctx_version.get(cid)
         try:
-            res = self.vault.load_context(cid, borrower_id, newer_than=self.ctx_version.get(cid))
+            res = self.vault.load_context(cid, borrower_id, newer_than=known, strict=True)
+        except VaultDenied as e:
+            if e.code == "borrower_not_active":                   # the vault confirms an erasure: flush this borrower's conversations from memory
+                self.forget(cid)
+                self.forget_borrower(borrower_id if borrower_id is not None else f"conv:{cid}")
+                self.context_stats["erasure_flushed"] += 1
+                return True
+            self.context_stats["load_failed"] += 1
+            return False
         except Exception:
             self.context_stats["load_failed"] += 1
-            return                                        # carry on with our own memory; the vault being down is handled (blocked) at tokenise
+            return False                                      # carry on with our own memory; the vault being down is handled (blocked) at tokenise
+        if res is None and known is not None:
+            self.forget(cid)                                  # we had a shared context for this conversation and it is gone (conversation erased, expired or re-keyed): forget our copy too
+            self.context_stats["vanished_flushed"] += 1
+            return False
         if res and res[1] is not None:
             self._apply(cid, res[1]); self.ctx_version[cid] = res[0]; self.context_stats["adopted"] += 1
         elif res:
             self.ctx_version[cid] = res[0]
+        return False
 
     def _sync_out(self, cid, borrower_id):
         if not self.shared_context:
@@ -257,8 +322,8 @@ class Gateway:
             ev.add("CONSENT_DENIED", reason=d.reason)
             return {**base, "status": "blocked", "reason": "consent_unavailable" if d.unavailable else f"consent_denied:{d.reason}"}
         assert len(normalise(text)) == len(text)        # offsets stay valid on the original text
-        self._sync_in(st["conversation_id"], st.get("borrower_id"))
-        return {**base, "work_text": text, "retries": 0, "status": "ok", "warnings": [], "purpose": d.purpose,
+        erased = self._sync_in(st["conversation_id"], st.get("borrower_id"))
+        return {**base, "work_text": text, "retries": 0, "status": "ok", "warnings": [], "purpose": d.purpose, "erased": erased,
                 "turn_no": self.turns.get(st["conversation_id"], 0)}
 
     def _detect(self, st):
@@ -447,7 +512,7 @@ class Gateway:
             reply = llmmod.dispatch(self.llm, st["masked_text"], self.llm_timeout)    # the LLM sees audited, tokenised text only
         except llmmod.LLMTimeout:
             st["_ev"].add("LLM_RESPONDED", outcome="timeout", ms=round((time.perf_counter() - t) * 1000, 2))
-            self.log.append({"conversation_id": st["conversation_id"], "text": st["masked_text"], "degraded": "llm_timeout", "warnings": st.get("warnings", [])})
+            self._log({"conversation_id": st["conversation_id"], "text": st["masked_text"], "degraded": "llm_timeout", "warnings": st.get("warnings", [])})
             return {"status": "degraded", "reason": "llm_timeout", "reply": llmmod.DEGRADED_REPLY, "reply_masked": llmmod.DEGRADED_REPLY, "log_entry": llmmod.DEGRADED_REPLY,
                     "trace": st["trace"] + ["llm_dispatch"]}
         except Exception as e:                                                  # LLM failure: nothing is sent
@@ -467,7 +532,7 @@ class Gateway:
             return {"status": "blocked", "reason": f"vault_error:{e.code}", "trace": st["trace"] + ["sanitise"]}
         # the log gets the masked incoming text + the TOKENISED reply, never rehydrated text
         if not st.get("replayed"):
-            self.log.append({"conversation_id": cid, "text": st["masked_text"], "reply_masked": clean, "warnings": st.get("warnings", [])})
+            self._log({"conversation_id": cid, "text": st["masked_text"], "reply_masked": clean, "warnings": st.get("warnings", [])})
             self.replies[self._replay_key(st)] = clean                          # only after a successful, sanitised answer (failures are never cached)
             while len(self.replies) > REPLAY_CACHE_MAX:
                 self.replies.popitem(last=False)
@@ -481,8 +546,13 @@ class Gateway:
             return {"status": "blocked", "reply": "", "reason": f"rehydration_failed:{e.code}", "trace": st["trace"] + ["rehydrate_route"]}
         return {"reply": reply, "log_entry": log_entry, "status": "ok", "trace": st["trace"] + ["rehydrate_route"]}
 
+    def _log(self, entry):
+        self.log.append(entry)
+        if len(self.log) > LOG_MAX:
+            del self.log[: LOG_MAX // 10]                 # keep the newest; the masked log must not grow without limit
+
     def _block(self, st):
-        self.log.append({"conversation_id": st.get("conversation_id"), "blocked": st.get("reason", "unknown")})
+        self._log({"conversation_id": st.get("conversation_id"), "blocked": st.get("reason", "unknown")})
         ev = st.get("_ev")
         if ev:
             ev.add("L3_BLOCKED", reason=(st.get("reason", "unknown").split(":")[0]))
@@ -512,9 +582,13 @@ class Gateway:
         t0 = time.perf_counter()
         out = self.graph.invoke({"request_id": request_id or "gw-" + uuid.uuid4().hex[:12], "conversation_id": conversation_id, "speaker": speaker, "text": text,
                                  "trace": [], "audience": audience, "borrower_id": borrower_id, "purpose": purpose, "consent_id": consent_id})
-        if isinstance(text, str) and not out.get("replayed") and out.get("reason") not in ("empty_or_invalid_input",) and not str(out.get("reason", "")).startswith("consent"):
+        if self.clock() - self._last_sweep > min(30.0, self.history_ttl / 4):          # lazy sweep: the idle TTL holds even without the background thread
+            self.purge_idle()
+        if isinstance(text, str) and not out.get("replayed") and not out.get("erased") and out.get("reason") not in ("empty_or_invalid_input",) and not str(out.get("reason", "")).startswith("consent"):
             h = self.history.setdefault(conversation_id, []); h.append({"speaker": speaker, "text": text}); del h[:-HISTORY_TURNS]     # bounded: only the window is ever used
             self.turns[conversation_id] = self.turns.get(conversation_id, 0) + 1
+            self.last_seen[conversation_id] = self.clock()
+            self.owner_of[conversation_id] = borrower_id if borrower_id is not None else f"conv:{conversation_id}"
             self._sync_out(conversation_id, borrower_id)
         ev = out.pop("_ev", None)
         out.pop("_t0", None)

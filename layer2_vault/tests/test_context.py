@@ -101,5 +101,16 @@ def test_a_context_is_bound_to_its_conversation_by_the_aad():
     assert c.load("B1", "C1", CTX) is None and c.load("B1", "C2", CTX) is None, "a context copied into another conversation fails authentication"
 
 
+def test_strict_loading_tells_an_erased_borrower_from_one_with_no_context_yet():
+    s, v = make(); c = v.context; er = who(s, ER)
+    assert c.load("B1", "C1", CTX, strict=True) is None and c.load("NEVER-SEEN", "C1", CTX, strict=True) is None      # no context / unknown borrower: just None
+    c.save("B1", "C1", STATE, CTX); assert c.load("B1", "C1", CTX, strict=True) is not None
+    with v.ctx.db.transaction() as tx: v.ctx.repo.set_borrower_state(tx, "B1", "ERASURE_PENDING")
+    expect(VaultDenied, lambda: c.load("B1", "C1", CTX, strict=True), "borrower_not_active")
+    assert c.load("B1", "C1", CTX) is None, "non-strict callers still just get None"
+    v.deletion.erase(EraseRequest(job_id="j-strict", borrower_id="B1"), er)
+    expect(VaultDenied, lambda: c.load("B1", "C1", CTX, strict=True), "borrower_not_active")
+
+
 if __name__ == "__main__":
     run(globals())

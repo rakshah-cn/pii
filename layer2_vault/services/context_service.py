@@ -33,13 +33,18 @@ class ContextService:
     def _aad(borrower_id, conversation_id, key_id, version):
         return enc.canonical("ctx", borrower_id, conversation_id, key_id, str(version))
 
-    def load(self, borrower_id, conversation_id, caller, newer_than=None):
-        """-> None (no usable context) | (version, None) when version <= newer_than (nothing changed) | (version, state dict)."""
+    def load(self, borrower_id, conversation_id, caller, newer_than=None, strict=False):
+        """-> None (no usable context) | (version, None) when version <= newer_than (nothing changed) | (version, state dict).
+        strict=True: a borrower that is ERASED or being erased raises VaultDenied('borrower_not_active') instead of returning None, so a caller can tell 'erased' from 'no context yet'
+        (the gateway uses it to flush everything it remembers about that borrower)."""
         c = self.ctx
         c.engine.authorize(caller, "context", borrower_id)
         self._check(borrower_id, conversation_id)
         with c.db.transaction() as tx:
-            if c.repo.borrower_state(tx, borrower_id) != "ACTIVE":
+            state = c.repo.borrower_state(tx, borrower_id)
+            if state is not None and state != "ACTIVE" and strict:
+                raise VaultDenied("borrower_not_active")
+            if state != "ACTIVE":
                 return None
             row = c.repo.get_context(tx, borrower_id, conversation_id)
             if row is None or row["expires_at"] <= c.clock():

@@ -27,6 +27,7 @@ TEXT = ("my number", "Thank you")                          # message wording: ma
 
 
 def mk(**kw):
+    kw.setdefault("sweep_interval", None)                      # no background TTL thread per test gateway (the sweeper has its own tests)
     kw.setdefault("detector", Stub([sp(T, "98450 12345", "PHONE")]))
     kw.setdefault("audit_detector", Stub())
     return Gateway(**kw)
@@ -506,6 +507,110 @@ def test_every_purpose_layer_4_allows_for_the_log_is_accepted_by_the_gateway_and
         assert out["status"] == "ok", (purpose, out.get("reason"))
         assert "98450 12345" in out["reply"], purpose                       # and the vault's rehydration policy covers it too
     assert mk().handle("c", "C", T, borrower_id="b1", purpose="marketing")["status"] == "blocked"
+
+
+# ---------------------------------------------------------------- DPDP: nothing raw outlives an erasure or the idle TTL
+class PhoneRegex:
+    """Finds '12345 67890'-style numbers in the newest turn (so each test can use different raw values)."""
+    def detect_calls(self, calls):
+        import re
+        last = calls[0][-1]["text"]
+        return [[[] for _ in calls[0][:-1]] + [[{"label": "PHONE", "start": m.start(), "end": m.end(), "source": "rules"} for m in re.finditer(r"\d{5} \d{5}", last)]]]
+
+
+class Clk:
+    def __init__(self): self.t = 1000.0
+    def __call__(self): return self.t
+
+
+def memory_dump(gw):
+    """Everything the gateway process holds that could contain what people said."""
+    return json.dumps({"history": gw.history, "names": {c: n.parts for c, n in gw.names.items()}, "name_tokens": gw.name_tokens, "entities": [[list(k), v] for k, v in gw.entity_tokens.items()],
+                       "replies": [[list(k), v] for k, v in gw.replies.items()], "turns": gw.turns, "owner": gw.owner_of, "seen": gw.last_seen, "ctx": gw.ctx_version}, default=str)
+
+
+def say(gw, cid, borrower, raw, **kw):
+    return gw.handle(cid, "Customer", f"my number is {raw}", borrower_id=borrower, purpose="collections", **kw)
+
+
+def test_idle_conversations_are_dropped_after_15_minutes_and_active_ones_stay():
+    clk = Clk(); gw = mk(detector=PhoneRegex(), clock=clk)
+    say(gw, "c1", "b1", "11111 22222"); say(gw, "c2", "b2", "33333 44444")
+    clk.t += 14 * 60; assert gw.purge_idle() == 0
+    say(gw, "c2", "b2", "33333 44444", request_id="again")                      # c2 stays active
+    clk.t += 2 * 60                                                             # c1 has now been idle 16 minutes, c2 only 2
+    assert gw.purge_idle() == 1
+    dump = memory_dump(gw); assert "11111" not in dump and "c1" not in gw.history and "c1" not in gw.turns and "c1" not in gw.owner_of
+    assert "33333" in dump and "c2" in gw.history, "the active conversation was not touched"
+    assert HISTORY_TTL_IS_15_MIN()
+
+
+def HISTORY_TTL_IS_15_MIN():
+    import layer3_gateway.graph as G
+    return G.HISTORY_TTL == 900.0
+
+
+def test_the_lazy_sweep_enforces_the_ttl_on_the_next_message_even_without_the_thread():
+    clk = Clk(); gw = mk(detector=PhoneRegex(), clock=clk)
+    say(gw, "c1", "b1", "11111 22222"); clk.t += 20 * 60
+    say(gw, "c9", "b9", "55555 66666")                                          # any later message triggers the sweep
+    assert "11111" not in memory_dump(gw) and "c1" not in gw.history
+
+
+def test_the_background_sweeper_enforces_the_ttl_with_no_traffic_and_never_keeps_a_gateway_alive():
+    import gc, threading
+    before = set(threading.enumerate()); gw = mk(detector=PhoneRegex(), history_ttl=0.1, sweep_interval=0.05)
+    new = [t for t in threading.enumerate() if t not in before and t.name == "gateway-ttl-sweeper"]; assert len(new) == 1 and new[0].daemon
+    say(gw, "c1", "b1", "11111 22222"); assert "11111" in memory_dump(gw)
+    time.sleep(0.6); assert "11111" not in memory_dump(gw), "dropped without any further call"
+    del gw; gc.collect(); new[0].join(timeout=2); assert not new[0].is_alive(), "the sweeper holds only a weak reference: it exits when its gateway is gone"
+
+
+def test_a_vault_confirmed_erasure_flushes_every_conversation_of_that_borrower_and_remembers_nothing_new():
+    v = VaultClient(); a = mk(detector=PhoneRegex(), vault=v); b = mk(detector=PhoneRegex(), vault=v)
+    say(a, "c1", "b1", "11111 22222"); say(a, "c2", "b1", "11111 99999"); say(a, "c3", "b2", "33333 44444"); say(b, "c1", "b1", "11111 22222", request_id="on-b")
+    assert "11111" in memory_dump(a) and "11111" in memory_dump(b)
+    assert v.destroy_borrower("b1")["key_destroyed"]                              # Layer 6 / the vault erases the borrower
+    out = say(a, "c1", "b1", "77777 88888")                                       # the next message for that borrower reaches process A ...
+    assert out["status"] == "blocked", "an erased borrower's PII cannot be tokenised"
+    dump = memory_dump(a); assert "11111" not in dump and "77777" not in dump and "c1" not in a.history and "c2" not in a.history, "A flushed both conversations and kept nothing of the new message"
+    assert "33333" in dump and "c3" in a.history, "another borrower is untouched"
+    say(b, "c1", "b1", "66666 55555"); assert "11111" not in memory_dump(b) and "66666" not in memory_dump(b), "... and the same on process B"
+    assert a.context_stats["erasure_flushed"] == 1 and not any("11111" in json.dumps(x) for x in a.log)
+
+
+def test_a_borrower_whose_erasure_is_pending_is_flushed_too():
+    v = VaultClient(); gw = mk(detector=PhoneRegex(), vault=v); say(gw, "c1", "b1", "11111 22222")
+    with v.svc.ctx.db.transaction() as tx: v.svc.ctx.repo.set_borrower_state(tx, "b1", "ERASURE_PENDING")
+    say(gw, "c1", "b1", "hello"); assert "11111" not in memory_dump(gw) and "c1" not in gw.history
+
+
+def test_erasing_one_conversation_flushes_only_that_conversation_from_the_gateway():
+    v = VaultClient(); gw = mk(detector=PhoneRegex(), vault=v)
+    say(gw, "c1", "b1", "11111 22222"); say(gw, "c2", "b1", "33333 44444")
+    assert v.destroy("c1") >= 1                                                  # conversation-scope erasure in the vault
+    say(gw, "c1", "b1", "hello again")
+    dump = memory_dump(gw); assert "11111" not in dump and "c1" not in gw.name_tokens
+    assert "33333" in dump and "c2" in gw.history, "the borrower's other conversation survives"
+    assert gw.context_stats["vanished_flushed"] == 1
+
+
+def test_forget_borrower_is_an_immediate_hook_for_in_process_callers():
+    gw = mk(detector=PhoneRegex()); say(gw, "c1", "b1", "11111 22222"); say(gw, "c2", "b1", "33333 44444"); say(gw, "c3", "b2", "55555 66666")
+    assert gw.forget_borrower("b1") == 2
+    dump = memory_dump(gw); assert "11111" not in dump and "33333" not in dump and "55555" in dump
+    assert not [k for k in gw.replies if k[1] in ("c1", "c2")], "the retry cache is flushed with the conversation"
+
+
+def test_the_in_memory_log_is_capped():
+    import layer3_gateway.graph as G
+    old = G.LOG_MAX; G.LOG_MAX = 100
+    try:
+        gw = mk(detector=Stub())
+        for i in range(250): gw.handle("c", "C", "hello there", request_id=f"R{i}")
+        assert len(gw.log) <= 100
+    finally:
+        G.LOG_MAX = old
 
 
 # ---------------------------------------------------------------- vault swap, status mapping
