@@ -35,7 +35,7 @@ Key hierarchy: master secret (env, or KMS-sealed) -> HKDF-SHA256 -> KEK (wraps D
 - Rotation `operation` defaults to `ALL` (the old behaviour).
 
 ## Where this still falls short (honest list)
-- **Real AWS KMS is untested** (fake client only). The decrypted master secret still sits in process memory; per-DEK KMS wrapping is not built.
+- **Real AWS KMS is untested** (fake client only). An attempt on 20 Nov with the machine's only AWS profile (a dev IAM user) was refused by AWS (`kms:CreateKey`, `kms:ListAliases` and `kms:TagResource` denied), so nothing ran and nothing was created: it needs a key id or alias that some profile may Encrypt / Decrypt with (`VAULT_KMS_KEY_ID=<id> python -m layer2_vault.ops.kms_smoke_test`). The decrypted master secret still sits in process memory; per-DEK KMS wrapping is not built.
 - **PostgreSQL** is tested locally (unix socket, no TLS, no replication, no managed service). The roles SQL was exercised on a scratch cluster but not reviewed by a DBA.
 - **Backups:** format and restore are tested; scheduling, point-in-time recovery, and backup-key custody are the operator's job. A restore undoes later erasures until they are replayed (`RUNBOOK.md` 7).
 - **Nonce uniqueness after a database restore** is defended by a random epoch (probabilistic), not proven: rotate DEKs after a restore.
