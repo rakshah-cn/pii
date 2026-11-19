@@ -157,7 +157,7 @@ def http_status(reason):
 class Gateway:
     def __init__(self, detector=None, audit_detector=None, vault=None, llm=None, detect_timeout=DETECT_TIMEOUT, overmask_action="block",
                  consent=None, events=None, llm_timeout=llmmod.DEFAULT_TIMEOUT, shared_context=True,
-                 history_ttl=HISTORY_TTL, sweep_interval=60.0, clock=None):
+                 history_ttl=HISTORY_TTL, sweep_interval=60.0, clock=None, persistence=None):
         self.detector = detector or make_detector(model=True)
         self.audit_detector = audit_detector or Detector(use_rules=True, use_model=False)  # fast, deterministic
         self.vault = self._as_client(vault) if vault is not None else VaultClient()   # the modular, database-backed Layer 2 vault: needs VAULT_MASTER_KEY + VAULT_DB_URL / VAULT_DB_PATH (or an explicit dev opt-out)
@@ -176,6 +176,8 @@ class Gateway:
         self.shared_context = shared_context and hasattr(self.vault, "load_context")
         self.ctx_version = {}          # conversation_id -> version of the shared context this process last saw / wrote
         self.context_stats = collections.Counter()
+        self.persistence = persistence               # optional layer3_gateway.persist.LogPersistence: tokenised log record via Layer 4's guarded write + Layer 5 lineage
+        self.persist_stats = collections.Counter()
         self.clock = clock or time.monotonic
         self.history_ttl = history_ttl
         self.last_seen = {}            # conversation_id -> clock() of its last processed message (drives the idle TTL)
@@ -598,6 +600,14 @@ class Gateway:
             self.last_seen[conversation_id] = self.clock()
             self.owner_of[conversation_id] = borrower_id if borrower_id is not None else f"conv:{conversation_id}"
             self._sync_out(conversation_id, borrower_id)
+        if self.persistence is not None and borrower_id is not None and out.get("status") in ("ok", "degraded") and not out.get("replayed") and not out.get("erased"):
+            try:
+                if self.persistence.record(out.get("request_id"), conversation_id, borrower_id, out.get("purpose") or purpose, consent_id, out.get("masked_text"), out.get("reply_masked")):
+                    self.persist_stats["recorded"] += 1
+                else:
+                    self.persist_stats["not_recorded"] += 1
+            except Exception:
+                self.persist_stats["failed"] += 1                    # persistence must never block or break a conversation
         ev = out.pop("_ev", None)
         out.pop("_t0", None)
         if ev is not None and not ev.flush() and self.events.strict:           # the audit trail could not be written: withhold the answer

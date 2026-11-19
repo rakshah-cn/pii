@@ -296,6 +296,20 @@ def test_the_kms_provider_unseals_the_master_secret_and_fails_closed_otherwise()
     expect(VaultUnavailable, lambda: Settings.from_env(env, kms_client=FakeKms(down=True)), "master_key_unavailable")           # cannot reach KMS: the vault does not start
 
 
+def test_the_kms_smoke_test_script_logic_passes_against_the_fake_client_and_would_flag_a_kms_that_accepts_bad_blobs():
+    from layer2_vault.ops import kms_smoke_test as smoke
+    class Down(FakeKms):
+        def decrypt(self, **kw): raise ConnectionError("endpoint http://kms.example unreachable key-id-secret")
+    lines = []
+    res = smoke.run(FakeKms(), "key-a", make_unreachable=lambda: Down(), out=lines.append)
+    assert len(res) == 8 and all(ok for _, ok, _ in res), res
+    assert not any("kms.example" in l or "key-id-secret" in l for l in lines), "no endpoint or key id leaks into the output"
+    class Lax(FakeKms):                                                                     # a broken 'KMS' that ignores the encryption context
+        def decrypt(self, CiphertextBlob, EncryptionContext, KeyId=None): return super().decrypt(CiphertextBlob, json.loads(CiphertextBlob)["c"], KeyId)
+    bad = smoke.run(Lax(), "key-a", out=lambda *_: None)
+    assert any(not ok for _, ok, _ in bad), "the script must FAIL when the service does not enforce the encryption context"
+
+
 def test_rotate_request_validates_the_operation():
     assert RotateRequest(target_key_version=2).operation == "ALL"
     for bad in ({"operation": "ALL_AT_ONCE"}, {"target_dek_version": 1}, {"unknown": 1}):
