@@ -3,8 +3,11 @@ The call runs in a worker thread with a hard timeout; a timeout raises LLMTimeou
 Any other failure is an error (the gateway blocks: nothing is sent). make_bedrock_llm is a thin adapter around the Bedrock Converse API; the client is injectable so it can be
 tested without a network. NOT exercised against the real service in this repo's tests."""
 import concurrent.futures
+import threading
 
 DEFAULT_TIMEOUT = 20.0
+MAX_ABANDONED = 32            # calls that timed out and are still running: past this the model is treated as down (degraded reply at once) instead of starting more threads
+_ABANDONED, _LOCK = [], threading.Lock()
 DEGRADED_REPLY = "We are unable to process this right now. Please try again in a moment."
 
 
@@ -12,15 +15,21 @@ class LLMTimeout(Exception):
     pass
 
 
-def dispatch(llm, masked_text, timeout=DEFAULT_TIMEOUT):
+def dispatch(llm, masked_text, timeout=DEFAULT_TIMEOUT, max_abandoned=MAX_ABANDONED):
     if not isinstance(timeout, (int, float)) or timeout <= 0:
         raise ValueError("llm_timeout_must_be_positive")                    # no 'wait forever'
+    with _LOCK:
+        _ABANDONED[:] = [f for f in _ABANDONED if not f.done()]
+        if len(_ABANDONED) >= max_abandoned:
+            raise LLMTimeout()                                              # the model looks hung: no new worker thread
     pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     fut = pool.submit(llm, masked_text)
     pool.shutdown(wait=False)
     try:
         out = fut.result(timeout=timeout)
     except concurrent.futures.TimeoutError:
+        with _LOCK:
+            _ABANDONED.append(fut)
         raise LLMTimeout()
     if not isinstance(out, str):
         raise TypeError("llm_returned_non_text")

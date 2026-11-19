@@ -25,12 +25,14 @@ def _safe_value(v):
 
 
 class MemorySink:
-    def __init__(self):
-        self.events, self._lock = [], threading.Lock()
+    def __init__(self, cap=100_000):
+        self.events, self._lock, self.cap = [], threading.Lock(), cap          # bounded: only the newest `cap` events are kept (a long-running process must not grow without limit)
 
     def __call__(self, records):
         with self._lock:
             self.events.extend(dict(r) for r in records)
+            if len(self.events) > self.cap:
+                del self.events[: len(self.events) - self.cap]
 
     def hash_borrower(self, borrower_id):
         return None

@@ -10,8 +10,13 @@ from layer3_gateway import audit as au
 TOKEN = re.compile(r"<[A-Z_]+_\d+>")
 
 
-def _blank(text):
-    return TOKEN.sub(lambda m: "•" * len(m.group()), text)          # placeholders contain words like NUMBER / the digit 1: blank them, same length
+def _blank(text, only=None):
+    """Placeholders contain words like NUMBER / the digit 1: blank them (same length) so they cannot trigger the audit. `only`: blank ONLY these exact tokens (the ones the vault issued for
+    this message). Token-SHAPED text a user typed ('<NINE_EIGHT_FOUR_FIVE_1>', '<X_9845012345>') is ordinary text and must stay visible to the audit, or it would hide a number from it."""
+    if only is None:
+        return TOKEN.sub(lambda m: "•" * len(m.group()), text)
+    only = set(only)
+    return TOKEN.sub(lambda m: "•" * len(m.group()) if m.group() in only else m.group(), text)
 
 
 def sanitise(reply, known_tokens, audit_detector):

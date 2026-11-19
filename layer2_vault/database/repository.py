@@ -192,8 +192,10 @@ class Repository:
     def active_records(self, tx):
         return tx.query("SELECT vault_id, borrower_id, conversation_id, pii_type, purpose_id, key_id, ciphertext, nonce FROM vault_records WHERE status = 'ACTIVE'")
 
-    def tokens_for_conversation(self, tx, conversation_id):
-        return [r["token"] for r in tx.query("SELECT token FROM token_mappings WHERE conversation_id = ? AND status = 'ACTIVE' ORDER BY pii_type, seq", (conversation_id,))]
+    def tokens_for_conversation(self, tx, conversation_id, borrower_id=None):
+        if borrower_id is None:
+            return [r["token"] for r in tx.query("SELECT token FROM token_mappings WHERE conversation_id = ? AND status = 'ACTIVE' ORDER BY pii_type, seq", (conversation_id,))]
+        return [r["token"] for r in tx.query("SELECT token FROM token_mappings WHERE conversation_id = ? AND borrower_id = ? AND status = 'ACTIVE' ORDER BY pii_type, seq", (conversation_id, borrower_id))]
 
     def borrowers_in_conversation(self, tx, conversation_id):
         return [r["borrower_id"] for r in tx.query("SELECT DISTINCT borrower_id FROM vault_records WHERE conversation_id = ?", (conversation_id,))]
