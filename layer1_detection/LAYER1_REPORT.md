@@ -2,6 +2,15 @@
 
 Detector: rules + spoken-number engine (cross-turn memory) + Chitragupta (int8) + resolver (types, joined numbers) + span expansion + name memory + chatter suppression. Synthetic data, gold labels; **optimistic for real data**.
 
+## How to read the final split (added by hand after the run)
+
+`corpus_final` was scored ONCE, on 20 Nov 01:46-01:49 IST, after Layers 0-2 and the gateway were frozen; nothing in Layer 0/1 was changed before or after, and nothing will be tuned on it.
+
+- **Same score as test, as expected from the same generator:** fully masked 96.9% (test 97.0%), masked 98.4% (test 98.4%), right label 90.6% (test 89.0%). This says we did not overfit to the dev/test ROWS; it does NOT say how real transcripts will score (all three splits come from one generator).
+- **The one number that moved: false alarms on PII-free calls, 6.7% (50/745) on final vs 2.9% (20/694) on test.** The chatter stoplist was written after looking at test failures, so the test figure was optimistic; the final figure is the honest one for unseen text from this generator, and real chatter will differ.
+- **Below the 99% bar** (by the 'masked, at least 50% of the span' measure): PAN 97.0% and NAME 94.3%. By the stricter 'fully masked, at least 95%' measure: Aadhaar 98.7%, phone 98.5%, PAN 96.8%, name 92.0%, address 90.1% (account 99.0%, loan 99.7%, UPI / DOB / email 100%). Which types count as 'high-risk' is the brief's definition, not ours.
+- Romanised Hindi / Marathi / Tamil are the weakest language variants (93.6% / 93.9% / 94.9% fully masked); 48 of the 50 cells are thin (< 300 spans).
+
 ## test: 3750 rows, 5820 gold PII spans
 
 - masked (>=50% of span): **98.4%**   fully masked (>=95%): **97.0%**   right type label too: **89.0%**
@@ -44,6 +53,8 @@ Detector: rules + spoken-number engine (cross-turn memory) + Chitragupta (int8) 
 
 ## dev: 17500 rows, 28501 gold PII spans
 
+_Not re-scored in the final run: copied from the earlier run of this same script on the same detector (no change to Layer 0/1 or the model since)._
+
 - masked (>=50% of span): **98.7%**   fully masked (>=95%): **97.4%**   right type label too: **88.8%**
 - PII-free calls with a false alarm: **165/2690 (6.1%)**
 - must-NOT-mask things touched: AMOUNT 39/8051, DATE 81/13519, ORG 1/13388
@@ -82,9 +93,51 @@ Detector: rules + spoken-number engine (cross-turn memory) + Chitragupta (int8) 
 - THIN cells (< 300 gold spans, read their % with care): 9 of 50
 - biggest miss groups (type, form): [(('PAN', 'split_turns'), 90), (('NAME', 'split_turns'), 65), (('NAME', 'written'), 64), (('NAME', 'spoken'), 42), (('LOAN', 'split_turns'), 32), (('NAME', 'spoken_fillers'), 14)]
 
+## final: 3750 rows, 5765 gold PII spans
+
+- masked (>=50% of span): **98.4%**   fully masked (>=95%): **96.9%**   right type label too: **90.6%**
+- PII-free calls with a false alarm: **50/745 (6.7%)**
+- must-NOT-mask things touched: AMOUNT 3/2521, DATE 4/2823, ORG 0/2567
+
+| type | spans | masked | fully masked | right label |
+|---|---|---|---|---|
+| NAME | 1272 | 94.3% | 92.0% | 92.2% |
+| ACCOUNT | 793 | 100.0% | 99.0% | 87.4% |
+| PHONE | 754 | 99.9% | 98.5% | 80.4% |
+| AADHAAR | 679 | 100.0% | 98.7% | 97.5% |
+| PAN | 601 | 97.0% | 96.8% | 90.2% |
+| LOAN | 579 | 99.8% | 99.7% | 91.5% |
+| UPI | 281 | 100.0% | 100.0% | 100.0% |
+| DOB | 278 | 100.0% | 100.0% | 96.4% |
+| ADDRESS | 274 | 99.6% | 90.1% | 78.1% |
+| EMAIL | 254 | 100.0% | 100.0% | 100.0% |
+
+| language variant | spans | fully masked |
+|---|---|---|
+| en | 636 | 97.5% |
+| hi | 558 | 98.7% |
+| hi_rom | 609 | 93.6% |
+| kn | 747 | 99.2% |
+| kn_rom | 646 | 96.7% |
+| mr | 636 | 97.5% |
+| mr_rom | 524 | 93.9% |
+| ta | 680 | 99.4% |
+| ta_rom | 729 | 94.9% |
+
+| channel | rows | spans | fully masked |
+|---|---|---|---|
+| call | 2569 | 4049 | 97.2% |
+| message | 772 | 1109 | 95.9% |
+| prompt | 409 | 607 | 96.7% |
+
+- THIN cells (< 300 gold spans, read their % with care): 48 of 50
+- biggest miss groups (type, form): [(('NAME', 'written'), 26), (('NAME', 'split_turns'), 21), (('NAME', 'spoken'), 18), (('PAN', 'split_turns'), 18), (('NAME', 'spoken_fillers'), 6), (('LOAN', 'split_turns'), 1)]
+
 ## Latency (one message at a time, gateway configuration, n=160)
 
 p50 **8.8 ms**, p95 11.9 ms, p99 13.7 ms (budget 50 ms). Measured on short synthetic turns on this machine; real, longer messages will be slower.
+
+_The final run's own measurement, taken while the machine was heavily loaded by other jobs (video capture, two other model runs): p50 17.9 ms, p95 26.5 ms, p99 30.6 ms. The quiet-machine figures above are the ones to quote._
 
 ## Known limitations
 
