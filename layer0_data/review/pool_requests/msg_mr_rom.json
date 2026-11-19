@@ -1,0 +1,119 @@
+{
+ "group": "msg:mr_rom",
+ "pools": [
+  {
+   "pool": "msg:mr_rom.open",
+   "need": 3,
+   "existing_lines": [
+    "A: Dear customer, tumcha hapta {AMOUNT} {DATE} la due ahe. - {ORG}",
+    "C: hello sir ;; C: hapta baddal msg aala ;; A: Ho {AMOUNT} due ahe {DATE} la."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msg:mr_rom.close",
+   "need": 1,
+   "existing_lines": [
+    "C: ok thanks ;; A: Thank you.",
+    "C: theek ahe, {DATE2} paryant bharto",
+    "C: ho sir ok",
+    "C: ok done"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msg:mr_rom.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: tumche naav? ;; C: {NAME}",
+    "C: mi {NAME} bolto ahe"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:mr_rom.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: tumcha mobile no pathva ;; C: {PHONE}",
+    "C: maza navin number {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:mr_rom.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: number? ;; C: {PHONE_P1} ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:mr_rom.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: last 4 digit sanga ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:mr_rom.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: navin patta pathva ;; C: {ADDRESS}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

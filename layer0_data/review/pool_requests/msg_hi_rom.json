@@ -1,0 +1,299 @@
+{
+ "group": "msg:hi_rom",
+ "pools": [
+  {
+   "pool": "msg:hi_rom.open",
+   "need": 3,
+   "existing_lines": [
+    "A: Dear customer, aapki EMI {AMOUNT} {DATE} ko due hai. - {ORG}",
+    "C: hello sir ;; C: emi ke baare me msg aaya ;; A: Haan {AMOUNT} due hai {DATE} ko."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: aapka naam? ;; C: {NAME}",
+    "C: main {NAME} bol (raha|rahi) hu"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: apna mobile no bhejiye ;; C: {PHONE}",
+    "C: mera naya number {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: number? ;; C: {PHONE_P1} ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: last 4 digit? ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.AADHAAR.single",
+   "need": 4,
+   "existing_lines": [
+    "A: KYC ke liye aadhaar bhejiye ;; C: {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.AADHAAR.split",
+   "need": 4,
+   "existing_lines": [
+    "A: aadhaar? ;; C: {AADHAAR_P1} ;; C: {AADHAAR_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR_P1",
+    "AADHAAR_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.AADHAAR.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: aadhaar ke last 4 digit ;; C: {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.PAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: PAN bhejiye ;; C: {PAN}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.PAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: PAN? ;; C: {PAN_P1} ;; C: {PAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN_P1",
+    "PAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.ACCOUNT.single",
+   "need": 4,
+   "existing_lines": [
+    "A: account number? ;; C: {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.ACCOUNT.split",
+   "need": 4,
+   "existing_lines": [
+    "A: a/c no? ;; C: {ACCOUNT_P1} ;; C: {ACCOUNT_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT_P1",
+    "ACCOUNT_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.ACCOUNT.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: a/c ke last 4 digit ;; C: {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.LOAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: loan number bhejiye ;; C: {LOAN}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.LOAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: loan no? ;; C: {LOAN_P1} ;; C: {LOAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN_P1",
+    "LOAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: naya address bhejiye ;; C: {ADDRESS}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.UPI.single",
+   "need": 4,
+   "existing_lines": [
+    "A: UPI id? ;; C: {UPI}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.EMAIL.single",
+   "need": 4,
+   "existing_lines": [
+    "A: email id? ;; C: {EMAIL}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:hi_rom.ask.DOB.single",
+   "need": 4,
+   "existing_lines": [
+    "A: dob? ;; C: {DOB}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

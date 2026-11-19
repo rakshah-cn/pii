@@ -1,0 +1,403 @@
+{
+ "group": "call:mr_rom",
+ "pools": [
+  {
+   "pool": "call:mr_rom.open",
+   "need": 2,
+   "existing_lines": [
+    "C: Hello. ;; A: Hello, namaskar (sir|madam).",
+    "A: (Namaskar|Hello) (sir|madam), (good morning|good evening). ;; C: Ho, bola.",
+    "C: Hello, kon bolat ahe? ;; A: Mi {ORG} madhun bolt(o|e)."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.intro",
+   "need": 2,
+   "existing_lines": [
+    "A: (Sir|Madam), mi {ORG} madhun bolt(o|e). Ha call record hot ahe.",
+    "A: (Sir|Madam), tumchya loan baddal call ahe. ;; C: Ho, sanga.",
+    "A: Namaskar, {ORG} kadun reminder call ahe."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.close",
+   "need": 2,
+   "existing_lines": [
+    "C: Theek ahe, thank you. ;; A: Thank you (sir|madam).",
+    "C: Ho ho, theek ahe. ;; A: Tumcha divas shubh jaavo.",
+    "C: Barr barr, nantar bolt(o|e)."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.due.emi_reminder",
+   "need": 3,
+   "existing_lines": [
+    "A: Tumcha hapta {AMOUNT} {DATE} roji ahe. ;; C: Theek ahe, mi {DATE2} paryant bhart(o|e).",
+    "A: (Sir|Madam), {AMOUNT} baaki ahe. ;; C: Ho ho, {DATE2} la det(o|e)."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.due.dispute",
+   "need": 3,
+   "existing_lines": [
+    "A: {AMOUNT} baaki distay. ;; C: Nahi, paise adhich kaple geleet, bagha.",
+    "A: Due date {DATE} hoti. ;; C: Mi {DATE2} la bharlay."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.due.address_update",
+   "need": 4,
+   "existing_lines": [
+    "A: (Sir|Madam), tumchi mahiti update karaychi ahe. ;; C: Ho, kay havay sanga."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.due.payment_promise",
+   "need": 3,
+   "existing_lines": [
+    "A: Tumhi {AMOUNT} kadhi bharnar? ;; C: Mi {DATE2} paryant bhart(o|e), nakki.",
+    "A: Aaj bharu shakta ka? ;; C: Aaj nahi, {DATE2} paryant."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: Mi {NAME} yanchyashi bolt(oy|ey) ka? ;; C: Ho, bolt(oy|ey).",
+    "A: (Sir|Madam), tumche naav? ;; C: {NAME}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: Tumcha registered mobile number sanga. ;; C: Ho, {PHONE}.",
+    "A: Dusra number dya. ;; C: Liha, {PHONE}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Mobile number sanga. ;; C: {PHONE_P1} ;; A: Ho, pudhe? ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Mobile number che shevatche char ank sanga. ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.AADHAAR.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Padtalnisathi Aadhaar number sanga. ;; C: Maza Aadhaar {AADHAAR} ahe."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.AADHAAR.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Aadhaar number sanga. ;; C: {AADHAAR_P1} ;; A: Pudhe? ;; C: {AADHAAR_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR_P1",
+    "AADHAAR_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.AADHAAR.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Aadhaar che shevatche char ank? ;; C: {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.PAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Tumcha PAN number sanga. ;; C: PAN {PAN} ahe."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.PAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: PAN number? ;; C: {PAN_P1} ;; A: Ho? ;; C: {PAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN_P1",
+    "PAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.ACCOUNT.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Konatya bank khatyatun payment karal? ;; C: Account number {ACCOUNT} ahe."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.ACCOUNT.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Account number sanga. ;; C: {ACCOUNT_P1} ;; A: Pudhe? ;; C: {ACCOUNT_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT_P1",
+    "ACCOUNT_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.ACCOUNT.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Account number che shevatche char ank? ;; C: {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.LOAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Tumcha loan account number sanga. ;; C: {LOAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.LOAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Loan number sanga. ;; C: {LOAN_P1} ;; A: Ho? ;; C: {LOAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN_P1",
+    "LOAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Tumcha patta toch ahe ka? ;; C: Nahi, ata mi {ADDRESS} ithe rahat(o|e)."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.UPI.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Tumcha UPI id? ;; C: {UPI}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.EMAIL.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Email id sanga. ;; C: {EMAIL}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr_rom.ask.DOB.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Tumchi janmatarikh? ;; C: {DOB}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

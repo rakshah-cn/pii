@@ -1,0 +1,403 @@
+{
+ "group": "call:kn",
+ "pools": [
+  {
+   "pool": "call:kn.open",
+   "need": 2,
+   "existing_lines": [
+    "C: ಹಲೋ. ;; A: ಹಲೋ, ನಮಸ್ಕಾರ (ಸರ್|ಮೇಡಂ).",
+    "A: (ನಮಸ್ಕಾರ|ಹಲೋ) (ಸರ್|ಮೇಡಂ). ;; C: ಹೌದು, ಹೇಳಿ.",
+    "C: ಹಲೋ, ಯಾರು ಮಾತಾಡ್ತಿರೋದು? ;; A: ನಾನು {ORG} ನಿಂದ ಮಾತಾಡ್ತಿದ್ದೀನಿ."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn.intro",
+   "need": 2,
+   "existing_lines": [
+    "A: (ಸರ್|ಮೇಡಂ), ನಾನು {ORG} ನಿಂದ ಕರೆ ಮಾಡ್ತಿದ್ದೀನಿ. ಈ ಕರೆ ರೆಕಾರ್ಡ್ ಆಗ್ತಿದೆ.",
+    "A: (ಸರ್|ಮೇಡಂ), ನಿಮ್ಮ ಸಾಲದ ಬಗ್ಗೆ ಕರೆ. ;; C: ಹೌದು, ಹೇಳಿ.",
+    "A: ನಮಸ್ಕಾರ, {ORG} ನಿಂದ ನೆನಪಿಸುವ ಕರೆ."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn.close",
+   "need": 2,
+   "existing_lines": [
+    "C: ಸರಿ, ಧನ್ಯವಾದ. ;; A: ಧನ್ಯವಾದ (ಸರ್|ಮೇಡಂ).",
+    "C: ಹೌದು ಹೌದು, ಸರಿ. ;; A: ಶುಭ ದಿನ.",
+    "C: ಸರಿ ಸರಿ, ಆಮೇಲೆ ಮಾತಾಡ್ತೀನಿ."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn.due.emi_reminder",
+   "need": 3,
+   "existing_lines": [
+    "A: ನಿಮ್ಮ ಇಎಂಐ {AMOUNT} {DATE} ರಂದು ಬಾಕಿ ಇದೆ. ;; C: ಸರಿ, ನಾನು {DATE2} ರೊಳಗೆ ಕಟ್ಟುತ್ತೇನೆ.",
+    "A: (ಸರ್|ಮೇಡಂ), {AMOUNT} ಬಾಕಿ ಇದೆ. ;; C: ಹೌದು ಹೌದು, {DATE2} ಕ್ಕೆ ಕಟ್ಟುತ್ತೇನೆ."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn.due.dispute",
+   "need": 3,
+   "existing_lines": [
+    "A: {AMOUNT} ಬಾಕಿ ತೋರಿಸ್ತಿದೆ. ;; C: ಇಲ್ಲ, ಹಣ ಈಗಾಗಲೇ ಕಟ್ ಆಗಿದೆ, ನೋಡಿ.",
+    "A: ಕೊನೆಯ ದಿನಾಂಕ {DATE} ಆಗಿತ್ತು. ;; C: ನಾನು {DATE2} ಕ್ಕೆ ಕಟ್ಟಿದ್ದೇನೆ."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn.due.address_update",
+   "need": 4,
+   "existing_lines": [
+    "A: (ಸರ್|ಮೇಡಂ), ನಿಮ್ಮ ವಿವರಗಳನ್ನು ಅಪ್ಡೇಟ್ ಮಾಡಬೇಕು. ;; C: ಸರಿ, ಏನು ಬೇಕು ಹೇಳಿ."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn.due.payment_promise",
+   "need": 3,
+   "existing_lines": [
+    "A: ನೀವು {AMOUNT} ಯಾವಾಗ ಕಟ್ಟುತ್ತೀರಿ? ;; C: ನಾನು {DATE2} ರೊಳಗೆ ಕಟ್ಟುತ್ತೇನೆ, ಖಂಡಿತ.",
+    "A: ಇಂದು ಕಟ್ಟಬಹುದಾ? ;; C: ಇಂದು ಆಗಲ್ಲ, {DATE2} ರೊಳಗೆ."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: ನಾನು {NAME} ಅವರ ಜೊತೆ ಮಾತಾಡ್ತಿದ್ದೀನಾ? ;; C: ಹೌದು, ಹೇಳಿ.",
+    "A: (ಸರ್|ಮೇಡಂ), ನಿಮ್ಮ ಹೆಸರು? ;; C: {NAME}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: ನಿಮ್ಮ ನೋಂದಾಯಿತ ಮೊಬೈಲ್ ನಂಬರ್ ಹೇಳಿ. ;; C: ಹೌದು, {PHONE}.",
+    "A: ಬೇರೆ ನಂಬರ್ ಕೊಡಿ. ;; C: ಬರೆದುಕೊಳ್ಳಿ, {PHONE}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: ಮೊಬೈಲ್ ನಂಬರ್ ಹೇಳಿ. ;; C: {PHONE_P1} ;; A: ಹೌದು, ಮುಂದೆ? ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: ಮೊಬೈಲ್ ನಂಬರ್‌ನ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿ ಹೇಳಿ. ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.AADHAAR.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ಪರಿಶೀಲನೆಗೆ ಆಧಾರ್ ನಂಬರ್ ಹೇಳಿ. ;; C: ನನ್ನ ಆಧಾರ್ {AADHAAR}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.AADHAAR.split",
+   "need": 4,
+   "existing_lines": [
+    "A: ಆಧಾರ್ ನಂಬರ್ ಹೇಳಿ. ;; C: {AADHAAR_P1} ;; A: ಮುಂದೆ? ;; C: {AADHAAR_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR_P1",
+    "AADHAAR_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.AADHAAR.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: ಆಧಾರ್‌ನ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿ? ;; C: {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.PAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ನಿಮ್ಮ ಪ್ಯಾನ್ ನಂಬರ್ ಹೇಳಿ. ;; C: ಪ್ಯಾನ್ {PAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.PAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: ಪ್ಯಾನ್ ನಂಬರ್? ;; C: {PAN_P1} ;; A: ಹೌದು? ;; C: {PAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN_P1",
+    "PAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.ACCOUNT.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ಯಾವ ಬ್ಯಾಂಕ್ ಖಾತೆಯಿಂದ ಪಾವತಿ ಮಾಡ್ತೀರಿ? ;; C: ಖಾತೆ ಸಂಖ್ಯೆ {ACCOUNT}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.ACCOUNT.split",
+   "need": 4,
+   "existing_lines": [
+    "A: ಖಾತೆ ಸಂಖ್ಯೆ ಹೇಳಿ. ;; C: {ACCOUNT_P1} ;; A: ಮುಂದೆ? ;; C: {ACCOUNT_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT_P1",
+    "ACCOUNT_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.ACCOUNT.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: ಖಾತೆ ಸಂಖ್ಯೆಯ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿ? ;; C: {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.LOAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ನಿಮ್ಮ ಸಾಲದ ಖಾತೆ ಸಂಖ್ಯೆ ಹೇಳಿ. ;; C: {LOAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.LOAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: ಸಾಲದ ಸಂಖ್ಯೆ ಹೇಳಿ. ;; C: {LOAN_P1} ;; A: ಹೌದು? ;; C: {LOAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN_P1",
+    "LOAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ನಿಮ್ಮ ವಿಳಾಸ ಅದೇನಾ? ;; C: ಇಲ್ಲ, ಈಗ ನಾನು {ADDRESS} ಇಲ್ಲಿ ಇದ್ದೀನಿ."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.UPI.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ನಿಮ್ಮ ಯುಪಿಐ ಐಡಿ? ;; C: {UPI}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.EMAIL.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ಇಮೇಲ್ ಐಡಿ ಹೇಳಿ. ;; C: {EMAIL}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn.ask.DOB.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ನಿಮ್ಮ ಜನ್ಮ ದಿನಾಂಕ? ;; C: {DOB}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

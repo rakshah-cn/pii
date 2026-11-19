@@ -1,0 +1,119 @@
+{
+ "group": "msg:ta_rom",
+ "pools": [
+  {
+   "pool": "msg:ta_rom.open",
+   "need": 3,
+   "existing_lines": [
+    "A: Dear customer, ungal EMI {AMOUNT} {DATE} anru baaki irukku. - {ORG}",
+    "C: hello sir ;; C: EMI pathi msg vandhuchu ;; A: Aama {AMOUNT} baaki irukku {DATE} ku."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msg:ta_rom.close",
+   "need": 1,
+   "existing_lines": [
+    "C: ok thanks ;; A: Thank you.",
+    "C: sari, {DATE2} kulla katturen",
+    "C: aama sir ok",
+    "C: ok done"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msg:ta_rom.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: ungal peyar? ;; C: {NAME}",
+    "C: naan {NAME} pesuren"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:ta_rom.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: ungal mobile no anuppunga ;; C: {PHONE}",
+    "C: en pudhu number {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:ta_rom.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: number? ;; C: {PHONE_P1} ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:ta_rom.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: kadaisi 4 ilakkam sollunga ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:ta_rom.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: pudhu address anuppunga ;; C: {ADDRESS}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

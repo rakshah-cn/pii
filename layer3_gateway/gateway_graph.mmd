@@ -1,0 +1,37 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	initialize(initialize)
+	detect(detect)
+	tokenise(tokenise)
+	final_audit(final_audit)
+	llm_dispatch(llm_dispatch)
+	sanitise(sanitise)
+	rehydrate_route(rehydrate_route)
+	block(block)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> initialize;
+	detect -.-> block;
+	detect -. &nbsp;ok&nbsp; .-> tokenise;
+	final_audit -. &nbsp;fail&nbsp; .-> block;
+	final_audit -. &nbsp;clean&nbsp; .-> llm_dispatch;
+	final_audit -. &nbsp;retry&nbsp; .-> tokenise;
+	initialize -.-> block;
+	initialize -. &nbsp;ok&nbsp; .-> detect;
+	llm_dispatch -. &nbsp;end&nbsp; .-> __end__;
+	llm_dispatch -.-> block;
+	llm_dispatch -. &nbsp;ok&nbsp; .-> sanitise;
+	rehydrate_route -. &nbsp;ok&nbsp; .-> __end__;
+	rehydrate_route -.-> block;
+	sanitise -.-> block;
+	sanitise -. &nbsp;ok&nbsp; .-> rehydrate_route;
+	tokenise -.-> block;
+	tokenise -. &nbsp;ok&nbsp; .-> final_audit;
+	block --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

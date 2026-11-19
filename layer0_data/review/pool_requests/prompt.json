@@ -1,0 +1,126 @@
+{
+ "group": "prompt",
+ "pools": [
+  {
+   "pool": "prompt.snip.AADHAAR",
+   "need": 1,
+   "existing_lines": [
+    "Aadhaar: {AADHAAR}",
+    "UID {AADHAAR}",
+    "\"aadhaar\": \"{AADHAAR}\"",
+    "KYC id (Aadhaar) {AADHAAR}"
+   ],
+   "kind": "prompt_string",
+   "write_this_many": 2,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": []
+  },
+  {
+   "pool": "prompt.snip.PAN",
+   "need": 2,
+   "existing_lines": [
+    "PAN: {PAN}",
+    "PAN card - {PAN}",
+    "\"pan\": \"{PAN}\""
+   ],
+   "kind": "prompt_string",
+   "write_this_many": 3,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": []
+  },
+  {
+   "pool": "prompt.snip.ACCOUNT",
+   "need": 1,
+   "existing_lines": [
+    "A/c no: {ACCOUNT}",
+    "Bank account - {ACCOUNT}",
+    "\"account_number\": \"{ACCOUNT}\"",
+    "account {ACCOUNT}"
+   ],
+   "kind": "prompt_string",
+   "write_this_many": 2,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": []
+  },
+  {
+   "pool": "prompt.snip.LOAN",
+   "need": 1,
+   "existing_lines": [
+    "Loan ID: {LOAN}",
+    "LAN {LOAN}",
+    "\"loan_id\": \"{LOAN}\"",
+    "agreement no. {LOAN}"
+   ],
+   "kind": "prompt_string",
+   "write_this_many": 2,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": []
+  },
+  {
+   "pool": "prompt.snip.ADDRESS",
+   "need": 2,
+   "existing_lines": [
+    "Address: {ADDRESS}",
+    "resides at {ADDRESS}",
+    "\"address\": \"{ADDRESS}\""
+   ],
+   "kind": "prompt_string",
+   "write_this_many": 3,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": []
+  },
+  {
+   "pool": "prompt.snip.UPI",
+   "need": 3,
+   "existing_lines": [
+    "UPI: {UPI}",
+    "\"upi\": \"{UPI}\""
+   ],
+   "kind": "prompt_string",
+   "write_this_many": 4,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": []
+  },
+  {
+   "pool": "prompt.snip.EMAIL",
+   "need": 3,
+   "existing_lines": [
+    "Email: {EMAIL}",
+    "\"email\": \"{EMAIL}\""
+   ],
+   "kind": "prompt_string",
+   "write_this_many": 4,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": []
+  },
+  {
+   "pool": "prompt.snip.DOB",
+   "need": 2,
+   "existing_lines": [
+    "DOB: {DOB}",
+    "born on {DOB}",
+    "\"dob\": \"{DOB}\""
+   ],
+   "kind": "prompt_string",
+   "write_this_many": 3,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": []
+  }
+ ]
+}

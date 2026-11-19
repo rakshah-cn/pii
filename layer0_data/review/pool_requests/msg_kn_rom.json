@@ -1,0 +1,119 @@
+{
+ "group": "msg:kn_rom",
+ "pools": [
+  {
+   "pool": "msg:kn_rom.open",
+   "need": 3,
+   "existing_lines": [
+    "A: Dear customer, nimma EMI {AMOUNT} {DATE} ge baaki ide. - {ORG}",
+    "C: hello sir ;; C: EMI bagge msg bandide ;; A: Haudu {AMOUNT} baaki ide {DATE} ge."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msg:kn_rom.close",
+   "need": 1,
+   "existing_lines": [
+    "C: ok thanks ;; A: Thank you.",
+    "C: sari, {DATE2} olage kattuttene",
+    "C: haudu sir ok",
+    "C: ok done"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msg:kn_rom.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: nimma hesaru? ;; C: {NAME}",
+    "C: naanu {NAME} matadtiddini"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:kn_rom.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: nimma mobile no kalisi ;; C: {PHONE}",
+    "C: nanna hosa number {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:kn_rom.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: number? ;; C: {PHONE_P1} ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:kn_rom.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: kone 4 anki heli ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:kn_rom.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: hosa address kalisi ;; C: {ADDRESS}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

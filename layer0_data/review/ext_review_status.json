@@ -1,0 +1,3 @@
+{"note": "number of independent LLM reviewers that completed a pass over each pack's agent-written lines (the rest failed on the org spend limit). 0 = validated by code only.",
+ "call_en": 1, "call_hi": 0, "call_hi_rom": 0, "call_mr": 0, "call_mr_rom": 0, "call_kn": 0, "call_kn_rom": 0, "call_ta": 0, "call_ta_rom": 0,
+ "msg_en": 0, "msg_hi_rom": 0, "msg_mr_rom": 1, "msg_kn_rom": 2, "msg_ta_rom": 2, "msgnative_hi": 0, "msgnative_mr": 0, "msgnative_kn": 0, "msgnative_ta": 0, "prompt": 0}

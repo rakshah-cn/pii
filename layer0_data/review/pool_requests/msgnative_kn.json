@@ -1,0 +1,99 @@
+{
+ "group": "msgnative:kn",
+ "pools": [
+  {
+   "pool": "msgnative:kn.open",
+   "need": 4,
+   "existing_lines": [
+    "A: ಪ್ರಿಯ ಗ್ರಾಹಕರೇ, ನಿಮ್ಮ ಇಎಂಐ {AMOUNT} {DATE} ರಂದು ಬಾಕಿ ಇದೆ. - {ORG}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msgnative:kn.close",
+   "need": 3,
+   "existing_lines": [
+    "C: ಸರಿ, ಧನ್ಯವಾದ",
+    "C: {DATE2} ರೊಳಗೆ ಕಟ್ಟುತ್ತೇನೆ"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msgnative:kn.ask.NAME.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ನಿಮ್ಮ ಹೆಸರು? ;; C: {NAME}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msgnative:kn.ask.PHONE.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ನಿಮ್ಮ ಮೊಬೈಲ್ ನಂಬರ್ ಕಳುಹಿಸಿ ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msgnative:kn.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: ನಂಬರ್? ;; C: {PHONE_P1} ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msgnative:kn.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ಹೊಸ ವಿಳಾಸ ಕಳುಹಿಸಿ ;; C: {ADDRESS}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

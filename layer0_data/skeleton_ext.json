@@ -1,0 +1,2209 @@
+{
+ "call:en.ask.PHONE.split": [
+  "A: Which number should I note for the follow-up call? ;; C: Okay, first part is {PHONE_P1} ;; A: Got it, and next? ;; C: And then {PHONE_P2}.",
+  "A: Can you read out the mobile number linked to your loan? ;; C: Ya, {PHONE_P1} ;; A: Please go ahead with the rest. ;; C: Rest is {PHONE_P2}, noted?"
+ ],
+ "call:en.ask.PHONE.partial": [
+  "A: Just the final digits of your phone number, please. ;; C: Last ones are {PHONE}.",
+  "A: For security I will ask only the end of your number. ;; C: Okay, {PHONE}.",
+  "A: Which number is registered with us, last four only? ;; C: Registered one ends in {PHONE}, (sir|madam)."
+ ],
+ "call:en.ask.AADHAAR.single": [
+  "A: Do you have your Aadhaar handy? Read it out. ;; C: Ya, one minute... {AADHAAR}.",
+  "A: I will need Aadhaar for the verification process. ;; C: Okay (sir|madam), number is {AADHAAR}.",
+  "A: Kindly share your Aadhaar id now. ;; C: Aadhaar id is {AADHAAR}, you note it down."
+ ],
+ "call:en.ask.AADHAAR.split": [
+  "A: Read out your Aadhaar card number for me. ;; C: First half, {AADHAAR_P1} ;; A: Okay noted, please give the remaining. ;; C: Remaining is {AADHAAR_P2}.",
+  "A: Aadhaar number to verify your identity, (sir|madam). ;; C: Haan, {AADHAAR_P1} ;; A: And after that? ;; C: After that {AADHAAR_P2}.",
+  "A: I am calling from {ORG}. Need your Aadhaar for the KYC update. ;; C: Just a sec, it starts with {AADHAAR_P1} ;; A: Yes, continue please. ;; C: Then {AADHAAR_P2}, done.",
+  "A: Please say the Aadhaar slowly, in two parts. ;; C: {AADHAAR_P1}, okay? ;; A: Okay, next part. ;; C: Next is {AADHAAR_P2}."
+ ],
+ "call:en.ask.AADHAAR.partial": [
+  "A: Only the last few digits of Aadhaar, that is enough. ;; C: Last digits are {AADHAAR}.",
+  "A: How does your Aadhaar number end? ;; C: It is ending in {AADHAAR}, (sir|madam).",
+  "A: I just want to match the end of your Aadhaar. ;; C: Okay, {AADHAAR}."
+ ],
+ "call:en.ask.PAN.single": [
+  "A: Can you give your PAN for the record? ;; C: Yes, it is {PAN}, (sir|madam).",
+  "A: I am checking your profile, what is the PAN there? ;; C: Profile PAN is {PAN}.",
+  "A: Kindly read your permanent account number. ;; C: Ya, {PAN}, you got it?"
+ ],
+ "call:en.ask.PAN.split": [
+  "A: Read out your PAN card, please, in two parts. ;; C: First part is {PAN_P1} ;; A: Okay, and the second part? ;; C: Second part {PAN_P2}.",
+  "A: I need your PAN for the update. ;; C: Ya, starts with {PAN_P1} ;; A: Noted, go ahead. ;; C: Then {PAN_P2}, that is all.",
+  "A: Which PAN is registered with {ORG}? ;; C: Wait, let me see the card. {PAN_P1} ;; A: Fine, rest? ;; C: Rest is {PAN_P2}.",
+  "A: PAN details, (sir|madam)? ;; C: Okay, {PAN_P1}, one second ;; A: I am listening. ;; C: {PAN_P2}."
+ ],
+ "call:en.ask.ACCOUNT.single": [
+  "A: From which account is the EMI getting deducted? ;; C: From the account {ACCOUNT}.",
+  "A: Give me the bank account number to update in our system. ;; C: Okay (sir|madam), {ACCOUNT}, please note.",
+  "A: Which account do you want to use for the payment? ;; C: Use this one, {ACCOUNT}."
+ ],
+ "call:en.ask.ACCOUNT.split": [
+  "A: Tell me the account number for the mandate. ;; C: First digits are {ACCOUNT_P1} ;; A: Yes, I am noting. ;; C: Then {ACCOUNT_P2}.",
+  "A: Please read your bank account number slowly. ;; C: Ya, {ACCOUNT_P1}, okay? ;; A: Okay, remaining digits? ;; C: Remaining {ACCOUNT_P2}.",
+  "A: Which account is linked with {ORG}? ;; C: Let me check the passbook. {ACCOUNT_P1} ;; A: Take your time, continue. ;; C: And {ACCOUNT_P2}.",
+  "A: Your account number once more, (sir|madam). ;; C: It begins {ACCOUNT_P1} ;; A: Go on. ;; C: Ends with {ACCOUNT_P2}, that is it."
+ ],
+ "call:en.ask.ACCOUNT.partial": [
+  "A: Just the last digits of your bank account, please. ;; C: Last digits {ACCOUNT}.",
+  "A: How does your account number end, (sir|madam)? ;; C: It ends with {ACCOUNT}, I think.",
+  "A: For safety I only need the end of the account number. ;; C: Fine, {ACCOUNT}."
+ ],
+ "call:en.ask.LOAN.single": [
+  "A: Do you remember the loan number from your sanction letter? ;; C: Ya, it is {LOAN}, (sir|madam).",
+  "A: I need the reference number of this loan. ;; C: Reference number is {LOAN}, please check."
+ ],
+ "call:en.ask.LOAN.split": [
+  "A: Can you tell me the loan number, please? ;; C: The first part is {LOAN_P1} ;; A: Yes, continue. ;; C: And the last part is {LOAN_P2}.",
+  "A: Which loan are we talking about, (sir|madam)? Say the number. ;; C: One second, {LOAN_P1} ;; A: Okay, I am noting. ;; C: Then {LOAN_P2}.",
+  "A: Kindly give the agreement number of your loan with {ORG}. ;; C: It starts like {LOAN_P1} ;; A: Hmm, next? ;; C: Next is {LOAN_P2}, got it?",
+  "A: Loan number first, then we will talk about dues. ;; C: Ya ya, {LOAN_P1}... ;; A: Please go ahead. ;; C: ...{LOAN_P2}."
+ ],
+ "call:en.ask.ADDRESS.single": [
+  "A: Where should we send the letter? ;; C: Send it to {ADDRESS}, same place as before.",
+  "A: Can you tell me your residence address, (sir|madam)? ;; C: Yes, my address is {ADDRESS}."
+ ],
+ "call:en.ask.UPI.single": [
+  "A: Tell me your UPI handle, I will send a payment link. ;; C: Handle is {UPI}.",
+  "A: Which id do you use for GPay or PhonePe? ;; C: I use {UPI}, (sir|madam).",
+  "A: Can you confirm the UPI id registered with your bank? ;; C: Ya, {UPI}."
+ ],
+ "call:en.ask.EMAIL.single": [
+  "A: Tell me your mail id, we will email the payment receipt. ;; C: Mail id is {EMAIL}.",
+  "A: Which email do you check regularly, (sir|madam)? ;; C: I check {EMAIL} daily.",
+  "A: Please spell out your email for our records. ;; C: Okay, {EMAIL}, noted?",
+  "A: Do you have an email address for the settlement letter? ;; C: Yes, send on {EMAIL}."
+ ],
+ "call:en.ask.DOB.single": [
+  "A: When were you born, (sir|madam)? Date please. ;; C: Born on {DOB}.",
+  "A: I will verify your age, tell me the birth date. ;; C: Birth date is {DOB}, ya.",
+  "A: Please confirm your date of birth as per records. ;; C: As per records, {DOB}.",
+  "A: Can you say your DOB for security check? ;; C: Okay, my DOB is {DOB}."
+ ],
+ "call:hi.open": [
+  "A: हैलो, क्या मैं अभी आपसे बात कर सकत(ा|ी) हूँ? ;; C: जी, बोलिए।",
+  "C: हाँ जी, कौन? ;; A: (सर|मैडम), मैं {ORG} की तरफ़ से कॉल कर (रहा|रही) हूँ।",
+  "A: (नमस्कार|हैलो), क्या अभी बात करने का सही समय है? ;; C: हाँ, दो मिनट हैं, बोलिए।",
+  "C: हैलो? ;; A: हैलो जी, आपसे कुछ ज़रूरी बात करनी थी।"
+ ],
+ "call:hi.intro": [
+  "A: नमस्ते (सर|मैडम), मैं {ORG} के कलेक्शन विभाग से हूँ। ;; C: जी, बताइए क्या बात है।",
+  "A: (सर|मैडम), आपके लोन खाते के बारे में एक ज़रूरी सूचना देनी थी।",
+  "A: हैलो, मैं {ORG} से बोल (रहा|रही) हूँ, आपके बकाया के सिलसिले में फ़ोन किया है। ;; C: अच्छा, हाँ।",
+  "A: नमस्ते जी, यह कॉल आपकी किस्त के बारे में है, कृपया ध्यान दीजिए। ;; C: हाँ, सुन (रहा|रही) हूँ।"
+ ],
+ "call:hi.close": [
+  "A: ठीक है, मैं नोट कर ल(ूँगा|ूँगी)। ;; C: जी, शुक्रिया।",
+  "A: कोई बात नहीं, समय देने के लिए शुक्रिया। ;; C: ठीक है, रखत(ा|ी) हूँ।",
+  "C: ठीक है, अब रखत(ा|ी) हूँ। ;; A: जी, नमस्ते।",
+  "A: कुछ और पूछना हो तो बताइए। ;; C: नहीं, बस इतना ही था, धन्यवाद।"
+ ],
+ "call:hi.due.emi_reminder": [
+  "A: (सर|मैडम), इस महीने की किस्त {AMOUNT} बनती है, आखिरी तारीख {DATE} है। ;; C: जी, याद है, भर दूँ(गा|गी)।",
+  "A: याद दिलाने के लिए कॉल किया था, {DATE} तक {AMOUNT} जमा करना है। ;; C: अरे हाँ, ध्यान से उतर गया था, आज शाम तक कर देत(ा|ी) हूँ।",
+  "A: आपकी ईएमआई की तारीख पास आ रही है। ;; C: कितनी रकम थी? ;; A: {AMOUNT}, {DATE} तक। ;; C: ठीक है, हो जाएगा।",
+  "A: नमस्ते, {AMOUNT} की किस्त अभी तक नहीं आई है। ;; C: सैलरी आने में देर है, {DATE2} तक कर दूँ(गा|गी)।",
+  "A: कृपया ध्यान दें, {DATE} को आपकी ईएमआई कटेगी, खाते में बैलेंस रखिएगा। ;; C: जी, रख दूँ(गा|गी)।"
+ ],
+ "call:hi.due.dispute": [
+  "A: रिकॉर्ड में {AMOUNT} पेंडिंग है। ;; C: यह गलत है, मैंने {DATE2} को पेमेंट किया था।",
+  "A: आपकी किस्त {DATE} को नहीं आई। ;; C: मेरे खाते से तो पैसे कट गए थे, आप चेक कीजिए।",
+  "A: {AMOUNT} का भुगतान बाकी है। ;; C: मुझे तो रसीद मिली थी, फिर यह कैसे बाकी है? ;; A: जी, मैं दोबारा देखत(ा|ी) हूँ।",
+  "A: सिस्टम में लेट फीस के साथ {AMOUNT} दिख रहा है। ;; C: लेट फीस किस बात की? मैंने तो समय पर भरा था।",
+  "A: आपका पेमेंट {DATE} से पेंडिंग है। ;; C: नहीं नहीं, मैंने ऑनलाइन ट्रांसफर कर दिया था, स्क्रीनशॉट भेज दूँ(गा|गी)?"
+ ],
+ "call:hi.due.address_update": [
+  "A: हमारे रिकॉर्ड में आपका पुराना पता दिख रहा है, बदलवाना है? ;; C: हाँ, हमने घर बदल लिया है।",
+  "A: (सर|मैडम), क्या आपका कॉन्टैक्ट डिटेल बदला है? ;; C: हाँ, नया अपडेट करवाना है।",
+  "A: केवाईसी के लिए आपका पता अपडेट करना है। ;; C: ठीक है, क्या-क्या बताना होगा?",
+  "A: आपके नाम की चिट्ठियाँ लौटकर आ रही हैं, शायद पता बदल गया है। ;; C: हाँ जी, पता बदल गया है, अपडेट कर दीजिए।",
+  "C: मुझे अपना पता बदलवाना है। ;; A: जी ज़रूर, मैं प्रोसेस शुरू कर देत(ा|ी) हूँ।",
+  "A: हमें आपके संपर्क की जानकारी दोबारा चाहिए। ;; C: ठीक है, एक-एक करके पूछ लीजिए।"
+ ],
+ "call:hi.due.payment_promise": [
+  "A: पेमेंट कब तक हो जाएगा? ;; C: {DATE2} तक पक्का हो जाएगा।",
+  "A: क्या आप {AMOUNT} जमा करने की कोई तारीख बता सकते हैं? ;; C: हाँ, {DATE2} को सैलरी आएगी, उसी दिन।",
+  "A: कृपया पक्की तारीख बताइए ताकि मैं नोट कर लूँ। ;; C: {DATE2} लिख लीजिए।",
+  "A: काफ़ी देर हो चुकी है, कब तक भरेंगे? ;; C: थोड़ा वक़्त दीजिए, {DATE2} तक कर दूँ(गा|गी)।",
+  "A: क्या आज ही कुछ रकम जमा कर सकते हैं? ;; C: अभी पूरा नहीं है, बाकी {DATE2} को दे दूँ(गा|गी)।"
+ ],
+ "call:hi.ask.NAME.single": [
+  "A: हैलो, क्या मैं {NAME} से बात कर (रहा|रही) हूँ? ;; C: जी हाँ, मैं ही हूँ।",
+  "A: (सर|मैडम), कृपया अपना पूरा नाम बताइए। ;; C: मेरा नाम {NAME} है।",
+  "A: आप {NAME} ही हैं न? ;; C: हाँ जी, वही हूँ, कहिए।",
+  "A: वेरिफिकेशन के लिए नाम कन्फ़र्म कर दीजिए। ;; C: {NAME}, जैसा कार्ड पर लिखा है।",
+  "A: मुझे {NAME} जी से बात करनी है। ;; C: हाँ, बोलिए, मैं ही बोल (रहा|रही) हूँ।"
+ ],
+ "call:hi.ask.PHONE.single": [
+  "A: आपके पास कौन सा नंबर चालू रहता है? ;; C: यह वाला, {PHONE}।",
+  "A: कॉलबैक के लिए नंबर लिखवा दीजिए। ;; C: हाँ, {PHONE} पर कर लीजिएगा।",
+  "A: (सर|मैडम), कोई और संपर्क नंबर है? ;; C: हाँ, {PHONE} नोट कर लीजिए।",
+  "A: वॉट्सऐप वाला नंबर बताएँगे? ;; C: {PHONE} है, उसी पर वॉट्सऐप भी है।",
+  "A: आपका मोबाइल नंबर अपडेट करना है, नया क्या है? ;; C: नया नंबर {PHONE} है।"
+ ],
+ "call:hi.ask.PHONE.split": [
+  "A: कृपया अपना नंबर लिखवाइए। ;; C: {PHONE_P1} ;; A: और आगे के अंक? ;; C: {PHONE_P2}",
+  "A: नंबर बोलिए, मैं नोट कर (रहा|रही) हूँ। ;; C: {PHONE_P1} ;; A: जी, फिर? ;; C: {PHONE_P2}",
+  "A: रजिस्टर्ड नंबर पहले आधा बताइए। ;; C: पहले यह, {PHONE_P1} ;; A: ठीक है, अब बाकी। ;; C: बाकी {PHONE_P2}",
+  "A: मोबाइल नंबर धीरे-धीरे बोलिए। ;; C: {PHONE_P1} ;; A: (समझ गया|समझ गई), आगे बताइए। ;; C: {PHONE_P2}",
+  "A: दूसरा नंबर चाहिए, दो हिस्सों में बता दीजिए। ;; C: {PHONE_P1} ;; A: हाँ, अगला हिस्सा? ;; C: {PHONE_P2}",
+  "A: कॉन्टैक्ट नंबर दीजिए। ;; C: जी, {PHONE_P1} ;; A: बाकी के अंक भी बोलिए। ;; C: हाँ, {PHONE_P2}"
+ ],
+ "call:hi.ask.PHONE.partial": [
+  "A: नंबर पूरा नहीं चाहिए, बस आखिरी चार अंक बोल दीजिए। ;; C: {PHONE}",
+  "A: पहचान के लिए मोबाइल के आखिरी अंक बताइए। ;; C: आखिरी चार अंक {PHONE} हैं।",
+  "A: आपके नंबर के अंत के चार अंक क्या हैं? ;; C: {PHONE} हैं।",
+  "A: बस आखिर के चार नंबर कन्फ़र्म कर दीजिए। ;; C: जी, {PHONE}।",
+  "A: सुरक्षा के लिए मोबाइल नंबर के आखिरी चार अंक पूछ (रहा|रही) हूँ। ;; C: {PHONE}, ठीक है?",
+  "A: मोबाइल का अंत वाला हिस्सा बता दीजिए। ;; C: आखिरी चार हैं {PHONE}।"
+ ],
+ "call:hi.ask.AADHAAR.single": [
+  "A: केवाईसी के लिए आपका आधार नंबर चाहिए। ;; C: जी, {AADHAAR} है।",
+  "A: (सर|मैडम), आधार कार्ड पर जो नंबर है वह बताइए। ;; C: लिखिए, {AADHAAR}।",
+  "A: पहचान की पुष्टि के लिए आधार बता दीजिए। ;; C: {AADHAAR}, यह रहा।",
+  "A: क्या आपका आधार लिंक्ड है? नंबर बोलिए। ;; C: हाँ, आधार नंबर {AADHAAR} है।",
+  "A: आधार नंबर नोट करना है, बताएँगे? ;; C: जी ज़रूर, {AADHAAR}।",
+  "A: आपका आधार वेरिफाई करना है। ;; C: ठीक है, {AADHAAR} है मेरा।"
+ ],
+ "call:hi.ask.AADHAAR.split": [
+  "A: आधार नंबर बोलिए, मैं लिख (रहा|रही) हूँ। ;; C: {AADHAAR_P1} ;; A: जी, आगे का हिस्सा? ;; C: {AADHAAR_P2}",
+  "A: कृपया आधार नंबर दो हिस्सों में बताइए। ;; C: पहले {AADHAAR_P1} ;; A: ठीक है, बाकी? ;; C: {AADHAAR_P2}",
+  "A: केवाईसी के लिए आधार चाहिए। ;; C: {AADHAAR_P1} ;; A: और आगे के अंक बताइए। ;; C: {AADHAAR_P2}",
+  "A: आधार कार्ड का नंबर धीरे से बोलिए। ;; C: जी, {AADHAAR_P1} ;; A: (समझ गया|समझ गई), अब आखिरी हिस्सा। ;; C: {AADHAAR_P2}",
+  "A: आधार नंबर लिखवा दीजिए। ;; C: {AADHAAR_P1} ;; A: हाँ, अगला? ;; C: हाँ, {AADHAAR_P2}",
+  "A: वेरिफिकेशन के लिए आधार नंबर बोलिए। ;; C: {AADHAAR_P1} ;; A: बाकी बचा हुआ बताइए। ;; C: {AADHAAR_P2}"
+ ],
+ "call:hi.ask.AADHAAR.partial": [
+  "A: पूरा आधार नहीं चाहिए, बस आखिरी चार अंक बता दीजिए। ;; C: {AADHAAR}",
+  "A: आधार नंबर के अंत के चार अंक क्या हैं? ;; C: {AADHAAR} हैं।",
+  "A: पहचान के लिए आधार के आखिरी अंक बोलिए। ;; C: आखिरी चार हैं {AADHAAR}।",
+  "A: सुरक्षा के लिए आधार के बस आखिरी चार अंक कन्फ़र्म कीजिए। ;; C: जी, {AADHAAR}।",
+  "A: आधार का अंतिम हिस्सा बताइए। ;; C: {AADHAAR}, इतना ही ना?",
+  "A: बस आधार के आखिरी चार नंबर चाहिए। ;; C: हाँ, ये रहे, {AADHAAR}।"
+ ],
+ "call:hi.ask.PAN.single": [
+  "A: टैक्स रिकॉर्ड के लिए पैन कार्ड नंबर चाहिए। ;; C: जी, {PAN} है।",
+  "A: (सर|मैडम), पैन बता दीजिए। ;; C: लिखिए, {PAN}।",
+  "A: क्या आपका पैन हमारे पास अपडेट है? नंबर बोलिए। ;; C: हाँ, {PAN} है मेरा।",
+  "A: पैन कार्ड पर जो लिखा है वह बताइए। ;; C: {PAN}, यह रहा।",
+  "A: वेरिफिकेशन के लिए पैन नंबर बोलिएगा। ;; C: जी, मेरा पैन {PAN} है।",
+  "A: आपका पैन कन्फ़र्म करना है। ;; C: ठीक है, {PAN}।"
+ ],
+ "call:hi.ask.PAN.split": [
+  "A: पैन नंबर बोलिए, मैं नोट कर (रहा|रही) हूँ। ;; C: {PAN_P1} ;; A: जी, आगे का हिस्सा? ;; C: {PAN_P2}",
+  "A: कृपया पैन कार्ड नंबर दो हिस्सों में बताइए। ;; C: पहले {PAN_P1} ;; A: ठीक है, बाकी? ;; C: {PAN_P2}",
+  "A: पैन लिखवा दीजिए। ;; C: {PAN_P1} ;; A: और आगे? ;; C: {PAN_P2}",
+  "A: वेरिफिकेशन के लिए पैन नंबर बताइए। ;; C: जी, {PAN_P1} ;; A: बाकी के अक्षर और अंक बोलिए। ;; C: {PAN_P2}",
+  "A: पैन कार्ड का नंबर धीरे से बोलिए। ;; C: {PAN_P1} ;; A: (समझ गया|समझ गई), अब आखिरी हिस्सा। ;; C: {PAN_P2}",
+  "A: टैक्स डिटेल के लिए पैन चाहिए। ;; C: {PAN_P1} ;; A: हाँ, अगला? ;; C: हाँ, {PAN_P2}"
+ ],
+ "call:hi.ask.ACCOUNT.single": [
+  "A: जिस खाते से किस्त कटती है उसका नंबर बताइए। ;; C: जी, {ACCOUNT}।",
+  "A: (सर|मैडम), बैंक अकाउंट नंबर बता दीजिए। ;; C: लिखिए, {ACCOUNT}।",
+  "A: ऑटो डेबिट वाला खाता कौन सा है? ;; C: वह {ACCOUNT} है।",
+  "A: रिफंड के लिए आपका अकाउंट नंबर चाहिए। ;; C: ठीक है, {ACCOUNT} नोट कर लीजिए।",
+  "A: पेमेंट की जानकारी के लिए खाता नंबर कन्फ़र्म कीजिए। ;; C: हाँ, मेरा खाता {ACCOUNT} है।",
+  "A: बैंक खाते का नंबर बोलिएगा। ;; C: {ACCOUNT}, यह रहा।"
+ ],
+ "call:hi.ask.ACCOUNT.split": [
+  "A: अकाउंट नंबर बोलिए, मैं लिख (रहा|रही) हूँ। ;; C: {ACCOUNT_P1} ;; A: जी, आगे का हिस्सा? ;; C: {ACCOUNT_P2}",
+  "A: कृपया बैंक खाता नंबर दो हिस्सों में बताइए। ;; C: पहले {ACCOUNT_P1} ;; A: ठीक है, बाकी? ;; C: {ACCOUNT_P2}",
+  "A: खाता नंबर लिखवा दीजिए। ;; C: {ACCOUNT_P1} ;; A: और आगे के अंक? ;; C: {ACCOUNT_P2}",
+  "A: ऑटो डेबिट के लिए खाता नंबर चाहिए। ;; C: जी, {ACCOUNT_P1} ;; A: बाकी के अंक भी बोलिए। ;; C: {ACCOUNT_P2}",
+  "A: अकाउंट नंबर धीरे से बोलिए। ;; C: {ACCOUNT_P1} ;; A: (समझ गया|समझ गई), अब आखिरी हिस्सा। ;; C: {ACCOUNT_P2}",
+  "A: बैंक अकाउंट की डिटेल दीजिए। ;; C: {ACCOUNT_P1} ;; A: हाँ, अगला? ;; C: हाँ, {ACCOUNT_P2}"
+ ],
+ "call:hi.ask.ACCOUNT.partial": [
+  "A: पूरा खाता नंबर नहीं चाहिए, बस आखिरी चार अंक बता दीजिए। ;; C: {ACCOUNT}",
+  "A: अकाउंट नंबर के अंत के चार अंक क्या हैं? ;; C: {ACCOUNT} हैं।",
+  "A: पहचान के लिए खाते के आखिरी अंक बोलिए। ;; C: आखिरी चार हैं {ACCOUNT}।",
+  "A: सुरक्षा के लिए बैंक खाते के आखिरी चार अंक कन्फ़र्म कीजिए। ;; C: जी, {ACCOUNT}।",
+  "A: खाता नंबर का अंतिम हिस्सा बताइए। ;; C: {ACCOUNT}, इतना ही ना?",
+  "A: बस अकाउंट के आखिरी चार नंबर चाहिए। ;; C: हाँ, ये रहे, {ACCOUNT}।"
+ ],
+ "call:hi.ask.LOAN.single": [
+  "A: आपके लोन का रेफरेंस नंबर क्या है? ;; C: जी, {LOAN} है।",
+  "A: (सर|मैडम), लोन खाता संख्या बता दीजिए। ;; C: लिखिए, {LOAN}।",
+  "A: किस लोन के बारे में बात हो रही है, नंबर बोलिए। ;; C: मेरा लोन नंबर {LOAN} है।",
+  "A: रिकॉर्ड ढूँढने के लिए लोन नंबर चाहिए। ;; C: ठीक है, {LOAN} देख लीजिए।",
+  "A: अपना लोन अकाउंट नंबर कन्फ़र्म कीजिए। ;; C: हाँ, {LOAN} है।",
+  "A: लोन की रसीद पर जो नंबर है वह बताइए। ;; C: {LOAN}, यह रहा।"
+ ],
+ "call:hi.ask.LOAN.split": [
+  "A: लोन नंबर बोलिए, मैं लिख (रहा|रही) हूँ। ;; C: {LOAN_P1} ;; A: जी, आगे का हिस्सा? ;; C: {LOAN_P2}",
+  "A: कृपया लोन अकाउंट नंबर दो हिस्सों में बताइए। ;; C: पहले {LOAN_P1} ;; A: ठीक है, बाकी? ;; C: {LOAN_P2}",
+  "A: लोन नंबर लिखवा दीजिए। ;; C: {LOAN_P1} ;; A: और आगे के अंक? ;; C: {LOAN_P2}",
+  "A: खाता ढूँढने के लिए लोन नंबर चाहिए। ;; C: जी, {LOAN_P1} ;; A: बाकी बोलिए। ;; C: {LOAN_P2}",
+  "A: लोन का नंबर धीरे से बोलिए। ;; C: {LOAN_P1} ;; A: (समझ गया|समझ गई), अब आखिरी हिस्सा। ;; C: {LOAN_P2}",
+  "A: रेफरेंस नंबर बताइए। ;; C: {LOAN_P1} ;; A: हाँ, अगला? ;; C: हाँ, {LOAN_P2}"
+ ],
+ "call:hi.ask.ADDRESS.single": [
+  "A: आप अभी कहाँ रह रहे हैं? ;; C: हम अब {ADDRESS} में रहत(े|ी) हैं।",
+  "A: (सर|मैडम), आपका करंट पता क्या है? ;; C: मेरा पता {ADDRESS} है।",
+  "A: चिट्ठी किस पते पर भेजनी है? ;; C: {ADDRESS} पर भेज दीजिए।",
+  "A: क्या आपने घर बदला है? ;; C: हाँ, नया पता {ADDRESS} है, नोट कर लीजिए।",
+  "A: रिकॉर्ड के लिए पूरा पता बताइए। ;; C: लिखिए, {ADDRESS}।",
+  "A: वेरिफिकेशन के लिए रहने का पता बोलिए। ;; C: जी, {ADDRESS}।"
+ ],
+ "call:hi.ask.UPI.single": [
+  "A: पेमेंट लिंक भेजना है, आपकी यूपीआई आईडी क्या है? ;; C: जी, {UPI} है।",
+  "A: (सर|मैडम), यूपीआई आईडी बता दीजिए। ;; C: लिखिए, {UPI}।",
+  "A: किस यूपीआई से भुगतान करेंगे? ;; C: मेरी आईडी {UPI} है।",
+  "A: रिफंड के लिए यूपीआई आईडी चाहिए। ;; C: ठीक है, {UPI} नोट कर लीजिए।",
+  "A: अपनी यूपीआई आईडी कन्फ़र्म कीजिए। ;; C: हाँ, {UPI}, यही है।",
+  "A: फ़ोन-पे या गूगल-पे वाली आईडी बताइए। ;; C: {UPI}, यह रहा।"
+ ],
+ "call:hi.ask.EMAIL.single": [
+  "A: स्टेटमेंट भेजना है, आपका ईमेल क्या है? ;; C: जी, {EMAIL} है।",
+  "A: (सर|मैडम), ईमेल पता बता दीजिए। ;; C: लिखिए, {EMAIL}।",
+  "A: किस ईमेल पर रसीद भेजूँ? ;; C: मेरा ईमेल {EMAIL} है।",
+  "A: रिकॉर्ड में ईमेल अपडेट करना है, नया बताइए। ;; C: ठीक है, {EMAIL} नोट कर लीजिए।",
+  "A: अपनी मेल आईडी कन्फ़र्म कीजिए। ;; C: हाँ, {EMAIL}, यही है।",
+  "A: जो ईमेल आप रोज़ देखते हैं वह बताइए। ;; C: {EMAIL}, यह रहा।"
+ ],
+ "call:hi.ask.DOB.single": [
+  "A: वेरिफिकेशन के लिए अपनी जन्म तारीख बताइए। ;; C: जी, {DOB} है।",
+  "A: (सर|मैडम), डेट ऑफ़ बर्थ क्या है आपकी? ;; C: लिखिए, {DOB}।",
+  "A: पहचान के लिए जन्मतिथि कन्फ़र्म कीजिए। ;; C: मेरी जन्मतिथि {DOB} है।",
+  "A: रिकॉर्ड से मिलान करना है, आपका जन्मदिन किस तारीख को है? ;; C: {DOB} को।",
+  "A: सुरक्षा के लिए अपना डीओबी बोलिए। ;; C: ठीक है, {DOB}, यही है।",
+  "A: आपके कागज़ों में जो जन्म की तारीख है वह बताइए। ;; C: {DOB}, यह रहा।"
+ ],
+ "call:hi_rom.open": [
+  "C: Haan ji, kaun? ;; A: Namaste (sir|madam), {ORG} ki taraf se call hai, do minute baat ho sakti hai?",
+  "A: Hello, kya abhi baat karne ka sahi time hai? ;; C: Haan haan, boliye.",
+  "C: Hello, bolo. ;; A: Ji namaste, main {ORG} se bol (raha|rahi) hoon.",
+  "A: Good (morning|afternoon|evening) (sir|madam), aap line par hain? ;; C: Ji, main sun (raha|rahi) hoon."
+ ],
+ "call:hi_rom.intro": [
+  "A: Namaste (sir|madam), main {ORG} ki collections team se hoon. ;; C: Ji, kahiye.",
+  "A: Hello, ye call aapke loan account ko lekar hai, thoda time milega? ;; C: Haan, jaldi bataiye.",
+  "A: (Sir|Madam), ye ek chhota sa payment reminder hai. Call recorded hai.",
+  "A: Ji, {ORG} se bol (raha|rahi) hoon, aapki EMI ke baare mein baat karni thi. ;; C: Achha, boliye."
+ ],
+ "call:hi_rom.close": [
+  "A: Aur kuch madad chahiye (sir|madam)? ;; C: Nahi, bas itna hi. Dhanyavaad.",
+  "A: Toh main ye note kar (leta|leti) hoon, dhanyavaad. ;; C: Ji, namaste.",
+  "C: Okay, ab main phone rakh (raha|rahi) hoon. ;; A: Ji (sir|madam), take care.",
+  "A: Aapne time diya, shukriya. ;; C: Koi baat nahi, bye."
+ ],
+ "call:hi_rom.due.emi_reminder": [
+  "A: Yaad dila (raha|rahi) hoon ki {DATE} ko {AMOUNT} ki kist deni hai. ;; C: Haan yaad hai, {DATE2} tak ho jayega.",
+  "A: (Sir|Madam), is mahine ki EMI abhi tak nahi aayi hai. ;; C: Oh, bhool gaya tha, kal tak daal dun(ga|gi).",
+  "C: Is baar kitna bharna hai? ;; A: {AMOUNT}, aur aakhri tareekh {DATE} hai.",
+  "A: {ORG} ki taraf se EMI ka reminder, {AMOUNT} due hai. ;; C: Salary aate hi {DATE2} ko bhar dun(ga|gi).",
+  "A: Kya aapne is mahine ki EMI ka payment kar diya? ;; C: Abhi nahi kiya, {DATE2} tak kar dun(ga|gi)."
+ ],
+ "call:hi_rom.due.dispute": [
+  "C: Mere hisaab se koi due nahi hai. ;; A: System mein {AMOUNT} outstanding dikha raha hai.",
+  "A: Aapka payment humein receive nahi hua hai. ;; C: Maine {DATE} ko hi transfer kiya tha, screenshot mere paas hai.",
+  "C: Ye charge kis cheez ka laga hai? ;; A: Ye late fee hai, {DATE} ke baad lagti hai.",
+  "A: {DATE} wali EMI pending dikh rahi hai. ;; C: Bank se do baar paisa kata hai, ek baar check kijiye.",
+  "C: Aapne galat amount bataya, {AMOUNT} nahi banta. ;; A: Theek hai, main details dobara verify kar (leta|leti) hoon."
+ ],
+ "call:hi_rom.due.address_update": [
+  "A: Hamare record mein aapka purana pata hai, kya wo badla hai? ;; C: Haan, hum shift ho gaye hain.",
+  "C: Mera ghar badal gaya hai, update karwana hai. ;; A: Ji zaroor, main process shuru kar (raha|rahi) hoon.",
+  "A: Kya aapka current residence wahi hai jo file mein hai? ;; C: Nahi, wo purana hai.",
+  "A: (Sir|Madam), contact details aur pata verify karna tha. ;; C: Achha, kya poochna hai?",
+  "C: Kya main phone par hi address change kara sak(ta|ti) hoon? ;; A: Ji, bas kuch sawaal puchhne honge.",
+  "A: Aap kab se naye ghar mein reh rahe hain? ;; C: Kareeb {DATE} se."
+ ],
+ "call:hi_rom.due.payment_promise": [
+  "A: Payment ki koi pakki date bata dijiye. ;; C: {DATE2} ko pakka kar dun(ga|gi).",
+  "C: Thoda time chahiye, abhi paise nahi hain. ;; A: Theek hai, kab tak arrange ho jayega?",
+  "A: Kya {AMOUNT} aaj raat tak aa sakta hai? ;; C: Mushkil hai, {DATE2} tak ka time dijiye.",
+  "A: Main aapka promise note kar (leta|leti) hoon, {DATE2} tak na? ;; C: Haan ji, us din tak pakka.",
+  "C: Aadha abhi bhej dun(ga|gi), baaki baad mein. ;; A: Chaliye, abhi kitna aur baaki kab tak?"
+ ],
+ "call:hi_rom.ask.NAME.single": [
+  "A: Kya main {NAME} ji se baat kar (raha|rahi) hoon? ;; C: Ji haan, main hi hoon.",
+  "A: Aapka poora naam kya hai? ;; C: Mera naam {NAME} hai.",
+  "A: Ye number {NAME} ji ka hai na? ;; C: Haan, wahi hoon.",
+  "A: Verification ke liye naam confirm kijiye. ;; C: {NAME}, bas.",
+  "A: Loan account kis naam par hai, {NAME} ji? ;; C: Haan ji, mere hi naam par hai."
+ ],
+ "call:hi_rom.ask.PHONE.single": [
+  "A: Aapka contact number kya hai? ;; C: {PHONE} par mil jayenge.",
+  "A: Kis number par aapse baat ho sakti hai? ;; C: Isi number par, {PHONE}.",
+  "A: Hum aapko kis number par call karein? ;; C: {PHONE} par kar lijiye.",
+  "A: WhatsApp wala number konsa hai? ;; C: Wahi, {PHONE}.",
+  "A: Ek alternate mobile number mil sakta hai? ;; C: Haan, {PHONE} note kar lijiye."
+ ],
+ "call:hi_rom.ask.PHONE.split": [
+  "A: Number dheere dheere boliye. ;; C: {PHONE_P1} ;; A: Ji, uske baad? ;; C: {PHONE_P2}",
+  "A: Phone number do hisson mein bataiye. ;; C: Pehle ye, {PHONE_P1} ;; A: Achha, ab baaki. ;; C: Baaki hai {PHONE_P2}",
+  "A: Aapka mobile number kya hai? ;; C: Shuru ke ank {PHONE_P1} ;; A: Theek, aur aage? ;; C: Ab {PHONE_P2}",
+  "A: Number note kar (raha|rahi) hoon, boliye. ;; C: {PHONE_P1} ;; A: Ruk jaiye, aage boliye. ;; C: {PHONE_P2}",
+  "C: Do hisson mein bol (raha|rahi) hoon, pehla {PHONE_P1} ;; A: Ji, dusra? ;; C: Dusra {PHONE_P2}",
+  "A: Alternate number dijiye. ;; C: {PHONE_P1} ;; A: Bas itna hi? Baaki ank? ;; C: Haan, {PHONE_P2}"
+ ],
+ "call:hi_rom.ask.PHONE.partial": [
+  "A: Verify karne ke liye number ke last chaar digit boliye. ;; C: {PHONE}",
+  "A: Registered mobile ke aakhri ank bata dijiye. ;; C: Aakhri chaar hain {PHONE}.",
+  "A: Aapke number ka end kis se hota hai? ;; C: {PHONE} par khatam hota hai.",
+  "A: Poora number nahi chahiye, bas last chaar ank. ;; C: Ji, {PHONE}.",
+  "A: Security check ke liye mobile ke last digits? ;; C: Last wale hain {PHONE}.",
+  "A: Mobile ke antim chaar ank confirm kijiye. ;; C: {PHONE}, sahi hai na?"
+ ],
+ "call:hi_rom.ask.AADHAAR.single": [
+  "A: Identity ke liye aapka Aadhaar chahiye. ;; C: Ye lijiye, {AADHAAR}.",
+  "A: Aadhaar card ka number bata sakte hain? ;; C: Haan, {AADHAAR} hai.",
+  "A: KYC update ke liye Aadhaar bolenge? ;; C: Likh lijiye, {AADHAAR}.",
+  "A: Aapke Aadhaar ka number? ;; C: {AADHAAR} hai mera.",
+  "A: Aadhaar card paas mein hai? Number bata dijiye. ;; C: Haan, dekh ke bol (raha|rahi) hoon, {AADHAAR}.",
+  "A: Hamein Aadhaar number confirm karna hai. ;; C: Mera Aadhaar number {AADHAAR} hai, sahi hai."
+ ],
+ "call:hi_rom.ask.AADHAAR.split": [
+  "A: Aadhaar number do hisson mein boliye. ;; C: {AADHAAR_P1} ;; A: Aur aage? ;; C: {AADHAAR_P2}",
+  "A: Aadhaar ka number bataiye. ;; C: Pehle ye, {AADHAAR_P1} ;; A: Ji, baaki? ;; C: Baaki {AADHAAR_P2}",
+  "A: Aadhaar card dekh ke boliye. ;; C: Shuruaat {AADHAAR_P1} ;; A: Ruk jaiye, aage? ;; C: Phir {AADHAAR_P2}",
+  "C: Ek saath nahi bol (paunga|paungi), pehle {AADHAAR_P1} ;; A: Theek hai, ab dusra hissa. ;; C: {AADHAAR_P2}",
+  "A: Number note kar (raha|rahi) hoon, boliye. ;; C: {AADHAAR_P1} ;; A: Haan, uske baad? ;; C: {AADHAAR_P2}",
+  "A: Aadhaar ke ank bataiye, thoda ruk ruk ke. ;; C: {AADHAAR_P1} ;; A: Ji, bol dijiye aage. ;; C: {AADHAAR_P2}"
+ ],
+ "call:hi_rom.ask.AADHAAR.partial": [
+  "A: Aadhaar ke last chaar digit boliye. ;; C: {AADHAAR}",
+  "A: Poora Aadhaar nahi, sirf aakhri ank. ;; C: Aakhri chaar hain {AADHAAR}.",
+  "A: Verification ke liye Aadhaar ke end ke chaar ank? ;; C: {AADHAAR} hain.",
+  "A: Aadhaar number kis ank par khatam hota hai? ;; C: {AADHAAR} par.",
+  "C: Poora number dena zaroori hai kya? ;; A: Nahi, last chaar ank kaafi hain. ;; C: {AADHAAR}",
+  "A: Aapke Aadhaar ke antim chaar ank confirm karenge? ;; C: Haan, {AADHAAR}, sahi?"
+ ],
+ "call:hi_rom.ask.PAN.single": [
+  "A: PAN card ka number dijiye. ;; C: {PAN} hai mera PAN.",
+  "A: Aapka PAN kya hai? ;; C: {PAN}.",
+  "A: Record match karne ke liye PAN bataiye. ;; C: Ji, likhiye {PAN}.",
+  "A: Kya aap apna PAN number bol sakte hain? ;; C: Haan, mera PAN hai {PAN}.",
+  "A: Income tax wala PAN number chahiye tha. ;; C: Ek minute, haan {PAN}.",
+  "A: PAN card paas mein hai? ;; C: Haan, number {PAN} hai."
+ ],
+ "call:hi_rom.ask.PAN.split": [
+  "A: PAN number bataiye, do parts mein. ;; C: {PAN_P1} ;; A: Haan, aage? ;; C: {PAN_P2}",
+  "A: PAN boliye, main likh (raha|rahi) hoon. ;; C: Pehle {PAN_P1} ;; A: Ji, baaki? ;; C: Phir {PAN_P2}",
+  "A: Aapka PAN? ;; C: Shuru ke akshar {PAN_P1} ;; A: Aur? ;; C: Aakhir mein {PAN_P2}",
+  "C: Main aadha aadha bol (raha|rahi) hoon, {PAN_P1} ;; A: Theek, ab aage. ;; C: {PAN_P2}",
+  "A: PAN card dekh kar dheere boliye. ;; C: {PAN_P1} ;; A: Ruk jaiye, baaki? ;; C: {PAN_P2}",
+  "A: PAN number confirm karna hai. ;; C: Pehla hissa {PAN_P1} ;; A: Ji, dusra? ;; C: {PAN_P2}"
+ ],
+ "call:hi_rom.ask.ACCOUNT.single": [
+  "A: Payment kis account se hoga? ;; C: Mera account number {ACCOUNT} hai.",
+  "A: Bank account ka number bata dijiye. ;; C: Likh lijiye, {ACCOUNT}.",
+  "A: EMI jis account se katti hai wo number? ;; C: {ACCOUNT} se katti hai.",
+  "A: Salary account number kya hai aapka? ;; C: {ACCOUNT}.",
+  "A: Refund ke liye account details chahiye. ;; C: Account hai {ACCOUNT}, dekh lijiye.",
+  "A: Aapka savings account number? ;; C: Haan ji, {ACCOUNT} hai."
+ ],
+ "call:hi_rom.ask.ACCOUNT.split": [
+  "A: Account number dheere se boliye. ;; C: {ACCOUNT_P1} ;; A: Haan, uske baad? ;; C: {ACCOUNT_P2}",
+  "A: Bank account number do baar mein bata dijiye. ;; C: Pehle ye, {ACCOUNT_P1} ;; A: Ji, baaki? ;; C: Baaki {ACCOUNT_P2}",
+  "A: Passbook dekh ke boliye. ;; C: Shuru ke ank {ACCOUNT_P1} ;; A: Ruk jaiye, aage? ;; C: Phir {ACCOUNT_P2}",
+  "C: Number lamba hai, do hisson mein bol (raha|rahi) hoon, {ACCOUNT_P1} ;; A: Theek, ab dusra. ;; C: {ACCOUNT_P2}",
+  "A: Account number note kar (raha|rahi) hoon. ;; C: {ACCOUNT_P1} ;; A: Ji, aur? ;; C: {ACCOUNT_P2}",
+  "A: Jis account se EMI katti hai, uska number? ;; C: Pehla hissa {ACCOUNT_P1} ;; A: Aur aage? ;; C: Dusra {ACCOUNT_P2}"
+ ],
+ "call:hi_rom.ask.ACCOUNT.partial": [
+  "A: Account number ke last chaar digit boliye. ;; C: {ACCOUNT}",
+  "A: Poora account number nahi, sirf aakhri ank. ;; C: Aakhri chaar hain {ACCOUNT}.",
+  "A: Aapke account ka number kis par khatam hota hai? ;; C: {ACCOUNT} par.",
+  "A: Verification ke liye account ke antim chaar ank? ;; C: Ji, {ACCOUNT}.",
+  "A: Bas last ke chaar digit confirm kar dijiye. ;; C: {ACCOUNT} hain.",
+  "A: Jis account se payment hoga, uske aakhri ank? ;; C: {ACCOUNT}, sahi hai na?"
+ ],
+ "call:hi_rom.ask.LOAN.single": [
+  "A: Loan account number kya hai? ;; C: {LOAN} hai.",
+  "A: Apne loan ki reference id bataiye. ;; C: Ji, {LOAN}.",
+  "A: Kaun se loan ki baat hai, number dijiye. ;; C: Mera loan number {LOAN} hai.",
+  "A: Agreement number paas mein hai? ;; C: Haan, {LOAN} likha hai.",
+  "A: Loan ka number confirm kar dijiye. ;; C: Dekh ke bol (raha|rahi) hoon, {LOAN}.",
+  "A: Aapka loan number kya hai, jisme EMI chal rahi hai? ;; C: {LOAN} wala."
+ ],
+ "call:hi_rom.ask.LOAN.split": [
+  "A: Loan number dheere se boliye. ;; C: {LOAN_P1} ;; A: Haan, aage? ;; C: {LOAN_P2}",
+  "A: Loan account number do hisson mein bata dijiye. ;; C: Pehle ye, {LOAN_P1} ;; A: Ji, baaki? ;; C: Baaki {LOAN_P2}",
+  "A: Agreement copy dekh ke boliye. ;; C: Shuru ke ank {LOAN_P1} ;; A: Ruk jaiye, aage? ;; C: Phir {LOAN_P2}",
+  "C: Lamba number hai, do baar mein bol (raha|rahi) hoon, {LOAN_P1} ;; A: Theek, ab dusra hissa. ;; C: {LOAN_P2}",
+  "A: Loan number note kar (raha|rahi) hoon. ;; C: {LOAN_P1} ;; A: Ji, aur? ;; C: {LOAN_P2}",
+  "A: Aapke loan ki id kya hai? ;; C: Pehla hissa {LOAN_P1} ;; A: Aur aage? ;; C: Dusra {LOAN_P2}"
+ ],
+ "call:hi_rom.ask.ADDRESS.single": [
+  "A: Aap abhi kahan rehte hain? ;; C: Main abhi {ADDRESS} par reh (raha|rahi) hoon.",
+  "A: Naya pata kya hai? ;; C: {ADDRESS}, likh lijiye.",
+  "A: Ghar ka current address bataiye. ;; C: Mera ghar {ADDRESS} mein hai.",
+  "A: Kya aap kahin aur shift hue hain? ;; C: Haan, ab {ADDRESS} mein hoon.",
+  "A: Notice kahan bhejna hai? ;; C: {ADDRESS} par bhej dijiye.",
+  "A: Residence address confirm kijiye. ;; C: Ji, {ADDRESS}."
+ ],
+ "call:hi_rom.ask.UPI.single": [
+  "A: Payment link kis UPI id par bhejna hai? ;; C: {UPI} par bhej dijiye.",
+  "A: Aap UPI se bharenge? ID bataiye. ;; C: Meri UPI id {UPI} hai.",
+  "A: Aapka UPI handle kya hai? ;; C: {UPI}.",
+  "A: Collect request bhejna hai, UPI id boliye. ;; C: Haan, {UPI} par bhejiye.",
+  "A: PhonePe ya GPay wali id kya hai? ;; C: {UPI} hai wo.",
+  "A: Refund ke liye UPI id chahiye. ;; C: Note kijiye, {UPI}."
+ ],
+ "call:hi_rom.ask.EMAIL.single": [
+  "A: Statement kis email par bhejein? ;; C: {EMAIL} par bhej dijiye.",
+  "A: Aapki mail id kya hai? ;; C: Meri mail id {EMAIL} hai.",
+  "A: Email address bataiye jahan receipt aaye. ;; C: {EMAIL}, ye wala.",
+  "A: Kya aapke paas email hai? ;; C: Haan, {EMAIL}.",
+  "A: Notice ki copy mail karni hai, id boliye. ;; C: Ji, {EMAIL}.",
+  "A: Updated email confirm kijiye. ;; C: Wahi hai, {EMAIL}."
+ ],
+ "call:hi_rom.ask.DOB.single": [
+  "A: Verify karne ke liye janm tithi bataiye. ;; C: Meri date of birth {DOB} hai.",
+  "A: Aapka birthday kab hota hai? ;; C: {DOB}.",
+  "A: DOB boliye, security ke liye. ;; C: Ji, {DOB} ko hua tha mera janm.",
+  "A: Janm ki tareekh kya hai aapki? ;; C: {DOB}, wahi jo form mein hai.",
+  "A: Date of birth confirm karenge? ;; C: Haan, {DOB}.",
+  "A: Aapka DOB record se match karna hai. ;; C: Likhiye, {DOB}."
+ ],
+ "call:mr.open": [
+  "A: हॅलो, (सर|मॅडम) बोलताय का? ;; C: हो, मी बोलत(ोय|ेय), कोण?",
+  "C: हॅलो? ;; A: हॅलो, नमस्कार. मी {ORG} कडून बोलत(ोय|ेय), थोडा वेळ आहे का?",
+  "A: नमस्कार (सर|मॅडम), आत्ता बोलायला जमेल का? ;; C: हो, सांगा ना.",
+  "C: बोला, कोण? ;; A: नमस्कार, मी {ORG} कडून फोन केलाय."
+ ],
+ "call:mr.intro": [
+  "A: नमस्कार, मी {ORG} मधून बोलत(ोय|ेय). तुमच्या खात्याबद्दल थोडं बोलायचं होतं.",
+  "A: (सर|मॅडम), तुमच्या हप्त्याच्या संदर्भात फोन केलाय. ;; C: अच्छा, हो बोला.",
+  "A: हॅलो, {ORG} कडून बोलत(ोय|ेय), आपलं बोलणं रेकॉर्ड केलं जातंय. ;; C: ठीक आहे.",
+  "A: नमस्कार (सर|मॅडम), तुमच्या कर्जाच्या पेमेंटबद्दल एक छोटी आठवण द्यायची होती. ;; C: हो, सांगा."
+ ],
+ "call:mr.close": [
+  "A: तर {DATE2} पर्यंत नक्की भरून टाका. ;; C: हो, लक्षात आहे, धन्यवाद.",
+  "C: ठीक आहे, मी बघत(ो|े). ;; A: चालेल (सर|मॅडम), काही अडचण असेल तर आम्हाला कळवा.",
+  "A: आणखी काही मदत हवी आहे का? ;; C: नाही, एवढंच, आता फोन ठेव(तो|ते).",
+  "A: वेळ दिल्याबद्दल आभारी आहे, नमस्कार. ;; C: नमस्कार."
+ ],
+ "call:mr.due.emi_reminder": [
+  "A: {DATE} ला तुमचा {AMOUNT} चा हप्ता कापला जाईल, खात्यात पैसे ठेवा. ;; C: हो, ठेव(तो|ते), काळजी करू नका.",
+  "A: (सर|मॅडम), या महिन्याचा ईएमआय अजून भरलेला नाही. ;; C: अरे हो, विसर(लोच|लेच), आज भरून टाकत(ो|े).",
+  "A: {AMOUNT} ची रक्कम थकीत आहे, कधीपर्यंत जमा होईल? ;; C: पगार झाला की, म्हणजे {DATE2} ला भरत(ो|े).",
+  "A: तुमच्या हप्त्याची शेवटची तारीख {DATE} आहे, लक्षात ठेवा. ;; C: ठीक आहे, आठवण केल्याबद्दल धन्यवाद.",
+  "C: माझा हप्ता किती राहिलाय? ;; A: {AMOUNT}, तो {DATE} च्या आत भरायचा आहे."
+ ],
+ "call:mr.due.dispute": [
+  "A: आमच्या नोंदीनुसार {AMOUNT} थकीत आहे. ;; C: पण मी तर {DATE2} ला पेमेंट केलंय, माझ्याकडे पावती आहे.",
+  "C: हे चुकीचं आहे, मी हप्ता वेळेवर दिलाय. ;; A: (सर|मॅडम), पेमेंट केल्याची तारीख सांगा, मी तपास(तो|ते).",
+  "A: {DATE} चा हप्ता जमा झालेला दिसत नाही. ;; C: माझ्या खात्यातून पैसे तर गेलेत, तुम्ही नीट बघा.",
+  "C: एवढी रक्कम कशी झाली, मला काही समजत नाहीये. ;; A: त्यात उशिराचा दंड धरलाय (सर|मॅडम).",
+  "A: तुम्ही पैसे भरले असतील तर पावतीचा स्क्रीनशॉट पाठवा. ;; C: ठीक आहे, पाठव(तो|ते), पण आधी ही चूक सुधारा."
+ ],
+ "call:mr.due.address_update": [
+  "A: तुमचा पत्ता बदलला आहे का? ;; C: हो, आम्ही नवीन घरात राहायला गेलोय.",
+  "A: आमच्याकडे जुना पत्ता दिसतोय, तो अपडेट करायचा आहे का? ;; C: हो, कृपया करा.",
+  "C: माझा संपर्क तपशील बदलायचा होता. ;; A: चालेल, काय बदलायचं आहे?",
+  "A: पत्रव्यवहार नीट पोहोचण्यासाठी तुमची माहिती तपासू या. ;; C: हो, विचारा.",
+  "A: (सर|मॅडम), तुम्ही अजूनही त्याच ठिकाणी राहता का? ;; C: नाही, आता दुसरीकडे शिफ्ट झा(लोय|लेय), बदलून घ्या.",
+  "A: तुमची कागदपत्रं जुन्या पत्त्यावर जातायत, ते बदलायचं का? ;; C: हो, मला तेच सांगायचं होतं."
+ ],
+ "call:mr.due.payment_promise": [
+  "A: पेमेंट नक्की कधी होईल? ;; C: {DATE2} ला होईल, मी शब्द देत(ो|े).",
+  "A: आजच थोडी रक्कम भरता येईल का? ;; C: आज जमणार नाही, पण {DATE2} पर्यंत पूर्ण {AMOUNT} भरेन.",
+  "C: मला थोडा वेळ द्या. ;; A: किती दिवस हवेत? ;; C: {DATE2} पर्यंत द्या, नक्की भरत(ो|े).",
+  "A: {DATE} पर्यंत भरणार असाल तर मी तसं नोंदवून ठेवत(ो|े). ;; C: हो, लिहून ठेवा, मी वेळेवर भरेन.",
+  "C: या आठवड्यात नाही जमणार, पुढच्या आठवड्यात बघ(तो|ते). ;; A: मग नेमकी तारीख सांगा ना. ;; C: {DATE2} ला नक्की."
+ ],
+ "call:mr.ask.NAME.single": [
+  "A: तुमचं पूर्ण नाव सांगाल का? ;; C: माझं नाव {NAME} आहे.",
+  "A: नमस्कार, {NAME} बोलताय का? ;; C: हो, मीच बोलत(ोय|ेय).",
+  "A: कृपया नाव सांगा. ;; C: {NAME} बोलत(ोय|ेय).",
+  "A: मला {NAME} यांच्याशी बोलायचं आहे. ;; C: हो, मीच आहे, बोला.",
+  "A: खात्यावर कोणाचं नाव आहे? ;; C: {NAME} यांचं नाव आहे."
+ ],
+ "call:mr.ask.PHONE.single": [
+  "A: तुमच्या संपर्कासाठी कुठला नंबर वापरू? ;; C: {PHONE} यावर करा.",
+  "A: व्हॉट्सॲपचा नंबर काय आहे? ;; C: तोच, {PHONE}.",
+  "A: आमच्याकडे नोंदवलेला नंबर चालू आहे का? ;; C: हो, {PHONE} हाच आहे.",
+  "A: मी कोणत्या नंबरवर परत फोन करू? ;; C: {PHONE} वर करा, संध्याकाळी.",
+  "C: माझा नवीन नंबर घ्या. ;; A: हो, सांगा. ;; C: {PHONE}."
+ ],
+ "call:mr.ask.PHONE.split": [
+  "A: तुमचा फोन नंबर सांगा, दोन भागात सांगितला तरी चालेल. ;; C: {PHONE_P1} ;; A: ठीक आहे, उरलेला? ;; C: {PHONE_P2}",
+  "A: मोबाईल नंबर बोला, मी लिहून घेत(ो|े). ;; C: सुरुवातीचे अंक, {PHONE_P1} ;; A: हं, पुढचे सांगा. ;; C: {PHONE_P2}",
+  "A: कुठला नंबर नोंदवू? ;; C: {PHONE_P1} ;; A: बरं, मग? ;; C: आणि पुढे {PHONE_P2}",
+  "A: नंबर सावकाश सांगा. ;; C: हा घ्या, {PHONE_P1} ;; A: मला ऐकू आलं, आता पुढचा भाग. ;; C: {PHONE_P2} आहे.",
+  "A: तुमचा चालू नंबर कुठला आहे? ;; C: {PHONE_P1} ;; A: आणखी अंक आहेत ना? ;; C: हो, {PHONE_P2}",
+  "A: संपर्क नंबर सांगा (सर|मॅडम). ;; C: पहिला भाग {PHONE_P1} ;; A: धन्यवाद, आता दुसरा भाग. ;; C: {PHONE_P2}"
+ ],
+ "call:mr.ask.PHONE.partial": [
+  "A: फक्त नंबरचे शेवटचे अंक सांगा. ;; C: {PHONE}",
+  "A: ओळख पटवण्यासाठी मोबाईलचे शेवटचे काही अंक सांगाल का? ;; C: हो, {PHONE} आहेत.",
+  "A: नोंदणीकृत नंबर कुठल्या अंकांनी संपतो? ;; C: {PHONE} ने संपतो.",
+  "A: पूर्ण नंबर नको, फक्त शेवटचे चार अंक द्या. ;; C: ठीक आहे, {PHONE}.",
+  "C: नंबर पूर्ण सांगू का? ;; A: नको, शेवटचे अंक पुरेसे आहेत. ;; C: मग {PHONE}.",
+  "A: सुरक्षिततेसाठी नंबरचा शेवट सांगा. ;; C: {PHONE} असा शेवट आहे."
+ ],
+ "call:mr.ask.AADHAAR.single": [
+  "A: ओळखीसाठी आधार क्रमांक सांगता का? ;; C: हो, {AADHAAR}.",
+  "A: केवायसी अपडेट करायचं आहे, आधार नंबर द्या. ;; C: लिहून घ्या, {AADHAAR}.",
+  "C: आधार कार्डवरचा नंबर सांगू का? ;; A: हो, सांगा. ;; C: {AADHAAR}.",
+  "A: तुमचा आधार नंबर नोंदवायचा आहे. ;; C: माझ्या आधारचा नंबर {AADHAAR} आहे.",
+  "A: कृपया आधार क्रमांक बोला. ;; C: एक मिनिट, हा आहे {AADHAAR}.",
+  "A: आधारचा नंबर पडताळायचा आहे, सांगाल का? ;; C: हो, {AADHAAR} असा आहे."
+ ],
+ "call:mr.ask.AADHAAR.split": [
+  "A: आधार क्रमांक थोडा थोडा सांगा. ;; C: {AADHAAR_P1} ;; A: बरं, पुढचा भाग? ;; C: {AADHAAR_P2}",
+  "A: आधार नंबर बोला, मी लिहीत आहे. ;; C: सुरुवात अशी, {AADHAAR_P1} ;; A: हो, पुढे सांगा. ;; C: {AADHAAR_P2}",
+  "A: आधारचा नंबर सांगाल का? ;; C: {AADHAAR_P1} ;; A: एवढंच का, अजून आहे ना? ;; C: हो, {AADHAAR_P2}",
+  "A: केवायसीसाठी आधार हवा आहे. ;; C: हा पहिला भाग, {AADHAAR_P1} ;; A: मिळाला, आता दुसरा. ;; C: {AADHAAR_P2} आहे.",
+  "A: आधार कार्डचा नंबर सावकाश सांगा. ;; C: {AADHAAR_P1} ;; A: ठीक, मग पुढचे अंक? ;; C: {AADHAAR_P2}",
+  "C: आधार क्रमांक दोन भागात सांगत(ो|े). ;; A: चालेल, सांगा. ;; C: {AADHAAR_P1} ;; A: आणि पुढे? ;; C: {AADHAAR_P2}"
+ ],
+ "call:mr.ask.AADHAAR.partial": [
+  "A: आधारचे शेवटचे अंक सांगाल का? ;; C: हो, {AADHAAR}.",
+  "A: पूर्ण नंबर नको, फक्त आधारचा शेवटचा भाग सांगा. ;; C: {AADHAAR} आहे.",
+  "A: पडताळणीसाठी आधारचे शेवटचे चार अंक पुरेसे आहेत. ;; C: ठीक आहे, {AADHAAR}.",
+  "C: आधार पूर्ण सांगायची गरज आहे का? ;; A: नाही, फक्त शेवटचे अंक. ;; C: मग {AADHAAR}.",
+  "A: आधार कार्डवर शेवटी कोणते अंक आहेत? ;; C: {AADHAAR} असे आहेत.",
+  "A: ओळख पटवायला आधारचा शेवट सांगा. ;; C: {AADHAAR}"
+ ],
+ "call:mr.ask.PAN.single": [
+  "A: पॅन कार्डचा नंबर सांगा. ;; C: {PAN} हा माझा पॅन आहे.",
+  "A: पॅन नंबर द्याल का? ;; C: हो, {PAN}.",
+  "A: रेकॉर्डसाठी पॅन हवा आहे. ;; C: लिहून घ्या, {PAN}.",
+  "C: माझा पॅन सांगू का? ;; A: हो, बोला. ;; C: {PAN}.",
+  "A: तुमचा पर्मनंट अकाउंट नंबर सांगता का? ;; C: {PAN} आहे.",
+  "A: पडताळणीसाठी पॅन कार्डवरचा नंबर सांगा. ;; C: एक सेकंद, हा घ्या {PAN}."
+ ],
+ "call:mr.ask.PAN.split": [
+  "A: पॅन नंबर सांगा, थोडा थोडा. ;; C: {PAN_P1} ;; A: हं, पुढचा भाग? ;; C: {PAN_P2}",
+  "A: पॅन कार्डवरचा नंबर बोला. ;; C: सुरुवातीला {PAN_P1} ;; A: बरं, पुढे? ;; C: {PAN_P2}",
+  "A: मला तुमचा पॅन नोंदवायचा आहे. ;; C: {PAN_P1} ;; A: ऐकलं, पुढचा भाग सांगा. ;; C: {PAN_P2}",
+  "A: पॅन सावकाश सांगा. ;; C: पहिला भाग {PAN_P1} ;; A: मिळाला, आता शेवटचा भाग. ;; C: {PAN_P2}",
+  "A: पॅन नंबर काय आहे? ;; C: {PAN_P1} ;; A: आणखी आहे ना? ;; C: हो, {PAN_P2}",
+  "C: पॅन दोन भागात सांगत(ो|े). ;; A: ठीक आहे, सांगा. ;; C: {PAN_P1} ;; A: मग पुढे? ;; C: {PAN_P2}"
+ ],
+ "call:mr.ask.ACCOUNT.single": [
+  "A: पैसे कुठल्या खात्यात जमा होतील? ;; C: माझा खाते क्रमांक {ACCOUNT} आहे.",
+  "A: तुमचा बँक खाते नंबर सांगा. ;; C: हो, {ACCOUNT}.",
+  "A: ऑटो डेबिटसाठी कुठलं खातं वापरायचं? ;; C: {ACCOUNT} या खात्यातून घ्या.",
+  "C: खाते नंबर लिहून घ्या. ;; A: हो, सांगा. ;; C: {ACCOUNT}.",
+  "A: पेमेंट कुठल्या खात्यातून झालं होतं? ;; C: {ACCOUNT} या खात्यातून.",
+  "A: खात्याचा क्रमांक सांगाल का? ;; C: एक मिनिट थांबा, {ACCOUNT}."
+ ],
+ "call:mr.ask.ACCOUNT.split": [
+  "A: बँक खाते नंबर सांगा. ;; C: {ACCOUNT_P1} ;; A: बरं, मग पुढचा? ;; C: {ACCOUNT_P2}",
+  "A: खात्याचा क्रमांक हळूहळू सांगा, मी लिहून घेत(ो|े). ;; C: सुरुवात {ACCOUNT_P1} ;; A: हो, पुढे? ;; C: {ACCOUNT_P2}",
+  "A: कुठलं खातं वापरताय? ;; C: {ACCOUNT_P1} ;; A: एवढाच का, अजून अंक आहेत? ;; C: हो, {ACCOUNT_P2}",
+  "A: खाते क्रमांक बोला. ;; C: हा पहिला भाग, {ACCOUNT_P1} ;; A: मिळाला, दुसरा भाग सांगा. ;; C: {ACCOUNT_P2} आहे.",
+  "A: मला खात्याचा नंबर द्या. ;; C: {ACCOUNT_P1} ;; A: आणि पुढचे अंक? ;; C: {ACCOUNT_P2}",
+  "C: खाते नंबर मोठा आहे, दोन भागात सांगत(ो|े). ;; A: चालेल. ;; C: {ACCOUNT_P1} ;; A: पुढे? ;; C: {ACCOUNT_P2}"
+ ],
+ "call:mr.ask.ACCOUNT.partial": [
+  "A: खात्याचे शेवटचे अंक सांगा. ;; C: {ACCOUNT}",
+  "A: खाते ओळखायला शेवटचे चार अंक पुरे आहेत. ;; C: बरं, {ACCOUNT}.",
+  "A: कुठल्या अंकांनी तुमचं खातं संपतं? ;; C: {ACCOUNT} ने संपतं.",
+  "C: पूर्ण नंबर सांगायचा का? ;; A: नको, फक्त शेवट सांगा. ;; C: {ACCOUNT}.",
+  "A: पेमेंट केलेल्या खात्याचा शेवटचा भाग सांगाल का? ;; C: हो, {ACCOUNT} आहे.",
+  "A: सुरक्षिततेसाठी बँक खात्याचा शेवट सांगा. ;; C: {ACCOUNT} असा शेवट आहे."
+ ],
+ "call:mr.ask.LOAN.single": [
+  "A: तुमचा कर्ज क्रमांक काय आहे? ;; C: माझा लोन नंबर {LOAN} आहे.",
+  "A: कर्जाचा आयडी सांगता का? ;; C: हो, {LOAN}.",
+  "A: कुठल्या कर्जाबद्दल बोलतोय ते नक्की करू या, लोन नंबर सांगा. ;; C: {LOAN} आहे.",
+  "C: माझ्याकडे लोनची पावती आहे, नंबर सांगू का? ;; A: हो, सांगा. ;; C: {LOAN}.",
+  "A: तुमच्या लोन खात्याचा क्रमांक द्या. ;; C: लिहून घ्या, {LOAN}.",
+  "A: कर्जाचा संदर्भ क्रमांक कुठला आहे? ;; C: {LOAN} हा आहे."
+ ],
+ "call:mr.ask.LOAN.split": [
+  "A: लोन नंबर सांगा. ;; C: {LOAN_P1} ;; A: बरं, पुढचा भाग? ;; C: {LOAN_P2}",
+  "A: कर्ज क्रमांक हळू सांगा, मी नोंदवत(ो|े). ;; C: सुरुवात {LOAN_P1} ;; A: हो, पुढे? ;; C: {LOAN_P2}",
+  "A: तुमच्या कर्जाचा नंबर काय? ;; C: {LOAN_P1} ;; A: अजून आहे ना? ;; C: हो, {LOAN_P2}",
+  "A: लोन आयडी बोला. ;; C: हा पहिला भाग, {LOAN_P1} ;; A: मिळाला, आता दुसरा. ;; C: {LOAN_P2} आहे.",
+  "A: कर्जाचा क्रमांक सावकाश सांगाल का? ;; C: {LOAN_P1} ;; A: ठीक, मग पुढचे अंक? ;; C: {LOAN_P2}",
+  "C: लोन नंबर दोन भागात सांगत(ो|े). ;; A: हो, सांगा. ;; C: {LOAN_P1} ;; A: आणि पुढे? ;; C: {LOAN_P2}"
+ ],
+ "call:mr.ask.ADDRESS.single": [
+  "A: तुम्ही सध्या कुठे राहता? ;; C: मी आता {ADDRESS} इथे राहत(ो|े).",
+  "A: पत्रव्यवहारासाठी तुमचा सध्याचा पत्ता सांगा. ;; C: {ADDRESS} हा माझा पत्ता आहे.",
+  "A: घर बदललंय का तुम्ही? ;; C: हो, नवीन पत्ता लिहून घ्या, {ADDRESS}.",
+  "C: माझा पत्ता बदलला आहे. ;; A: बरं, नवीन पत्ता सांगा. ;; C: {ADDRESS}.",
+  "A: आमच्याकडे जुना पत्ता आहे, नवा कुठला? ;; C: आम्ही आता {ADDRESS} इथे असतो.",
+  "A: नोटीस कुठे पाठवायची? ;; C: {ADDRESS} या पत्त्यावर पाठवा."
+ ],
+ "call:mr.ask.UPI.single": [
+  "A: पेमेंट लिंक कुठल्या यूपीआय आयडीवर पाठवू? ;; C: {UPI} वर पाठवा.",
+  "A: तुमचा यूपीआय आयडी सांगता का? ;; C: हो, {UPI}.",
+  "A: गुगल पे किंवा फोन पेचा आयडी काय आहे? ;; C: माझा आयडी {UPI} आहे.",
+  "C: मी यूपीआयने भरत(ो|े). ;; A: ठीक आहे, आयडी सांगा. ;; C: {UPI}.",
+  "A: कलेक्ट रिक्वेस्ट पाठवायला आयडी हवा आहे. ;; C: लिहा, {UPI}.",
+  "A: यूपीआय आयडी बोला. ;; C: {UPI} असा आहे."
+ ],
+ "call:mr.ask.EMAIL.single": [
+  "A: स्टेटमेंट कुठल्या ईमेलवर पाठवू? ;; C: {EMAIL} वर पाठवा.",
+  "A: तुमचा ईमेल आयडी सांगता का? ;; C: हो, {EMAIL}.",
+  "A: नोंदवलेला ईमेल बरोबर आहे का? ;; C: नाही, नवीन घ्या, {EMAIL}.",
+  "C: मला मेल पाठवा. ;; A: हो, पत्ता सांगा. ;; C: {EMAIL}.",
+  "A: कागदपत्रं मेलने पाठवायची आहेत, आयडी द्या. ;; C: लिहून घ्या, {EMAIL}.",
+  "A: ईमेल पत्ता काय आहे? ;; C: माझा ईमेल {EMAIL} आहे."
+ ],
+ "call:mr.ask.DOB.single": [
+  "A: पडताळणीसाठी जन्मतारीख सांगा. ;; C: माझी जन्मतारीख {DOB} आहे.",
+  "A: तुमचा वाढदिवस कधी असतो? ;; C: {DOB} ला.",
+  "A: जन्मतारीख काय नोंदवली आहे, सांगाल का? ;; C: हो, {DOB}.",
+  "C: ओळख हवी असेल तर जन्मतारीख सांगत(ो|े). ;; A: हो, सांगा. ;; C: {DOB}.",
+  "A: खात्याशी जोडलेली जन्मतारीख कुठली? ;; C: {DOB} आहे.",
+  "A: सुरक्षेसाठी तुमची डेट ऑफ बर्थ सांगा. ;; C: {DOB}."
+ ],
+ "call:mr_rom.open": [
+  "C: Hello? ;; A: Namaskar (sir|madam), thoda vel ahe ka bolayla? ;; C: Ho, bola.",
+  "A: Hello, shubh divas (sir|madam). ;; C: Namaskar, kon bolat ahe?",
+  "C: Ho, kon? ;; A: Namaskar (sir|madam), {ORG} chya team kadun bolt(oy|ey).",
+  "A: Namaskar, majha call yogya veli ala ka? ;; C: Ho, chalel, sanga."
+ ],
+ "call:mr_rom.intro": [
+  "A: Namaskar (sir|madam), {ORG} kadun bolt(oy|ey). Tumchya khatyabaddal ek chhota update dyaycha hota. ;; C: Ho, sanga.",
+  "A: Hello, mi {ORG} chya recovery team madhun. Don minit milatil ka? ;; C: Ho, bola.",
+  "A: Tumchya kamachya loan baddal mahiti dyayla phone kela ahe (sir|madam). Ha call quality sathi record hoil.",
+  "A: Namaskar (sir|madam). Tumchya EMI baddal bolaychay, {ORG} madhun call ahe. ;; C: Achha, ho, bola."
+ ],
+ "call:mr_rom.close": [
+  "A: Dhanyavad (sir|madam), tumcha vel dilyabaddal. ;; C: Ok, bye.",
+  "A: Kahi prashna asel tar parat call kara. ;; C: Nakki, dhanyavad.",
+  "C: Barr, mi baghat(o|e) mag. ;; A: Thank you, kalji ghya.",
+  "A: Ajun kahi madat havi ka? ;; C: Nahi, bas evdhach. ;; A: Thank you, namaskar."
+ ],
+ "call:mr_rom.due.emi_reminder": [
+  "A: (Sir|Madam), {DATE} paryant {AMOUNT} cha hapta bharaycha ahe, visru naka. ;; C: Ho, lakshat ahe, bhar(to|e).",
+  "A: Ya mahinyacha EMI ajun baaki ahe, {AMOUNT}. ;; C: Are ho, lakshat nahi rahila, {DATE2} la bharun takt(o|e).",
+  "A: EMI chi tarikh {DATE} hoti, ata {AMOUNT} pending ahe. Kadhi bharnar? ;; C: Salary yeil ki {DATE2} la bharto.",
+  "A: Reminder dyaycha hota ki {AMOUNT} cha hapta {DATE} la deya ahe. ;; C: Ok, tyachya adhi bhar(to|e).",
+  "A: Namaskar, {ORG} kadun. Tumcha hapta {AMOUNT} baaki disat ahe. ;; C: Ho ka, mi udya bhar(to|e)."
+ ],
+ "call:mr_rom.due.dispute": [
+  "A: Tumcha {AMOUNT} ajun baaki ahe. ;; C: Pan mi tar adhich bharle, receipt ahe majhyakade.",
+  "A: System madhe {DATE} nantar payment disat nahi. ;; C: He chuk ahe, mi {DATE2} la online bharle.",
+  "A: Tumchya EMI madhe {AMOUNT} kami ahe. ;; C: Kasa kay? Mala tar vegla amount sangitla hota.",
+  "A: Late fee lagli ahe, karan hapta {DATE} la ala nahi. ;; C: Pan ha tar bank cha delay ahe, majhi chuk nahi.",
+  "A: Amhala {DATE2} chi payment mili nahi. ;; C: Mi tar bharle hote, tumhi parat tapasa na."
+ ],
+ "call:mr_rom.due.address_update": [
+  "A: Namaskar (sir|madam), tumcha patta badalla ka? ;; C: Ho, nuktach ghar badalle ahe.",
+  "A: Record madhe junach patta ahe, to tapasun ghyaycha hota. ;; C: Ho, sanga, kay vicharaychay?",
+  "C: Kay zala? ;; A: Kahi nahi, fakt tumchi contact detail update karaychi ahe. ;; C: Ok, chala kara.",
+  "A: Tumhi kuthe rahta, te amchyakade barobar ahe ka? ;; C: Nahi, te junach ahe, navin sangt(o|e).",
+  "A: Pathavlela letter parat ala, mhanun patta confirm karaycha hota. ;; C: Achha, ho, sangat(o|e).",
+  "A: Mobile number kinva patta badalla asel tar sanga, mi update karun ghein. ;; C: Ho, ek minit, sangat(o|e)."
+ ],
+ "call:mr_rom.due.payment_promise": [
+  "A: {AMOUNT} cha payment kadhi hoil? ;; C: {DATE2} paryant nakki hoil.",
+  "A: Tumchi payment kadhi yenar, te sanga na (sir|madam). ;; C: Salary zali ki lagech, {DATE2} la.",
+  "A: Mala ek date dya, tumhi kadhi bharu shakal? ;; C: Mi {DATE2} la bhar(to|e), vachan det(o|e).",
+  "A: {DATE} la bharla nahi, mag ata kadhi? ;; C: Thodi adchan ali, {DATE2} paryant bhar(to|e).",
+  "A: Nakki kadhi? Mala note karaycha ahe. ;; C: Theek ahe, {DATE2} la {AMOUNT} bhar(to|e)."
+ ],
+ "call:mr_rom.ask.NAME.single": [
+  "A: Tumhi {NAME} bolat ahat na? ;; C: Ho, mich.",
+  "A: Tumcha purna naav sanga. ;; C: Majhe naav {NAME} ahe.",
+  "A: Kunashi bolt(oy|ey) mi, naav sanga. ;; C: {NAME} bolat ahe.",
+  "C: Ho, kon? ;; A: {NAME} yanchyashi bolaycha hota. ;; C: Ho, mich bolat ahe.",
+  "A: Account kunachya navavar ahe? ;; C: {NAME} yanchya navavar."
+ ],
+ "call:mr_rom.ask.PHONE.single": [
+  "A: Tumcha mobile number kay ahe? ;; C: {PHONE} ha ahe.",
+  "A: Sampark karaycha number sanga. ;; C: {PHONE} var call kara.",
+  "A: Whatsapp cha number kay? ;; C: {PHONE} ahe.",
+  "A: Dusra konta number ahe ka? ;; C: Majha dusra number {PHONE} ahe, tyavar try kara.",
+  "A: Parat call karaycha asel tar konta number var karu? ;; C: {PHONE} var kara."
+ ],
+ "call:mr_rom.ask.PHONE.split": [
+  "A: Tumcha mobile number sanga, don bhagat. ;; C: {PHONE_P1} ;; A: Ok, ata baaki cha. ;; C: {PHONE_P2}",
+  "A: Number halu halu sanga. ;; C: Ho, {PHONE_P1} ;; A: Ha, pudhe? ;; C: {PHONE_P2}",
+  "A: Contact number dya. ;; C: Pahila bhag {PHONE_P1} ;; A: Ani dusra bhag? ;; C: {PHONE_P2}",
+  "A: Note kart(oy|ey), number sanga. ;; C: {PHONE_P1} ;; A: Ha, lihila. Pudhe? ;; C: {PHONE_P2}",
+  "A: Dusra number dya na (sir|madam). ;; C: Thamba, {PHONE_P1} ;; A: Ho, ani? ;; C: {PHONE_P2}",
+  "A: Callback sathi number lagel. ;; C: Ho, {PHONE_P1} ;; A: Barr, pudhcha? ;; C: {PHONE_P2}"
+ ],
+ "call:mr_rom.ask.PHONE.partial": [
+  "A: Mobile number cha fakt shevatcha bhag sanga, char ank. ;; C: {PHONE}",
+  "A: Verify karnyasathi mobile chya shevatchya char numbers sanga. ;; C: {PHONE}.",
+  "A: Tumchya number che shevatche char digit konte? ;; C: {PHONE} ahet.",
+  "A: Mobile number che shevatche char ank bola na. ;; C: Ho, {PHONE}.",
+  "A: Security sathi fakt shevatche char ank pahije. ;; C: {PHONE}",
+  "A: Number cha shevat kasa ahe? Char ank sanga. ;; C: {PHONE} ahe."
+ ],
+ "call:mr_rom.ask.AADHAAR.single": [
+  "A: Tumcha Aadhaar kramank sanga. ;; C: {AADHAAR} ahe.",
+  "A: KYC sathi Aadhaar number pahije. ;; C: Ho, ha ghya, {AADHAAR}.",
+  "A: Aadhaar card var konta number ahe? ;; C: {AADHAAR}, asa ahe.",
+  "A: Tumcha Aadhaar number confirm karaycha ahe (sir|madam). ;; C: Ho, {AADHAAR}.",
+  "A: Aadhaar cha number dya, verification sathi. ;; C: Ek minit, card baghun sangat(o|e). {AADHAAR}.",
+  "A: Aadhaar number lakshat asel tar sanga. ;; C: Ho, lakshat ahe, {AADHAAR} ahe."
+ ],
+ "call:mr_rom.ask.AADHAAR.split": [
+  "A: Aadhaar number don bhagat sanga. ;; C: {AADHAAR_P1} ;; A: Ok, ata pudhcha bhag. ;; C: {AADHAAR_P2}",
+  "A: Tumcha Aadhaar number sanga (sir|madam). ;; C: Ho, {AADHAAR_P1} ;; A: Ha, ani pudhe? ;; C: {AADHAAR_P2}",
+  "A: Aadhaar cha number note kart(oy|ey), halu sanga. ;; C: Pahila bhag {AADHAAR_P1} ;; A: Dusra bhag? ;; C: {AADHAAR_P2}",
+  "A: KYC sathi Aadhaar pahije. ;; C: Thamba, {AADHAAR_P1} ;; A: Barr, baaki? ;; C: {AADHAAR_P2}",
+  "A: Aadhaar card baghun sanga na. ;; C: Ho, suruvat {AADHAAR_P1} ;; A: Ani shevat? ;; C: {AADHAAR_P2}",
+  "A: Aadhaar kramank dya. ;; C: {AADHAAR_P1} ;; A: Lihila, pudhcha sanga. ;; C: {AADHAAR_P2}"
+ ],
+ "call:mr_rom.ask.AADHAAR.partial": [
+  "A: Aadhaar chya shevatchya char ankanchi khatri karaychi ahe. ;; C: {AADHAAR}",
+  "A: Verification sathi Aadhaar che shevatche char ank sanga. ;; C: Ho, {AADHAAR}.",
+  "A: Aadhaar number cha shevat konta? Char ank bola. ;; C: {AADHAAR} ahe.",
+  "A: Purna nako, fakt shevatche char ank dya. ;; C: {AADHAAR}",
+  "A: Aadhaar che last char digit sanga na (sir|madam). ;; C: {AADHAAR} ahet.",
+  "A: Sirf shevatche char ank pahije Aadhaar che. ;; C: Ho, {AADHAAR}."
+ ],
+ "call:mr_rom.ask.PAN.single": [
+  "A: PAN card cha number sanga. ;; C: {PAN} ahe.",
+  "A: Tumcha PAN kay ahe (sir|madam)? ;; C: Majha PAN {PAN}.",
+  "A: Record sathi PAN pahije. ;; C: Ho, {PAN} he ghya.",
+  "A: PAN number lakshat asel tar sanga. ;; C: Ho, {PAN} ahe.",
+  "A: Verification sathi PAN cha number dya. ;; C: Thamba, card baghun sangat(o|e). {PAN}.",
+  "A: Tumchya PAN card var konta number ahe? ;; C: {PAN}, asa ahe."
+ ],
+ "call:mr_rom.ask.PAN.split": [
+  "A: PAN number don bhagat sanga. ;; C: {PAN_P1} ;; A: Ok, pudhcha bhag. ;; C: {PAN_P2}",
+  "A: Tumcha PAN sanga (sir|madam). ;; C: Ho, {PAN_P1} ;; A: Ani pudhe? ;; C: {PAN_P2}",
+  "A: PAN note kart(oy|ey), halu halu sanga. ;; C: Pahila bhag {PAN_P1} ;; A: Dusra bhag? ;; C: {PAN_P2}",
+  "A: PAN card var kay lihilay? ;; C: Thamba, {PAN_P1} ;; A: Barr, baaki? ;; C: {PAN_P2}",
+  "A: Tumcha PAN dya na. ;; C: Suruvat {PAN_P1} ;; A: Ani shevat? ;; C: {PAN_P2}",
+  "A: PAN number pahije. ;; C: {PAN_P1} ;; A: Lihila, pudhcha sanga. ;; C: {PAN_P2}"
+ ],
+ "call:mr_rom.ask.ACCOUNT.single": [
+  "A: Tumcha bank account number sanga. ;; C: {ACCOUNT} ahe.",
+  "A: Payment konatya account madhun yenar? ;; C: Ha account, {ACCOUNT}.",
+  "A: Account cha number dya, record sathi. ;; C: Ho, {ACCOUNT}.",
+  "A: Tumcha salary account konta? ;; C: Number {ACCOUNT} ahe.",
+  "A: Refund sathi account number pahije. ;; C: Thamba, passbook baghun sangat(o|e). {ACCOUNT}.",
+  "A: Bank account number lakshat asel tar sanga (sir|madam). ;; C: Ho, {ACCOUNT}."
+ ],
+ "call:mr_rom.ask.ACCOUNT.split": [
+  "A: Account number don bhagat sanga. ;; C: {ACCOUNT_P1} ;; A: Ok, pudhcha bhag. ;; C: {ACCOUNT_P2}",
+  "A: Tumcha account number sanga (sir|madam). ;; C: Ho, {ACCOUNT_P1} ;; A: Ani pudhe? ;; C: {ACCOUNT_P2}",
+  "A: Account number note kart(oy|ey), halu sanga. ;; C: Pahila bhag {ACCOUNT_P1} ;; A: Dusra bhag? ;; C: {ACCOUNT_P2}",
+  "A: Passbook var kay lihilay? ;; C: Thamba, {ACCOUNT_P1} ;; A: Barr, baaki? ;; C: {ACCOUNT_P2}",
+  "A: Bank account dya na. ;; C: Suruvat {ACCOUNT_P1} ;; A: Ani shevat? ;; C: {ACCOUNT_P2}",
+  "A: Account kramank pahije. ;; C: {ACCOUNT_P1} ;; A: Lihila, pudhcha sanga. ;; C: {ACCOUNT_P2}"
+ ],
+ "call:mr_rom.ask.ACCOUNT.partial": [
+  "A: Account chya shevatchya char ankanchi khatri karaychi ahe. ;; C: {ACCOUNT}",
+  "A: Verification sathi account che shevatche char ank sanga. ;; C: Ho, {ACCOUNT}.",
+  "A: Account number cha shevat konta? Char ank bola. ;; C: {ACCOUNT} ahe.",
+  "A: Purna nako, fakt shevatche char ank dya. ;; C: {ACCOUNT}",
+  "A: Account che last char digit sanga na (sir|madam). ;; C: {ACCOUNT} ahet.",
+  "A: Sirf shevatche char ank pahije account che. ;; C: Ho, {ACCOUNT}."
+ ],
+ "call:mr_rom.ask.LOAN.single": [
+  "A: Tumcha loan number kay ahe? ;; C: {LOAN} ahe.",
+  "A: Loan account cha kramank sanga (sir|madam). ;; C: Ho, {LOAN}.",
+  "A: Record shodhayla loan number pahije. ;; C: Ha ghya, {LOAN}.",
+  "A: Tumchya loan chya kagdapatrat konta number ahe? ;; C: {LOAN}, asa ahe.",
+  "A: Loan number lakshat asel tar sanga. ;; C: Ho, lakshat ahe, {LOAN}.",
+  "A: Kontya loan baddal bolaychay, number sanga. ;; C: Thamba, paper baghun sangat(o|e). {LOAN}."
+ ],
+ "call:mr_rom.ask.LOAN.split": [
+  "A: Loan number don bhagat sanga. ;; C: {LOAN_P1} ;; A: Ok, pudhcha bhag. ;; C: {LOAN_P2}",
+  "A: Tumcha loan account number sanga (sir|madam). ;; C: Ho, {LOAN_P1} ;; A: Ani pudhe? ;; C: {LOAN_P2}",
+  "A: Loan number note kart(oy|ey), halu sanga. ;; C: Pahila bhag {LOAN_P1} ;; A: Dusra bhag? ;; C: {LOAN_P2}",
+  "A: Kagdapatra var kay lihilay? ;; C: Thamba, {LOAN_P1} ;; A: Barr, baaki? ;; C: {LOAN_P2}",
+  "A: Loan kramank dya na. ;; C: Suruvat {LOAN_P1} ;; A: Ani shevat? ;; C: {LOAN_P2}",
+  "A: Loan cha number pahije. ;; C: {LOAN_P1} ;; A: Lihila, pudhcha sanga. ;; C: {LOAN_P2}"
+ ],
+ "call:mr_rom.ask.ADDRESS.single": [
+  "A: Tumcha current patta kuthla ahe? ;; C: Mi ata {ADDRESS} ithe rahat(o|e).",
+  "A: Statement pathvaycha ahe, patta sanga. ;; C: {ADDRESS}, ya patyavar pathva.",
+  "A: Junya patyavar letter parat ala. Navin patta kay? ;; C: Navin patta {ADDRESS} ahe.",
+  "A: Tumhi ghar badalle ka (sir|madam)? ;; C: Ho, amhi {ADDRESS} la shift zalo ahot.",
+  "A: Visit sathi patta pahije, purna sanga. ;; C: Ho, {ADDRESS} ithe ya.",
+  "A: Office cha ki gharcha patta? ;; C: Gharcha, {ADDRESS}."
+ ],
+ "call:mr_rom.ask.UPI.single": [
+  "A: Konta UPI id vaparta (sir|madam)? ;; C: {UPI} ha ahe.",
+  "A: Payment link pathvaycha ahe, UPI id sanga. ;; C: Ho, {UPI}.",
+  "A: Tumcha UPI handle kay ahe? ;; C: Majha {UPI} ahe.",
+  "A: UPI id lakshat asel tar bola. ;; C: Ho, {UPI}, hach ahe.",
+  "A: Refund sathi UPI id pahije. ;; C: Thamba, app ughadun sangat(o|e). {UPI}.",
+  "A: Payment kontya UPI varun karnar? ;; C: {UPI} varun."
+ ],
+ "call:mr_rom.ask.EMAIL.single": [
+  "A: Tumcha email address kay ahe? ;; C: {EMAIL} ahe.",
+  "A: Statement pathvayla email pahije. ;; C: Ho, {EMAIL}.",
+  "A: Konta email id vaparta (sir|madam)? ;; C: Majha {EMAIL} ahe.",
+  "A: Mail var receipt pathvto, id sanga. ;; C: {EMAIL} var pathva.",
+  "A: Email id record madhe update karaycha ahe. ;; C: Ho, navin {EMAIL} ahe.",
+  "A: Email lakshat asel tar bola. ;; C: Ho, {EMAIL}, hach ahe."
+ ],
+ "call:mr_rom.ask.DOB.single": [
+  "A: Verification sathi janm tarikh sanga. ;; C: {DOB} ahe.",
+  "A: Tumcha date of birth kay ahe (sir|madam)? ;; C: Majha {DOB}.",
+  "A: Janm tarikh confirm karaychi ahe. ;; C: Ho, {DOB}.",
+  "A: Tumchi janmatarikh record madhe barobar ahe ka? ;; C: Ho, {DOB} ahe.",
+  "A: Security question: tumcha janmdivas kadhi? ;; C: {DOB} la.",
+  "A: Janm tarikh lakshat asel tar sanga. ;; C: Ho, {DOB}, hich ahe."
+ ],
+ "call:kn.open": [
+  "A: ಹಲೋ, ನಮಸ್ಕಾರ. ಇದು ಸರಿಯಾದ ನಂಬರ್ ತಾನೇ? ;; C: ಹೌದು, ಯಾರು ಮಾತಾಡ್ತಿರೋದು?",
+  "C: ಹಲೋ? ;; A: ನಮಸ್ಕಾರ (ಸರ್|ಮೇಡಂ), ಒಂದು ನಿಮಿಷ ಮಾತಾಡಬಹುದಾ?",
+  "A: ಹಲೋ, ಶುಭೋದಯ (ಸರ್|ಮೇಡಂ). ;; C: ಹಾ ಹೇಳಿ, ಏನು ವಿಷಯ?",
+  "C: ಹಲೋ, ಯಾರಿದು? ;; A: ನಮಸ್ಕಾರ, ನಾನು {ORG} ಕಡೆಯಿಂದ ಕರೆ ಮಾಡಿದ್ದೀನಿ."
+ ],
+ "call:kn.intro": [
+  "A: ನಮಸ್ಕಾರ (ಸರ್|ಮೇಡಂ), ನಾನು {ORG} ಕಸ್ಟಮರ್ ಕೇರ್‌ನಿಂದ ಮಾತಾಡ್ತಿದ್ದೀನಿ. ನಿಮ್ಮ ಲೋನ್ ವಿಷಯವಾಗಿ ಕರೆ ಮಾಡಿದ್ದು. ;; C: ಓಹ್, ಸರಿ ಹೇಳಿ.",
+  "A: ಹಲೋ, {ORG} ನಿಂದ ಕರೆ. ನಿಮ್ಮ ಬಾಕಿ ಬಗ್ಗೆ ಸ್ವಲ್ಪ ಮಾತಾಡಬೇಕಿತ್ತು.",
+  "A: ನಮಸ್ಕಾರ, ನೀವು ತೊಗೊಂಡಿರೋ ಸಾಲದ ವಿಷಯಕ್ಕೆ ಕರೆ ಮಾಡಿದ್ದೀನಿ. ಈಗ ಮಾತಾಡೋಕೆ ಟೈಮ್ ಇದೆಯಾ? ;; C: ಹೌದು, ಹೇಳಿ.",
+  "A: ಹಲೋ (ಸರ್|ಮೇಡಂ), ನಾನು {ORG} ಪ್ರತಿನಿಧಿ. ಕರೆ ರೆಕಾರ್ಡ್ ಆಗುತ್ತೆ. ;; C: ಸರಿ, ಏನಾಗಬೇಕಿತ್ತು?"
+ ],
+ "call:kn.close": [
+  "A: ಇನ್ನೇನಾದ್ರೂ ಸಹಾಯ ಬೇಕಾ? ;; C: ಇಲ್ಲ, ಅಷ್ಟೇ. ;; A: ಸರಿ, ಧನ್ಯವಾದಗಳು, ಶುಭ ದಿನ.",
+  "A: ಸಮಯ ಕೊಟ್ಟಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದ (ಸರ್|ಮೇಡಂ). ;; C: ಸರಿ, ಬೈ.",
+  "C: ಆಯ್ತು, ನಾನು ನೋಡ್ಕೊಳ್ತೀನಿ. ;; A: ಒಳ್ಳೆಯದು, ನಮಸ್ಕಾರ.",
+  "A: ನಿಮ್ಮ ಸಹಕಾರಕ್ಕೆ ಧನ್ಯವಾದ. ಮತ್ತೆ ಸಿಗೋಣ. ;; C: ಆಯ್ತು, ಧನ್ಯವಾದ."
+ ],
+ "call:kn.due.emi_reminder": [
+  "A: ನಮಸ್ಕಾರ, {DATE} ರಂದು ನಿಮ್ಮ ಈ ತಿಂಗಳ ಕಂತು ಕಟ್ಟಬೇಕು, ನೆನಪಿದೆಯಾ? ;; C: ಹೌದು, ನೆನಪಿದೆ, ಕಟ್ತೀನಿ.",
+  "A: ಈ ತಿಂಗಳ ಇಎಂಐ {AMOUNT} ಇನ್ನೂ ಬಂದಿಲ್ಲ. ;; C: ಓ, ಮರೆತುಹೋಗಿತ್ತು, {DATE2} ಒಳಗೆ ಹಾಕ್ತೀನಿ.",
+  "A: (ಸರ್|ಮೇಡಂ), ಇದು ಸಣ್ಣ ರಿಮೈಂಡರ್, ಕಂತು {AMOUNT} ಬಾಕಿ ಇದೆ. ;; C: ಸರಿ ಸರಿ, ಸ್ಯಾಲರಿ ಬಂದ ಮೇಲೆ ಕಟ್ತೀನಿ.",
+  "A: ಇಎಂಐ ಕೊನೆಯ ದಿನಾಂಕ {DATE}. ಅದರೊಳಗೆ ಪಾವತಿ ಮಾಡಿ. ;; C: ಆಯ್ತು, ಆಟೋ ಡೆಬಿಟ್‌ನಲ್ಲೇ ಹೋಗುತ್ತೆ ಅನ್ಕೊಂಡಿದ್ದೆ.",
+  "C: ಹಲೋ, ಇಎಂಐ ವಿಷಯಕ್ಕಾ ಕರೆ? ;; A: ಹೌದು, {AMOUNT} ಕಟ್ಟೋದು ಬಾಕಿ ಇದೆ. ;; C: ನಾಳೆ ಕಟ್ತೀನಿ."
+ ],
+ "call:kn.due.dispute": [
+  "A: ನಿಮ್ಮ ಖಾತೆಯಲ್ಲಿ {AMOUNT} ಬಾಕಿ ಇದೆ ಅಂತ ತೋರಿಸ್ತಿದೆ. ;; C: ಅದು ತಪ್ಪು, ನಾನು ಕಳೆದ ವಾರವೇ ಕಟ್ಟಿದ್ದೀನಿ.",
+  "C: ನನಗೆ ಯಾಕೆ ಕರೆ ಮಾಡ್ತಿದ್ದೀರಿ? ನಾನು ಪೇಮೆಂಟ್ ಮಾಡಿದ್ದೀನಲ್ಲ. ;; A: ನಮ್ಮ ರೆಕಾರ್ಡ್‌ನಲ್ಲಿ {DATE} ರಿಂದ ಬಾಕಿ ಇದೆ.",
+  "A: ಪಾವತಿ ನಮಗೆ ಇನ್ನೂ ಬಂದಿಲ್ಲ. ;; C: ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ನನ್ನ ಹತ್ರ ಇದೆ, ಕಳಿಸ್ತೀನಿ.",
+  "A: ಈ {AMOUNT} ಬಗ್ಗೆ ಏನಾದ್ರೂ ಸಮಸ್ಯೆ ಇದೆಯಾ? ;; C: ಹೌದು, ಈ ಮೊತ್ತದ ಲೆಕ್ಕ ತಪ್ಪಾಗಿದೆ, ಪರಿಶೀಲಿಸಿ.",
+  "C: ಈ ಚಾರ್ಜ್ ನಂಗೆ ಗೊತ್ತಿಲ್ಲ, ಇದು ಯಾವುದಕ್ಕೆ? ;; A: ಅದು {DATE} ರ ತಡ ಶುಲ್ಕ (ಸರ್|ಮೇಡಂ). ;; C: ಆದ್ರೆ ನಾನು {DATE2} ಕ್ಕೆ ಕಟ್ಟಿದ್ದೀನಲ್ಲ."
+ ],
+ "call:kn.due.address_update": [
+  "A: ನಿಮ್ಮ ಈಗಿನ ವಿಳಾಸ ಬದಲಾಗಿದೆಯಾ? ;; C: ಹೌದು, ಇತ್ತೀಚೆಗೆ ಮನೆ ಬದಲಾಯಿಸಿದ್ದೀನಿ.",
+  "A: ನಮ್ಮ ರೆಕಾರ್ಡ್‌ನಲ್ಲಿರುವ ವಿಳಾಸ ಇನ್ನೂ ಸರಿಯಾಗಿದೆಯಾ? ;; C: ಇಲ್ಲ, ಅದು ಹಳೆಯದು.",
+  "C: ನನ್ನ ವಿಳಾಸ ಚೇಂಜ್ ಮಾಡಬೇಕಿತ್ತು. ;; A: ಖಂಡಿತ, ಹೊಸ ವಿಳಾಸ ಹೇಳಿ.",
+  "A: ಪತ್ರಗಳು ವಾಪಸ್ ಬರ್ತಿವೆ, ವಿಳಾಸ ಅಪ್ಡೇಟ್ ಮಾಡಿಕೊಳ್ಳೋಣವಾ? ;; C: ಓ ಹೌದಾ, ಸರಿ ಮಾಡೋಣ.",
+  "A: (ಸರ್|ಮೇಡಂ), ಕಾಂಟ್ಯಾಕ್ಟ್ ವಿವರ ಬದಲಾಗಿದ್ರೆ ಈಗಲೇ ತಿಳಿಸಿ. ;; C: ಹೌದು, ಒಂದು ಬದಲಾವಣೆ ಇದೆ.",
+  "A: ನೀವು ಬೇರೆ ಊರಿಗೆ ಹೋಗಿದ್ದೀರಿ ಅಂತ ಕೇಳಿದೆ, ನಿಜವಾ? ;; C: ಹೌದು, ಈಗ ಬೇರೆ ಕಡೆ ಇದ್ದೀನಿ."
+ ],
+ "call:kn.due.payment_promise": [
+  "A: ಯಾವ ದಿನ ಪಾವತಿ ಮಾಡ್ತೀರಿ ಅಂತ ಹೇಳ್ತೀರಾ? ;; C: {DATE2} ಕ್ಕೆ ಖಂಡಿತ ಮಾಡ್ತೀನಿ.",
+  "A: {AMOUNT} ಇವತ್ತೇ ಕಟ್ಟೋಕಾಗುತ್ತಾ? ;; C: ಸ್ವಲ್ಪ ಕಷ್ಟ, {DATE2} ವರೆಗೆ ಸಮಯ ಕೊಡಿ.",
+  "C: ಮುಂದಿನ ವಾರ ಕಟ್ಟಿದ್ರೆ ಆಗುತ್ತಾ? ;; A: ಸರಿ, ಆದ್ರೆ {DATE2} ದಾಟಬಾರದು.",
+  "A: ಪೂರ್ತಿ ಮೊತ್ತ ಕಟ್ಟೋಕಾಗದಿದ್ರೆ ಸ್ವಲ್ಪ ಕಟ್ಟಿ. ;; C: ಸರಿ, ಅರ್ಧ ಇವತ್ತು, ಉಳಿದದ್ದು ಆಮೇಲೆ.",
+  "A: ನಿಮ್ಮ ಮಾತಿನ ಮೇಲೆ ನಂಬಿಕೆ ಇದೆ, {DATE2} ಕ್ಕೆ ಪಕ್ಕಾ ಅಲ್ವಾ? ;; C: ಹೌದು ಪಕ್ಕಾ, ಮಾತು ಕೊಡ್ತೀನಿ."
+ ],
+ "call:kn.ask.NAME.single": [
+  "A: ಹಲೋ, ಇದು {NAME} ಅವರ ನಂಬರ್ ತಾನೇ? ;; C: ಹೌದು, ನಾನೇ ಮಾತಾಡ್ತಿರೋದು.",
+  "A: ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರು ಹೇಳ್ತೀರಾ? ;; C: ನನ್ನ ಹೆಸರು {NAME}.",
+  "A: ಯಾರ ಹತ್ರ ಮಾತಾಡ್ತಿದ್ದೀನಿ? ;; C: {NAME} ಅಂತ.",
+  "C: ಹೇಳಿ, ನಾನೇ. ;; A: ನೀವು {NAME} ಅವರಾ? ;; C: ಹೌದು.",
+  "A: ಖಾತೆಯಲ್ಲಿರುವ ಹೆಸರು ಹೇಳಿ. ;; C: {NAME} ಅಂತ ಇದೆ."
+ ],
+ "call:kn.ask.PHONE.single": [
+  "A: ನಿಮ್ಮ ಸಂಪರ್ಕ ನಂಬರ್ ಯಾವುದು? ;; C: {PHONE} ಇದು.",
+  "A: ಈ ನಂಬರ್ ಬಿಟ್ಟು ಬೇರೆ ನಂಬರ್ ಇದೆಯಾ? ;; C: ಹೌದು, ನನ್ನ ಇನ್ನೊಂದು ನಂಬರ್ {PHONE}.",
+  "A: ವಾಟ್ಸಾಪ್‌ಗೆ ಯಾವ ನಂಬರ್ ಬಳಸ್ತೀರಿ? ;; C: {PHONE} ಗೆ ಕಳಿಸಿ.",
+  "C: ನನ್ನ ಹೊಸ ನಂಬರ್ ನೋಟ್ ಮಾಡ್ಕೊಳ್ಳಿ, {PHONE}. ;; A: ಸರಿ, ಅಪ್ಡೇಟ್ ಮಾಡ್ತೀನಿ.",
+  "A: ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಲು ಯಾವ ನಂಬರ್ ಸರಿ? ;; C: ಈ ನಂಬರೇ, {PHONE}."
+ ],
+ "call:kn.ask.PHONE.split": [
+  "A: ನಂಬರ್ ಹೇಳಿ, ಎರಡು ಭಾಗ ಮಾಡಿ ಹೇಳಿ. ;; C: {PHONE_P1} ;; A: ಸರಿ, ಉಳಿದದ್ದು? ;; C: {PHONE_P2}",
+  "A: ನಿಮ್ಮ ಮೊಬೈಲ್ ನಂಬರ್ ಹೇಳ್ತೀರಾ? ;; C: ಮೊದಲು {PHONE_P1} ;; A: ಹಾ, ಮುಂದುವರಿಸಿ. ;; C: ಆಮೇಲೆ {PHONE_P2}",
+  "A: ನಿಧಾನವಾಗಿ ನಂಬರ್ ಹೇಳಿ, ನಾನು ಬರೆದುಕೊಳ್ತೀನಿ. ;; C: {PHONE_P1} ;; A: ಬರೆದುಕೊಂಡೆ, ಮುಂದಿನದು? ;; C: {PHONE_P2}",
+  "A: ಬೇರೆ ನಂಬರ್ ಏನು? ;; C: ಒಂದು ನಿಮಿಷ. {PHONE_P1} ;; A: ಸರಿ, ಉಳಿದ ಅಂಕಿ? ;; C: {PHONE_P2}",
+  "C: ನಂಬರ್ ಬರೆದುಕೊಳ್ಳಿ, {PHONE_P1} ;; A: ಹೌದು, ಮುಂದೆ ಹೇಳಿ. ;; C: {PHONE_P2}",
+  "A: ಒಂದೇ ಸಲ ಬೇಡ, ಅರ್ಧ ಅರ್ಧ ಹೇಳಿ. ;; C: ಸರಿ, {PHONE_P1} ;; A: ಈಗ ಉಳಿದ ಅರ್ಧ. ;; C: {PHONE_P2}"
+ ],
+ "call:kn.ask.PHONE.partial": [
+  "A: ಮೊಬೈಲ್ ನಂಬರ್‌ನ ಕೊನೆಯ ಅಂಕಿಗಳು ಹೇಳಿ, ಪರಿಶೀಲನೆಗೆ. ;; C: ಕೊನೆಗೆ {PHONE}",
+  "A: ನಿಮ್ಮ ನಂಬರ್ ಕೊನೆ ನಾಲ್ಕು ಅಂಕಿ ಏನು? ;; C: {PHONE} ಅಂತ ಮುಗಿಯುತ್ತೆ.",
+  "A: ಪೂರ್ತಿ ನಂಬರ್ ಬೇಡ, ಕೊನೆಯ ನಾಲ್ಕು ಸಾಕು. ;; C: ಸರಿ, {PHONE}",
+  "A: ರಿಜಿಸ್ಟರ್ ಆಗಿರೋ ನಂಬರ್ ಕೊನೆ ಅಂಕಿಗಳು? ;; C: {PHONE}, ಅಷ್ಟೇ.",
+  "C: ಯಾಕೆ ಪೂರ್ತಿ ನಂಬರ್? ;; A: ಬೇಡ, ಕೊನೆಯ ನಾಲ್ಕು ಹೇಳಿ ಸಾಕು. ;; C: ಓಕೆ, {PHONE}",
+  "A: ದೃಢೀಕರಣಕ್ಕೆ ಮೊಬೈಲ್ ನಂಬರ್‌ನ ಕೊನೆ ನಾಲ್ಕು ಅಂಕಿ ಹೇಳ್ತೀರಾ? ;; C: ಹೌದು, {PHONE}"
+ ],
+ "call:kn.ask.AADHAAR.single": [
+  "A: ಆಧಾರ್ ಕಾರ್ಡ್ ನಂಬರ್ ಹೇಳ್ತೀರಾ? ;; C: ಹೌದು, {AADHAAR} ಇದು.",
+  "A: ಕೆವೈಸಿ ಅಪ್ಡೇಟ್‌ಗೆ ನಿಮ್ಮ ಆಧಾರ್ ಬೇಕು. ;; C: ಸರಿ, ನನ್ನ ಆಧಾರ್ ನಂಬರ್ {AADHAAR}.",
+  "C: ಆಧಾರ್ ಕೇಳ್ತಿದ್ದೀರಲ್ಲ, ಯಾಕೆ? ;; A: ಪರಿಶೀಲನೆಗೆ ಮಾತ್ರ. ;; C: ಸರಿ, {AADHAAR}",
+  "A: ನಿಮ್ಮ ಆಧಾರ್ ಸಂಖ್ಯೆ ಏನು? ;; C: {AADHAAR}, ನೋಟ್ ಮಾಡ್ಕೊಳ್ಳಿ.",
+  "A: ಗುರುತು ಪರಿಶೀಲಿಸಲು ಆಧಾರ್ ನಂಬರ್ ಹೇಳಿ. ;; C: ಬರೆದುಕೊಳ್ಳಿ, {AADHAAR}.",
+  "A: ದಯವಿಟ್ಟು ಆಧಾರ್ ನಂಬರ್ ತಿಳಿಸಿ. ;; C: ಒಂದು ನಿಮಿಷ, ಕಾರ್ಡ್ ನೋಡಿ ಹೇಳ್ತೀನಿ, {AADHAAR}."
+ ],
+ "call:kn.ask.AADHAAR.split": [
+  "A: ಆಧಾರ್ ನಂಬರ್ ಎರಡು ಭಾಗದಲ್ಲಿ ಹೇಳಿ. ;; C: {AADHAAR_P1} ;; A: ಸರಿ, ಉಳಿದದ್ದು? ;; C: {AADHAAR_P2}",
+  "A: ಆಧಾರ್ ಕಾರ್ಡ್ ನಂಬರ್ ಹೇಳ್ತೀರಾ? ;; C: ಮೊದಲ ಭಾಗ {AADHAAR_P1} ;; A: ಹೌದು, ಈಗ ಮುಂದಿನದು. ;; C: {AADHAAR_P2}",
+  "A: ಆಧಾರ್ ನಿಧಾನವಾಗಿ ಹೇಳಿ. ;; C: {AADHAAR_P1} ;; A: ಬರೆದುಕೊಂಡೆ, ಇನ್ನೂ? ;; C: {AADHAAR_P2}",
+  "C: ಆಧಾರ್ ಕಾರ್ಡ್ ನೋಡ್ತಿದ್ದೀನಿ, {AADHAAR_P1} ;; A: ಸರಿ, ಮುಂದೆ ಓದಿ. ;; C: {AADHAAR_P2}",
+  "A: ಆಧಾರ್ ಅರ್ಧ ಅರ್ಧ ಹೇಳಿ, ತಪ್ಪಾಗಬಾರದು. ;; C: ಸರಿ, {AADHAAR_P1} ;; A: ಈಗ ಕೊನೆಯ ಭಾಗ. ;; C: {AADHAAR_P2}",
+  "A: ಆಧಾರ್ ಸಂಖ್ಯೆ ತಿಳಿಸಿ. ;; C: ಹಾ, {AADHAAR_P1} ;; A: ಇನ್ನೂ ಇದೆ ಅಲ್ವಾ? ;; C: ಹೌದು, {AADHAAR_P2}"
+ ],
+ "call:kn.ask.AADHAAR.partial": [
+  "A: ಆಧಾರ್ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿ ಮಾತ್ರ ಹೇಳಿ. ;; C: {AADHAAR}",
+  "A: ದೃಢೀಕರಣಕ್ಕೆ ಆಧಾರ್‌ನ ಕೊನೆ ಅಂಕಿಗಳು ಸಾಕು. ;; C: ಸರಿ, {AADHAAR}",
+  "C: ಪೂರ್ತಿ ಆಧಾರ್ ಹೇಳಬೇಕಾ? ;; A: ಬೇಡ, ಕೊನೆ ನಾಲ್ಕು ಸಾಕು. ;; C: {AADHAAR}",
+  "A: ನಿಮ್ಮ ಆಧಾರ್ ಕೊನೆಯ ಅಂಕಿಗಳು ಯಾವುವು? ;; C: ಅದು {AADHAAR} ಅಂತ ಮುಗಿಯುತ್ತೆ.",
+  "A: ಆಧಾರ್ ಕಾರ್ಡ್ ಕೊನೆಯ ನಾಲ್ಕು ನಂಬರ್ ಹೇಳ್ತೀರಾ? ;; C: ಹೌದು, {AADHAAR}.",
+  "A: ಸುರಕ್ಷತೆಗಾಗಿ ಆಧಾರ್ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿ ಮಾತ್ರ ಬೇಕು. ;; C: ಓಕೆ, {AADHAAR}"
+ ],
+ "call:kn.ask.PAN.single": [
+  "A: ಪ್ಯಾನ್ ಕಾರ್ಡ್ ನಂಬರ್ ಹೇಳ್ತೀರಾ? ;; C: ಹೌದು, {PAN}.",
+  "A: ಕೆವೈಸಿಗೆ ನಿಮ್ಮ ಪ್ಯಾನ್ ಬೇಕು. ;; C: ನನ್ನ ಪ್ಯಾನ್ ನಂಬರ್ {PAN}.",
+  "C: ಪ್ಯಾನ್ ನಂಬರ್ ಬೇಕಾ? ;; A: ಹೌದು (ಸರ್|ಮೇಡಂ). ;; C: {PAN} ಇದು.",
+  "A: ಪರಿಶೀಲನೆಗೆ ಪ್ಯಾನ್ ಸಂಖ್ಯೆ ತಿಳಿಸಿ. ;; C: ಬರೆದುಕೊಳ್ಳಿ, {PAN}.",
+  "A: ನಿಮ್ಮ ಪ್ಯಾನ್ ಏನು? ;; C: ಒಂದು ನಿಮಿಷ, {PAN} ಅಂತ ಇದೆ.",
+  "A: ಪ್ಯಾನ್ ಕಾರ್ಡ್‌ನಲ್ಲಿರುವ ಸಂಖ್ಯೆ ಹೇಳಿ. ;; C: {PAN}, ಸರಿಯಾಗಿ ನೋಡಿ."
+ ],
+ "call:kn.ask.PAN.split": [
+  "A: ಪ್ಯಾನ್ ನಂಬರ್ ಎರಡು ಭಾಗ ಮಾಡಿ ಹೇಳಿ. ;; C: {PAN_P1} ;; A: ಸರಿ, ಉಳಿದದ್ದು? ;; C: {PAN_P2}",
+  "A: ಪ್ಯಾನ್ ಹೇಳ್ತೀರಾ? ;; C: ಮೊದಲು {PAN_P1} ;; A: ಹಾ, ಮುಂದೆ? ;; C: {PAN_P2}",
+  "A: ಪ್ಯಾನ್ ನಿಧಾನವಾಗಿ ಹೇಳಿ, ಅಕ್ಷರ ಸರಿಯಾಗಿ ಕೇಳಿಸಬೇಕು. ;; C: {PAN_P1} ;; A: ಬರೆದುಕೊಂಡೆ, ಇನ್ನೂ? ;; C: {PAN_P2}",
+  "C: ಕಾರ್ಡ್ ನೋಡಿ ಹೇಳ್ತೀನಿ, {PAN_P1} ;; A: ಸರಿ, ಮುಂದುವರಿಸಿ. ;; C: {PAN_P2}",
+  "A: ಪ್ಯಾನ್ ಸಂಖ್ಯೆ ಹೇಳಿ. ;; C: ಹಾ, {PAN_P1} ;; A: ಮುಂದಿನದು ಹೇಳಿ. ;; C: {PAN_P2}",
+  "A: ಪ್ಯಾನ್ ಅರ್ಧ ಅರ್ಧ ಹೇಳಿ. ;; C: ಓಕೆ, {PAN_P1} ;; A: ಇನ್ನುಳಿದ ಭಾಗ? ;; C: {PAN_P2}"
+ ],
+ "call:kn.ask.ACCOUNT.single": [
+  "A: ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಅಕೌಂಟ್ ನಂಬರ್ ಹೇಳಿ. ;; C: ಹೌದು, {ACCOUNT}.",
+  "A: ಇಎಂಐ ಯಾವ ಖಾತೆಯಿಂದ ಕಟ್ ಆಗ್ಬೇಕು? ;; C: ನನ್ನ ಅಕೌಂಟ್ ನಂಬರ್ {ACCOUNT}.",
+  "C: ಹಣ ಈ ಖಾತೆಯಿಂದ ಹೋಗಬೇಕು, ಬರೆದುಕೊಳ್ಳಿ, {ACCOUNT}. ;; A: ಸರಿ, ದಾಖಲಿಸಿಕೊಂಡೆ.",
+  "A: ರಿಫಂಡ್ ಬರೋ ಖಾತೆ ಯಾವುದು? ;; C: {ACCOUNT} ಇದಕ್ಕೆ ಹಾಕಿ.",
+  "A: ಖಾತೆ ಸಂಖ್ಯೆ ತಿಳಿಸ್ತೀರಾ? ;; C: ಒಂದು ನಿಮಿಷ, ಪಾಸ್‌ಬುಕ್ ನೋಡ್ತೀನಿ. {ACCOUNT}",
+  "A: ಆಟೋ ಡೆಬಿಟ್‌ಗೆ ಖಾತೆ ಸಂಖ್ಯೆ ಬೇಕು. ;; C: ಆಯ್ತು, {ACCOUNT} ಅಂತ."
+ ],
+ "call:kn.ask.ACCOUNT.split": [
+  "A: ಅಕೌಂಟ್ ನಂಬರ್ ಎರಡು ಭಾಗ ಮಾಡಿ ಹೇಳಿ. ;; C: {ACCOUNT_P1} ;; A: ಸರಿ, ಮುಂದಿನದು? ;; C: {ACCOUNT_P2}",
+  "A: ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆ ನಂಬರ್ ಹೇಳ್ತೀರಾ? ;; C: ಮೊದಲ ಭಾಗ {ACCOUNT_P1} ;; A: ಹೌದು, ಉಳಿದದ್ದು? ;; C: {ACCOUNT_P2}",
+  "A: ನಿಧಾನವಾಗಿ ಹೇಳಿ, ನಾನು ಬರೆದುಕೊಳ್ತೀನಿ. ;; C: {ACCOUNT_P1} ;; A: ಬರೆದುಕೊಂಡೆ, ಇನ್ನೂ ಇದೆಯಾ? ;; C: ಹೌದು, {ACCOUNT_P2}",
+  "C: ಪಾಸ್‌ಬುಕ್ ನೋಡಿ ಹೇಳ್ತೀನಿ, {ACCOUNT_P1} ;; A: ಸರಿ, ಮುಂದೆ ಓದಿ. ;; C: {ACCOUNT_P2}",
+  "A: ಖಾತೆ ಸಂಖ್ಯೆ ಉದ್ದ ಇದೆ, ಎರಡು ಸಲ ಹೇಳಿ. ;; C: ಓಕೆ, {ACCOUNT_P1} ;; A: ಈಗ ಉಳಿದ ಅಂಕಿಗಳು. ;; C: {ACCOUNT_P2}",
+  "A: ಪಾವತಿಗೆ ಖಾತೆ ಸಂಖ್ಯೆ ತಿಳಿಸಿ. ;; C: ಹಾ, {ACCOUNT_P1} ;; A: ಹೌದು, ಮುಂದುವರಿಸಿ. ;; C: ಆಮೇಲೆ {ACCOUNT_P2}"
+ ],
+ "call:kn.ask.ACCOUNT.partial": [
+  "A: ಖಾತೆ ಸಂಖ್ಯೆಯ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿ ಹೇಳಿ ಸಾಕು. ;; C: {ACCOUNT}",
+  "A: ದೃಢೀಕರಣಕ್ಕೆ ಅಕೌಂಟ್ ನಂಬರ್ ಕೊನೆ ಅಂಕಿಗಳು ಬೇಕು. ;; C: ಸರಿ, {ACCOUNT}",
+  "C: ಪೂರ್ತಿ ಖಾತೆ ನಂಬರ್ ಹೇಳಬೇಕಾ? ;; A: ಬೇಡ, ಕೊನೆ ನಾಲ್ಕು ಸಾಕು. ;; C: {ACCOUNT}",
+  "A: ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆ ಕೊನೆಯ ಅಂಕಿಗಳು ಏನು? ;; C: ಅದು {ACCOUNT} ಅಂತ ಮುಗಿಯುತ್ತೆ.",
+  "A: ಅಕೌಂಟ್ ನಂಬರ್ ಕೊನೆಯ ನಾಲ್ಕು ಹೇಳ್ತೀರಾ? ;; C: ಹೌದು, {ACCOUNT}.",
+  "A: ಸುರಕ್ಷತೆಗಾಗಿ ಖಾತೆಯ ಕೊನೆ ನಾಲ್ಕು ಅಂಕಿ ಮಾತ್ರ ಕೇಳ್ತೀನಿ. ;; C: ಓಕೆ, {ACCOUNT}"
+ ],
+ "call:kn.ask.LOAN.single": [
+  "A: ನಿಮ್ಮ ಲೋನ್ ಅಕೌಂಟ್ ನಂಬರ್ ಹೇಳ್ತೀರಾ? ;; C: ಹೌದು, {LOAN}.",
+  "A: ಯಾವ ಸಾಲದ ಬಗ್ಗೆ ಮಾತಾಡ್ತಿದ್ದೀವಿ? ;; C: ನನ್ನ ಲೋನ್ ನಂಬರ್ {LOAN}.",
+  "C: ಲೋನ್ ನಂಬರ್ ಬರೆದುಕೊಳ್ಳಿ, {LOAN}. ;; A: ಸರಿ, ಸಿಸ್ಟಂನಲ್ಲಿ ನೋಡ್ತೀನಿ.",
+  "A: ಲೋನ್ ಐಡಿ ಹೇಳಿ, ವಿವರ ನೋಡ್ತೀನಿ. ;; C: ಒಂದು ನಿಮಿಷ, {LOAN} ಇದು.",
+  "A: ಸಾಲದ ಸಂಖ್ಯೆ ನಿಮ್ಮ ಹತ್ರ ಇದೆಯಾ? ;; C: ಹೌದು, {LOAN} ಅಂತ ಇದೆ.",
+  "A: ಪರಿಶೀಲನೆಗೆ ಲೋನ್ ಸಂಖ್ಯೆ ತಿಳಿಸಿ. ;; C: {LOAN}, ಅಷ್ಟೇ."
+ ],
+ "call:kn.ask.LOAN.split": [
+  "A: ಲೋನ್ ನಂಬರ್ ಎರಡು ಭಾಗ ಮಾಡಿ ಹೇಳಿ. ;; C: {LOAN_P1} ;; A: ಸರಿ, ಉಳಿದದ್ದು? ;; C: {LOAN_P2}",
+  "A: ನಿಮ್ಮ ಲೋನ್ ಅಕೌಂಟ್ ನಂಬರ್ ಹೇಳ್ತೀರಾ? ;; C: ಮೊದಲ ಭಾಗ {LOAN_P1} ;; A: ಹಾ, ಮುಂದುವರಿಸಿ. ;; C: {LOAN_P2}",
+  "A: ನಿಧಾನವಾಗಿ ಹೇಳಿ, ಬರೆದುಕೊಳ್ತೀನಿ. ;; C: {LOAN_P1} ;; A: ಬರೆದೆ, ಇನ್ನೂ? ;; C: {LOAN_P2}",
+  "C: ಲೋನ್ ಪೇಪರ್ ನೋಡಿ ಹೇಳ್ತೀನಿ, {LOAN_P1} ;; A: ಹೂಂ, ಮುಂದೆ ಹೇಳಿ. ;; C: {LOAN_P2}",
+  "A: ಸಾಲದ ಸಂಖ್ಯೆ ತಿಳಿಸಿ. ;; C: ಹಾ, {LOAN_P1} ;; A: ಇನ್ನುಳಿದ ಅಂಕಿಗಳು? ;; C: {LOAN_P2}",
+  "A: ಲೋನ್ ಐಡಿ ಅರ್ಧ ಅರ್ಧ ಹೇಳಿ. ;; C: ಓಕೆ, {LOAN_P1} ;; A: ಈಗ ಕೊನೆಯ ಭಾಗ. ;; C: {LOAN_P2}"
+ ],
+ "call:kn.ask.ADDRESS.single": [
+  "A: ಈಗ ನೀವು ಎಲ್ಲಿ ವಾಸ ಮಾಡ್ತಿದ್ದೀರಿ? ;; C: {ADDRESS} ಇಲ್ಲಿ.",
+  "A: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಿಳಾಸ ಹೇಳ್ತೀರಾ? ;; C: ಹೌದು, ಬರೆದುಕೊಳ್ಳಿ, {ADDRESS}.",
+  "C: ನಾನು ಮನೆ ಬದಲಾಯಿಸಿದ್ದೀನಿ. ;; A: ಹೊಸ ವಿಳಾಸ ಹೇಳಿ. ;; C: {ADDRESS}",
+  "A: ಪತ್ರ ಯಾವ ವಿಳಾಸಕ್ಕೆ ಕಳಿಸ್ಬೇಕು? ;; C: ಈ ವಿಳಾಸಕ್ಕೆ ಕಳಿಸಿ, {ADDRESS}.",
+  "A: ನಿಮ್ಮ ಮನೆ ವಿಳಾಸ ಸರಿಯಾಗಿ ಹೇಳಿ. ;; C: {ADDRESS} ಅಂತ ಇದೆ.",
+  "A: ಭೇಟಿಗೆ ಬರೋದಾದ್ರೆ ಯಾವ ವಿಳಾಸಕ್ಕೆ ಬರಬೇಕು? ;; C: ಓಕೆ, {ADDRESS} ಗೆ ಬನ್ನಿ."
+ ],
+ "call:kn.ask.UPI.single": [
+  "A: ನಿಮ್ಮ ಯುಪಿಐ ಐಡಿ ಹೇಳ್ತೀರಾ? ;; C: ಹೌದು, {UPI}.",
+  "A: ಪೇಮೆಂಟ್ ಲಿಂಕ್ ಯಾವ ಯುಪಿಐ ಐಡಿಗೆ ಕಳಿಸ್ಬೇಕು? ;; C: {UPI} ಗೆ ಕಳಿಸಿ.",
+  "C: ನಾನು ಫೋನ್‌ಪೇ ಮೂಲಕ ಕಟ್ತೀನಿ, ನನ್ನ ಐಡಿ {UPI}. ;; A: ಸರಿ, ಬರೆದುಕೊಂಡೆ.",
+  "A: ಗೂಗಲ್ ಪೇ ಐಡಿ ಏನು? ;; C: ಒಂದು ನಿಮಿಷ, {UPI} ಅಂತ.",
+  "A: ರಿಫಂಡ್‌ಗೆ ಯುಪಿಐ ಐಡಿ ಬೇಕು. ;; C: ಆಯ್ತು, ನನ್ನದು {UPI}.",
+  "A: ನಿಮ್ಮ ಯುಪಿಐ ವಿಳಾಸ ತಿಳಿಸಿ. ;; C: ಬರೆದುಕೊಳ್ಳಿ, {UPI}."
+ ],
+ "call:kn.ask.EMAIL.single": [
+  "A: ನಿಮ್ಮ ಇಮೇಲ್ ವಿಳಾಸ ಹೇಳ್ತೀರಾ? ;; C: ಹೌದು, {EMAIL}.",
+  "A: ಸ್ಟೇಟ್‌ಮೆಂಟ್ ಯಾವ ಇಮೇಲ್‌ಗೆ ಕಳಿಸ್ಬೇಕು? ;; C: {EMAIL} ಗೆ ಕಳಿಸಿ.",
+  "C: ಇಮೇಲ್‌ನಲ್ಲಿ ಕಳಿಸಿ, ಐಡಿ ಬರೆದುಕೊಳ್ಳಿ, {EMAIL}. ;; A: ಸರಿ, ಬರೆದುಕೊಂಡೆ.",
+  "A: ರಸೀದಿ ಕಳಿಸೋಕೆ ಇಮೇಲ್ ಐಡಿ ಬೇಕು. ;; C: ಆಯ್ತು, {EMAIL} ಅಂತ.",
+  "A: ನೀವು ಬಳಸೋ ಇಮೇಲ್ ಯಾವುದು? ;; C: ಒಂದು ನಿಮಿಷ, {EMAIL}",
+  "A: ಇಮೇಲ್ ಐಡಿ ಅಪ್ಡೇಟ್ ಮಾಡಬೇಕು, ತಿಳಿಸಿ. ;; C: ನನ್ನ ಹೊಸ ಇಮೇಲ್ {EMAIL}."
+ ],
+ "call:kn.ask.DOB.single": [
+  "A: ಪರಿಶೀಲನೆಗೆ ನಿಮ್ಮ ಹುಟ್ಟಿದ ದಿನಾಂಕ ಹೇಳಿ. ;; C: {DOB}.",
+  "A: ನಿಮ್ಮ ಡೇಟ್ ಆಫ್ ಬರ್ತ್ ಏನು? ;; C: ನನ್ನ ಜನ್ಮ ದಿನಾಂಕ {DOB}.",
+  "C: ಹುಟ್ಟಿದ ದಿನ ಯಾಕೆ ಕೇಳ್ತೀರಿ? ;; A: ಗುರುತು ದೃಢೀಕರಿಸೋಕೆ. ;; C: ಸರಿ, {DOB}.",
+  "A: ಜನ್ಮ ದಿನಾಂಕ ಹೇಳ್ತೀರಾ ದಯವಿಟ್ಟು? ;; C: ಹಾ, {DOB} ಅಂತ.",
+  "A: ಸೆಕ್ಯುರಿಟಿಗಾಗಿ ಹುಟ್ಟಿದ ದಿನಾಂಕ ಹೇಳಿ. ;; C: ಬರೆದುಕೊಳ್ಳಿ, {DOB}.",
+  "A: ಖಾತೆಯಲ್ಲಿ ಇರೋ ಜನ್ಮ ದಿನಾಂಕ ಯಾವುದು? ;; C: {DOB} ಅಂತ ಇದೆ."
+ ],
+ "call:kn_rom.open": [
+  "A: Hello, (sir|madam) alli iddira? ;; C: Haudu, yaaru?",
+  "C: Haudu, heli. ;; A: Namaskara, {ORG} inda matadtiddini, ondu nimisha time sigutta?",
+  "A: Namaskara, {ORG} inda call. Ippaga matadbahuda? ;; C: Haudu, enu vishaya?",
+  "C: Halo, yaaru? ;; A: Namaskara, {ORG} inda call, swalpa time beku."
+ ],
+ "call:kn_rom.intro": [
+  "A: Namaskara (sir|madam), {ORG} inda matadtiddini. Nimma account bagge ondu vishaya ide. ;; C: Ok, heli.",
+  "A: Ee call quality gagi record agtide. Nimma loan vishayavagi matadbeku. ;; C: Sari, heli.",
+  "A: Hello, naanu {ORG} inda. Nimage {DATE} ge sambandhapatta ondu reminder ide.",
+  "A: Swalpa time sigutta (sir|madam)? {ORG} inda nimma payment bagge matadbeku. ;; C: Haudu, sigutte."
+ ],
+ "call:kn_rom.close": [
+  "A: Sari, nimma time ge dhanyavada. ;; C: Sari, bye.",
+  "C: Sari, nodtini. ;; A: Sari (sir|madam), olleyadu, shubha dina.",
+  "A: Ee vishaya {ORG} nalli update madtini. Dhanyavada. ;; C: Sari.",
+  "C: Okay, innenu illa, aaytu. ;; A: Dhanyavada (sir|madam), namaskara."
+ ],
+ "call:kn_rom.due.emi_reminder": [
+  "A: {DATE} ge nimma EMI due ittu, {AMOUNT} innu namge bandilla. ;; C: Oh, marethe, {DATE2} ge haakthini.",
+  "A: Nimma EMI payment innu aagilla (sir|madam), {AMOUNT} kattbeku. ;; C: Sari, {DATE2} tanaka kattini.",
+  "A: Reminder, {AMOUNT} EMI {DATE} inda pending ide. Yaavaga kattuttira? ;; C: Ee vaara olage kattini.",
+  "A: Nimma loan EMI overdue aagide, dayavittu bega kattiri. ;; C: Sari, {DATE2} ge account ge haNa haakthini.",
+  "A: Namaskara, EMI {AMOUNT} kattalu {DATE} kone dina aagittu. ;; C: Gottu, swalpa problem ittu, {DATE2} ge madtini."
+ ],
+ "call:kn_rom.due.dispute": [
+  "A: Namma record prakara {AMOUNT} innu baaki ide. ;; C: Adu sari alla, naanu already kattidini.",
+  "A: {DATE} ge payment bandilla antha torisutide. ;; C: Naanu {DATE2} ge UPI inda kalisidini, check madi.",
+  "C: Idu tappu, nanage SMS bandide haNa cut aagide antha. ;; A: Sari (sir|madam), nimma payment detail kodi, naanu check madtini.",
+  "A: {AMOUNT} late fee serisiddare. ;; C: Naanu time ge sariyagi kattidini, adu hege barutte?",
+  "C: Naanu {DATE} ge kattidini, receipt nanna hattira ide. ;; A: Sari, adannu share madi, naanu verify madtini."
+ ],
+ "call:kn_rom.due.address_update": [
+  "A: Nimma address change aagide (sir|madam)? ;; C: Haudu, hosa address update madbeku.",
+  "A: Nimma address ippagalu sari ideya? ;; C: Illa, naanu mane badalaayisidini.",
+  "C: Nanna address change aagide, yelli update madbeku? ;; A: Naanu ee call nalliye update madtini, heli.",
+  "A: Letter kalisalu nimma current address beku. ;; C: Sari, eega iro address heltini.",
+  "A: Namma system nalli hale address ide. Hosadu kodtira? ;; C: Haudu, kodtini.",
+  "A: (Sir|Madam), nimma contact detail update madbeku, ondu nimisha. ;; C: Sari, yenenu beku?"
+ ],
+ "call:kn_rom.due.payment_promise": [
+  "A: {DATE} olage {AMOUNT} payment barutte antha confirm madtira? ;; C: Haudu, khandita {DATE2} olage haakthini.",
+  "A: Nimma payment yaavaga aagutte? ;; C: Sambala bandmele, {DATE2} ge kattini.",
+  "C: Ee sala swalpa time kodi, {DATE2} ge kattini. ;; A: Sari (sir|madam), ee sala miss aagabaaradu.",
+  "A: Neevu helida date ge payment aagalilla. Ee sala yaavaga? ;; C: Kshamisi, {DATE2} ge khandita.",
+  "A: {AMOUNT} full kattalu aagutta, illa partial? ;; C: Mundina vaara olage full kattini."
+ ],
+ "call:kn_rom.ask.NAME.single": [
+  "A: Hello, {NAME} avarige matadbeku. ;; C: Haudu, naane matadtiddini.",
+  "A: Nimma poorti hesaru heli. ;; C: Nanna hesaru {NAME}.",
+  "A: Nimma hesaru confirm madtira? ;; C: {NAME} anta bareyiri.",
+  "C: Haudu, {NAME} matadtiddini. ;; A: Dhanyavada, ondu nimisha.",
+  "A: Account holder hesaru {NAME} alva? ;; C: Haudu, adu nannade."
+ ],
+ "call:kn_rom.ask.PHONE.single": [
+  "A: Nimma contact number enu? ;; C: {PHONE} idu nanna number.",
+  "A: Nimage call madalu sariyaada number yaavudu? ;; C: Ee number {PHONE}.",
+  "A: WhatsApp ge yaava number use madtira? ;; C: {PHONE} ge kalisi.",
+  "C: Nanna mobile number {PHONE}. ;; A: Sari, adannu update madtini.",
+  "A: Bere alternate number ideya? ;; C: Haudu, {PHONE} kooda ide."
+ ],
+ "call:kn_rom.ask.PHONE.split": [
+  "A: Nimma number heltira? ;; C: {PHONE_P1} ;; A: Sari, aamele? ;; C: {PHONE_P2}",
+  "A: Mobile number swalpa swalpa heli. ;; C: Modalu {PHONE_P1} ;; A: Kelide, bere? ;; C: Kone {PHONE_P2}",
+  "A: Number nidhaanavaagi heli, naanu bardukolluttini. ;; C: {PHONE_P1} ;; A: Sari, ishte? ;; C: Illa, innu ide, {PHONE_P2}",
+  "A: Registered number yenu? ;; C: Modalaneya bhaga {PHONE_P1} ;; A: Sari, next bhaga heli. ;; C: {PHONE_P2}",
+  "A: Nimma phone number kodi (sir|madam). ;; C: {PHONE_P1} ;; A: Aaytu, ulida bhaga? ;; C: {PHONE_P2} aaytu.",
+  "A: Alternate number heli. ;; C: Modalu {PHONE_P1} ;; A: Sari, ee bhaga bardini. Innu? ;; C: Kone {PHONE_P2}"
+ ],
+ "call:kn_rom.ask.PHONE.partial": [
+  "A: Verify madalu number ge kone naalku anki heli. ;; C: Kone naalku anki {PHONE}.",
+  "A: Nimma phone number ge kone naalku anki mathra saaku. ;; C: Sari, {PHONE}.",
+  "A: Security gagi number na kone naalku anki beku. ;; C: Haudu, adu {PHONE}.",
+  "A: Poorti number beda, kone naalku anki saaku. ;; C: Sari, {PHONE}.",
+  "A: Number match aagbeku, kone naalku anki heltira? ;; C: Haudu, {PHONE} anta.",
+  "A: Nimma mobile number na kone anki yenu? ;; C: Adu {PHONE} aagide."
+ ],
+ "call:kn_rom.ask.AADHAAR.single": [
+  "A: Nimma Aadhaar number heltira? ;; C: Haudu, adu {AADHAAR}.",
+  "A: KYC ge Aadhaar beku. ;; C: Sari, nanna Aadhaar number {AADHAAR}.",
+  "A: Identity verify madalu Aadhaar number kodi. ;; C: {AADHAAR} idu.",
+  "A: Aadhaar card nalli iro number heli. ;; C: Bareyiri, {AADHAAR}.",
+  "A: Nimma Aadhaar ID heli (sir|madam). ;; C: Sari, {AADHAAR}.",
+  "A: Record update ge nimma Aadhaar beku, heltira? ;; C: Haudu, nanna Aadhaar {AADHAAR} ide."
+ ],
+ "call:kn_rom.ask.AADHAAR.split": [
+  "A: Aadhaar number heltira? ;; C: {AADHAAR_P1} ;; A: Sari, munde? ;; C: {AADHAAR_P2}",
+  "A: Aadhaar number swalpa swalpa heli. ;; C: Modalu {AADHAAR_P1} ;; A: Kelide, innu? ;; C: Kone {AADHAAR_P2}",
+  "A: Nidhaanavaagi Aadhaar heli, naanu note madtini. ;; C: {AADHAAR_P1} ;; A: Sari, ulidaddu? ;; C: Haudu, {AADHAAR_P2}",
+  "A: Nimma Aadhaar number kodi (sir|madam). ;; C: Modalaneya bhaga {AADHAAR_P1} ;; A: Aaytu, eradaneya bhaga heli. ;; C: {AADHAAR_P2}",
+  "A: KYC ge Aadhaar beku. ;; C: {AADHAAR_P1} ;; A: Haudu, innu ide alva? ;; C: Haudu, {AADHAAR_P2}",
+  "A: Aadhaar card number heli. ;; C: Modalu {AADHAAR_P1} ;; A: Sari, ee bhaga bardini. Munde? ;; C: Kone {AADHAAR_P2}"
+ ],
+ "call:kn_rom.ask.AADHAAR.partial": [
+  "A: Aadhaar number ge kone naalku anki heltira? ;; C: Haudu, {AADHAAR}.",
+  "A: Poorti Aadhaar beda, kone naalku anki saaku. ;; C: Sari, {AADHAAR}.",
+  "A: Verification ge Aadhaar na kone naalku anki beku. ;; C: Adu {AADHAAR}.",
+  "A: Poorti Aadhaar beda, kone naalku anki mathra. ;; C: Ok, {AADHAAR} aagide.",
+  "A: Match madalu Aadhaar na kone anki yenu? ;; C: Kone anki {AADHAAR}.",
+  "A: Surakshate gagi Aadhaar na kone naalku anki mathra kelutini. ;; C: Sari, {AADHAAR} anta."
+ ],
+ "call:kn_rom.ask.PAN.single": [
+  "A: PAN card number heltira? ;; C: Haudu, {PAN}.",
+  "A: Verification ge nimma PAN beku. ;; C: Nanna PAN number {PAN} aagide.",
+  "A: PAN number kodi (sir|madam). ;; C: {PAN} idu nanna PAN.",
+  "A: Nimma PAN card alli iro number heli. ;; C: Sari, {PAN}.",
+  "A: Record ge PAN beku, heltira? ;; C: Haudu, nanna PAN {PAN}.",
+  "A: Nimma permanent account number heli. ;; C: {PAN} aagide."
+ ],
+ "call:kn_rom.ask.PAN.split": [
+  "A: PAN number heltira? ;; C: {PAN_P1} ;; A: Sari, munde? ;; C: {PAN_P2}",
+  "A: PAN swalpa swalpa heli. ;; C: Modalu {PAN_P1} ;; A: Kelide, innu? ;; C: Kone {PAN_P2}",
+  "A: PAN number nidhaanavaagi heli, bardukolltini. ;; C: {PAN_P1} ;; A: Aaytu, ulidaddu? ;; C: {PAN_P2}",
+  "A: Nimma PAN kodi (sir|madam). ;; C: Modalaneya bhaga {PAN_P1} ;; A: Sari, next bhaga heli. ;; C: {PAN_P2}",
+  "A: Verification ge PAN beku. ;; C: {PAN_P1} ;; A: Haudu, ishte aa? ;; C: Illa, innu ide, {PAN_P2}",
+  "A: PAN card number heli. ;; C: Modalu {PAN_P1} ;; A: Sari, ee bhaga bardini. Munde? ;; C: Kone {PAN_P2}"
+ ],
+ "call:kn_rom.ask.ACCOUNT.single": [
+  "A: Nimma bank account number heltira? ;; C: Haudu, {ACCOUNT}.",
+  "A: Payment yaava account nalli aagide? ;; C: Nanna account {ACCOUNT} alli.",
+  "A: Refund ge account detail beku. ;; C: Sari, account number {ACCOUNT}.",
+  "A: Nimma salary account number kodi. ;; C: {ACCOUNT} idu.",
+  "A: Auto debit aagodu yaava account inda? ;; C: Adu {ACCOUNT} inda.",
+  "A: Account number bareyiri (sir|madam). ;; C: Sari, {ACCOUNT}."
+ ],
+ "call:kn_rom.ask.ACCOUNT.split": [
+  "A: Account number heltira? ;; C: {ACCOUNT_P1} ;; A: Sari, munde? ;; C: {ACCOUNT_P2}",
+  "A: Bank account number swalpa swalpa heli. ;; C: Modalu {ACCOUNT_P1} ;; A: Kelide, innu? ;; C: Kone {ACCOUNT_P2}",
+  "A: Account number nidhaanavaagi heli, naanu note madtini. ;; C: {ACCOUNT_P1} ;; A: Sari, ulidaddu? ;; C: Haudu, {ACCOUNT_P2}",
+  "A: Nimma account number kodi (sir|madam). ;; C: Modalaneya bhaga {ACCOUNT_P1} ;; A: Aaytu, eradaneya bhaga heli. ;; C: {ACCOUNT_P2}",
+  "A: Refund ge account number beku. ;; C: {ACCOUNT_P1} ;; A: Haudu, innu ide alva? ;; C: Haudu, {ACCOUNT_P2}",
+  "A: Salary account number heli. ;; C: Modalu {ACCOUNT_P1} ;; A: Sari, ee bhaga bardini. Munde? ;; C: Kone {ACCOUNT_P2}"
+ ],
+ "call:kn_rom.ask.ACCOUNT.partial": [
+  "A: Account number ge kone naalku anki heltira? ;; C: Haudu, {ACCOUNT}.",
+  "A: Poorti account number beda, kone naalku anki saaku. ;; C: Sari, {ACCOUNT}.",
+  "A: Verification ge account na kone naalku anki beku. ;; C: Adu {ACCOUNT}.",
+  "A: Account number na kone naalku anki mathra kodi. ;; C: Ok, {ACCOUNT} aagide.",
+  "A: Match madalu account na kone anki yenu? ;; C: Kone anki {ACCOUNT}.",
+  "A: Surakshate gagi account number na kone naalku anki mathra kelutini. ;; C: Sari, {ACCOUNT} anta."
+ ],
+ "call:kn_rom.ask.LOAN.single": [
+  "A: Loan reference number heltira? ;; C: Haudu, {LOAN}.",
+  "A: Nimma loan yaava number nalli ide? ;; C: Loan number {LOAN}.",
+  "A: Record huduku ge loan number beku. ;; C: Sari, {LOAN} idu.",
+  "A: Loan account ID kodi (sir|madam). ;; C: {LOAN} aagide.",
+  "A: Statement nalli iro loan number yenu? ;; C: Adu {LOAN}.",
+  "A: Yaava loan bagge matadtiddivi, number heltira? ;; C: Nanna loan number {LOAN}."
+ ],
+ "call:kn_rom.ask.LOAN.split": [
+  "A: Loan number heltira? ;; C: {LOAN_P1} ;; A: Sari, munde? ;; C: {LOAN_P2}",
+  "A: Loan number swalpa swalpa heli. ;; C: Modalu {LOAN_P1} ;; A: Kelide, innu? ;; C: Kone {LOAN_P2}",
+  "A: Loan number nidhaanavaagi heli, naanu note madtini. ;; C: {LOAN_P1} ;; A: Sari, ulidaddu? ;; C: Haudu, {LOAN_P2}",
+  "A: Nimma loan account number kodi (sir|madam). ;; C: Modalaneya bhaga {LOAN_P1} ;; A: Aaytu, eradaneya bhaga heli. ;; C: {LOAN_P2}",
+  "A: Record huduku ge loan number beku. ;; C: {LOAN_P1} ;; A: Haudu, innu ide alva? ;; C: Haudu, {LOAN_P2}",
+  "A: Loan reference heli. ;; C: Modalu {LOAN_P1} ;; A: Sari, ee bhaga bardini. Munde? ;; C: Kone {LOAN_P2}"
+ ],
+ "call:kn_rom.ask.ADDRESS.single": [
+  "A: Nimma current address heltira? ;; C: Naanu ippaga {ADDRESS} nalli iddini.",
+  "A: Nimma mane address sari ideya? ;; C: Illa, hosa address {ADDRESS}.",
+  "A: Notice kalisalu address beku. ;; C: Sari, {ADDRESS} ge kalisi.",
+  "A: Neevu yelli vaasa madtiddira? ;; C: {ADDRESS} alli.",
+  "A: Hale address inda badalaayisidira? ;; C: Haudu, eega {ADDRESS} nalli vaasa.",
+  "A: Nimma residence address bareyiri (sir|madam). ;; C: Sari, {ADDRESS}."
+ ],
+ "call:kn_rom.ask.UPI.single": [
+  "A: Payment link kalisalu UPI id heltira? ;; C: Haudu, {UPI}.",
+  "A: Neevu yaava UPI id use madtira? ;; C: Nanna UPI {UPI}.",
+  "A: UPI id kodi (sir|madam). ;; C: {UPI} idu.",
+  "A: UPI app nalli iro nimma id heli. ;; C: Nanna id {UPI}.",
+  "A: Collect request kalisbeku, UPI id yenu? ;; C: Adu {UPI} aagide.",
+  "A: Payment madodu yaava UPI id inda? ;; C: {UPI} inda madtini."
+ ],
+ "call:kn_rom.ask.EMAIL.single": [
+  "A: Statement kalisalu email id heltira? ;; C: Haudu, {EMAIL}.",
+  "A: Nimma email address yenu? ;; C: Nanna email {EMAIL}.",
+  "A: Email id kodi (sir|madam). ;; C: {EMAIL} idu.",
+  "A: Receipt yaava mail ge kalisbeku? ;; C: {EMAIL} ge kalisi.",
+  "A: Mail id bareyiri, naanu confirm madtini. ;; C: Sari, {EMAIL}.",
+  "A: Yaava email nalli communication beku? ;; C: Adu {EMAIL} aagide."
+ ],
+ "call:kn_rom.ask.DOB.single": [
+  "A: Verification ge nimma huttida dina heltira? ;; C: Haudu, {DOB}.",
+  "A: Date of birth yenu? ;; C: Nanna huttida dina {DOB}.",
+  "A: Nimma janma dinaanka heli. ;; C: {DOB} idu.",
+  "A: Identity confirm madalu DOB beku. ;; C: Sari, {DOB}.",
+  "A: Record nalli iro huttida dina heli (sir|madam). ;; C: Adu {DOB} aagide.",
+  "A: Neevu yaavaga huttidri? ;; C: Nanna huttida dina {DOB} anta."
+ ],
+ "call:ta.open": [
+  "A: ஹலோ, (சார்|மேடம்) பேசுறீங்களா? ;; C: ஆமா, நான்தான் பேசுறேன்.",
+  "C: ஹலோ? ;; A: ஹலோ (சார்|மேடம்), ஒரு நிமிஷம் பேசலாமா?",
+  "A: வணக்கம், {ORG} லிருந்து பேசுறேன், இப்போ பேச முடியுமா? ;; C: ஹ்ம்ம், சொல்லுங்க.",
+  "C: யாருங்க பேசுறது? ;; A: நான் {ORG} ல இருந்து கூப்பிடுறேன் (சார்|மேடம்)."
+ ],
+ "call:ta.intro": [
+  "A: ஹலோ (சார்|மேடம்), {ORG} சார்பா பேசுறேன். இந்த கால் ரெக்கார்ட் ஆகுது.",
+  "A: உங்க லோன் விஷயமா ஒரு சின்ன கால் பண்ணுறேன். ;; C: ஓ, சரி, சொல்லுங்க.",
+  "A: வணக்கம், இது {ORG} லிருந்து வர்ற ஒரு ரிமைண்டர் கால் (சார்|மேடம்).",
+  "A: உங்க கணக்கு பத்தி ஒரு தகவல் சொல்லணும், இப்போ பேசலாமா? ;; C: ம், பேசலாம்."
+ ],
+ "call:ta.close": [
+  "C: ஓகே, அப்போ வைக்கிறேன். ;; A: சரிங்க (சார்|மேடம்), நன்றி.",
+  "A: வேற ஏதாவது உதவி வேணுமா? ;; C: இல்லை, அவ்ளோதான். ;; A: சரிங்க, நன்றி, வணக்கம்.",
+  "A: உங்க நேரத்துக்கு நன்றி (சார்|மேடம்). ;; C: சரி, பார்க்கலாம்.",
+  "C: சரிங்க, நான் பாத்துக்கிறேன். வச்சிடுறேன். ;; A: நல்லது, நன்றி."
+ ],
+ "call:ta.due.emi_reminder": [
+  "A: இந்த மாசத்து இஎம்ஐ {AMOUNT} இன்னும் கட்டலைன்னு காட்டுது. ;; C: ஓ, மறந்துட்டேன், {DATE2} அன்னைக்கு கட்டிடுறேன்.",
+  "A: {DATE} தேதியே இஎம்ஐ கட்ட வேண்டியது, {AMOUNT} பாக்கி இருக்கு. ;; C: சரி, சீக்கிரம் கட்டுறேன்.",
+  "C: எவ்ளோ கட்டணும்? ;; A: {AMOUNT} கட்டணும் (சார்|மேடம்). ;; C: சரி, {DATE2} க்குள் போட்டுடுறேன்.",
+  "A: உங்க இஎம்ஐ தேதி {DATE}. நினைவூட்டத்தான் கூப்பிட்டேன். ;; C: தேங்க்ஸ், நான் பாத்துக்கிறேன்.",
+  "A: இஎம்ஐ கட்டலைன்னா அபராதம் விழும், {AMOUNT} கட்டிடுங்க. ;; C: சரி சரி, இன்னைக்கே பண்ணிடுறேன்."
+ ],
+ "call:ta.due.dispute": [
+  "A: எங்க கணக்குல {AMOUNT} கட்டலைன்னு இருக்கு. ;; C: நான் கட்டிட்டேன், என்கிட்ட ரசீது இருக்கு.",
+  "C: இந்த தொகை தப்பா இருக்கு. ;; A: எந்த தொகை (சார்|மேடம்)? ;; C: {AMOUNT} எனக்கு வரவே கூடாது.",
+  "A: {DATE} அன்று கட்டியிருக்கணும், இன்னும் வரவில்லை. ;; C: நான் {DATE2} அன்னைக்கே அனுப்பிட்டேனே, திரும்ப செக் பண்ணுங்க.",
+  "C: ஏற்கனவே ரெண்டு தடவை கட்டியாச்சு, மறுபடி ஏன் கேக்குறீங்க? ;; A: ஒரு நிமிஷம், நான் சரிபாக்குறேன்.",
+  "A: {AMOUNT} பாக்கின்னு சிஸ்டம் காட்டுது. ;; C: அது தவறு, பேங்க்ல பணம் பிடிச்சிருக்காங்க."
+ ],
+ "call:ta.due.address_update": [
+  "A: உங்க முகவரி மாறியிருந்தா சொல்லுங்க. ;; C: ஆமா, மாறிடுச்சு.",
+  "A: எங்ககிட்ட இருக்கிற அட்ரஸ் சரியா இருக்கான்னு பாக்கணும். ;; C: சரி, கேளுங்க.",
+  "C: எதுக்கு என் விவரம் கேக்குறீங்க? ;; A: ரெக்கார்ட் அப்டேட் பண்ணத்தான் (சார்|மேடம்). ;; C: ஓ, சரி.",
+  "A: நீங்க வீடு மாத்திட்டீங்களா? ;; C: ஆமா, புது இடத்துக்கு வந்துட்டோம்.",
+  "A: கடிதம் அனுப்பணும், அதுக்கு உங்க தற்போதைய முகவரி வேணும். ;; C: சரி, சொல்றேன்.",
+  "A: உங்க தொடர்பு விவரங்கள் எல்லாம் பழசா இருக்கு, புதுசா சொல்ல முடியுமா? ;; C: ஒரு நிமிஷம், சொல்றேன்."
+ ],
+ "call:ta.due.payment_promise": [
+  "A: எப்போ பணம் வரும்னு சொல்ல முடியுமா? ;; C: {DATE2} அன்னைக்கு கண்டிப்பா போட்டுடுறேன்.",
+  "A: {AMOUNT} க்கு ஒரு தேதி சொல்லுங்க. ;; C: கொஞ்சம் டைம் குடுங்க, {DATE2} க்குள்ள பண்ணிடுறேன்.",
+  "C: இந்த வாரம் கஷ்டம், அடுத்த வாரம் கட்டலாமா? ;; A: சரி, எந்த தேதி? ;; C: {DATE2}.",
+  "A: உறுதியா {DATE2} க்குள் கட்டுவீங்களா? ;; C: ஆமா, வாக்கு தர்றேன்.",
+  "A: இன்னைக்கே பாதி கட்ட முடியுமா? ;; C: இல்லை, முழுசா {DATE2} அன்னைக்கு தான் முடியும்."
+ ],
+ "call:ta.ask.NAME.single": [
+  "A: இது {NAME} தானே? ;; C: ஆமா, நான்தான்.",
+  "A: உங்க முழு பேரை சொல்லுங்க. ;; C: என் பேரு {NAME}.",
+  "C: ஹலோ, யாரு வேணும்? ;; A: {NAME} இருக்காங்களா? ;; C: ஆமா, நான்தான் பேசுறேன்.",
+  "A: கணக்குல இருக்கிற பேரு சொல்லுங்க (சார்|மேடம்). ;; C: {NAME} னு இருக்கும்.",
+  "A: யார்கிட்ட பேசுறேன்னு தெரிஞ்சுக்கலாமா? ;; C: நான் {NAME} பேசுறேன்."
+ ],
+ "call:ta.ask.PHONE.single": [
+  "A: உங்களை தொடர்பு கொள்ள எந்த நம்பர் வேணும்? ;; C: இந்த நம்பர்ல தான், {PHONE}.",
+  "A: வாட்ஸ்அப் நம்பர் இருக்கா? ;; C: ஆமா, {PHONE} இதுக்கு அனுப்புங்க.",
+  "C: என் மத்த நம்பர் எழுதிக்கோங்க. ;; A: சொல்லுங்க. ;; C: {PHONE}.",
+  "A: உங்க தொடர்பு எண்ணை உறுதிப்படுத்த முடியுமா? ;; C: {PHONE} தான்.",
+  "A: இந்த நம்பர் மாறியிருந்தா புது நம்பர் சொல்லுங்க (சார்|மேடம்). ;; C: புது நம்பர் {PHONE}."
+ ],
+ "call:ta.ask.PHONE.split": [
+  "A: உங்க நம்பர் சொல்லுங்க, ரெண்டு பகுதியா சொன்னா போதும். ;; C: {PHONE_P1} ;; A: சரி, மீதி? ;; C: {PHONE_P2}",
+  "C: முதல்ல இதை எழுதிக்கோங்க. {PHONE_P1} ;; A: எழுதிட்டேன், அப்புறம்? ;; C: {PHONE_P2}",
+  "A: மொபைல் எண் சொல்லுங்க (சார்|மேடம்). ;; C: {PHONE_P1} ;; A: இன்னும் இருக்கா? ;; C: ஆமா, {PHONE_P2}",
+  "A: மெதுவா சொல்லுங்க, நான் குறிச்சுக்கிறேன். ;; C: {PHONE_P1} ;; A: சரி, தொடருங்க. ;; C: {PHONE_P2}",
+  "A: உங்க வேற நம்பர் இருந்தா கொடுங்க. ;; C: இருக்கு, {PHONE_P1} ;; A: ம், அடுத்த பாதி? ;; C: {PHONE_P2}",
+  "A: ஃபோன் நம்பரை ரெண்டு தடவையா சொல்லுங்க. ;; C: {PHONE_P1} ;; A: சரி, இப்போ மீதி. ;; C: {PHONE_P2}"
+ ],
+ "call:ta.ask.PHONE.partial": [
+  "A: நம்பர் முழுசா வேண்டாம், கடைசி சில இலக்கம் மட்டும் சொல்லுங்க. ;; C: {PHONE}",
+  "A: சரிபாக்க மொபைல் நம்பரோட கடைசி இலக்கங்கள் சொல்லுங்க. ;; C: ஆமா, {PHONE}",
+  "A: உங்க நம்பர் எப்படி முடியும்? ;; C: {PHONE} னு முடியும்.",
+  "A: பாதுகாப்புக்காக கடைசி சில இலக்கம் மட்டும் போதும். ;; C: சரி, {PHONE}",
+  "C: முழு நம்பர் சொல்லணுமா? ;; A: வேண்டாம், கடைசி இலக்கம் மட்டும். ;; C: {PHONE}",
+  "A: பதிவான நம்பரோட கடைசி பகுதி என்ன? ;; C: அது {PHONE}."
+ ],
+ "call:ta.ask.AADHAAR.single": [
+  "A: அடையாளத்தை உறுதி செய்ய ஆதார் எண் வேணும். ;; C: சரி, {AADHAAR}.",
+  "A: உங்க ஆதார் கார்டுல இருக்கிற நம்பர் சொல்லுங்க (சார்|மேடம்). ;; C: {AADHAAR} இது.",
+  "C: எதுக்கு ஆதார் கேக்குறீங்க? ;; A: கேஒய்சி சரிபார்ப்புக்கு. ;; C: சரி, {AADHAAR}.",
+  "A: ஆதார் எண் ஞாபகம் இருக்கா? ;; C: ஆமா, எழுதிக்கோங்க, {AADHAAR}.",
+  "A: கேஒய்சிக்காக ஆதார் நம்பர் மட்டும் சொல்லுங்க. ;; C: {AADHAAR}",
+  "A: ஆதார் எண்ணை தெளிவா சொல்லுங்க. ;; C: ஹ்ம், என்னோட ஆதார் {AADHAAR}."
+ ],
+ "call:ta.ask.AADHAAR.split": [
+  "A: ஆதார் எண்ணை முதல்ல பாதி சொல்லுங்க. ;; C: {AADHAAR_P1} ;; A: சரி, மீதி? ;; C: {AADHAAR_P2}",
+  "C: கார்டு பாத்து சொல்றேன். {AADHAAR_P1} ;; A: ஆமா, தொடருங்க. ;; C: {AADHAAR_P2}",
+  "A: கேஒய்சிக்கு ஆதார் நம்பர் வேணும் (சார்|மேடம்). ;; C: {AADHAAR_P1} ;; A: இன்னும் மிச்சம் இருக்கா? ;; C: ஆமா, {AADHAAR_P2}",
+  "A: மெதுவா ரெண்டு பகுதியா சொல்லுங்க. ;; C: {AADHAAR_P1} ;; A: சரி, அடுத்த பகுதி. ;; C: {AADHAAR_P2}",
+  "A: உங்க ஆதார் எண் என்ன? ;; C: முதல்ல {AADHAAR_P1} ;; A: ம், அப்புறம்? ;; C: {AADHAAR_P2}",
+  "A: ஆதார் நம்பர் குறிச்சுக்கணும், சொல்லுங்க. ;; C: {AADHAAR_P1} ;; A: எழுதிட்டேன், மீதி? ;; C: {AADHAAR_P2}"
+ ],
+ "call:ta.ask.AADHAAR.partial": [
+  "A: ஆதாரோட கடைசி நாலு நம்பர் மட்டும் சொல்லுங்க. ;; C: {AADHAAR}",
+  "A: முழு ஆதார் வேண்டாம், கடைசி இலக்கங்கள் போதும். ;; C: சரி, {AADHAAR}",
+  "A: சரிபார்க்க ஆதார் எண்ணோட கடைசி பகுதி சொல்லுங்க (சார்|மேடம்). ;; C: {AADHAAR} னு முடியும்.",
+  "C: ஆதார் முழுசா சொல்லணுமா? ;; A: இல்லை, கடைசி பகுதி மட்டும். ;; C: {AADHAAR}",
+  "A: உங்க ஆதார் எப்படி முடியுது? ;; C: {AADHAAR}",
+  "A: பாதுகாப்புக்காக ஆதாரோட கடைசி இலக்கம் மட்டும் கேக்குறேன். ;; C: ஓகே, {AADHAAR}"
+ ],
+ "call:ta.ask.PAN.single": [
+  "A: பான் கார்டு நம்பர் சொல்ல முடியுமா? ;; C: சரி, {PAN}.",
+  "A: கணக்கை சரிபார்க்க பான் எண் வேணும் (சார்|மேடம்). ;; C: {PAN} இது.",
+  "C: பான் நம்பர் எதுக்கு? ;; A: ரெக்கார்டுல இணைக்கத்தான். ;; C: சரி, {PAN}.",
+  "A: உங்க பான் கார்டுல இருக்கிற எண்ணை சொல்லுங்க. ;; C: எழுதிக்கோங்க, {PAN}.",
+  "A: பான் எண் இருக்கா உங்ககிட்ட? ;; C: ஆமா, {PAN}",
+  "A: பான் ஐடி சொல்லுங்க, பதிவு பண்ணணும். ;; C: என்னோட பான் {PAN} தான்."
+ ],
+ "call:ta.ask.PAN.split": [
+  "A: பான் எண்ணை ரெண்டு பகுதியா சொல்லுங்க. ;; C: {PAN_P1} ;; A: சரி, மீதி? ;; C: {PAN_P2}",
+  "C: கார்டு எடுத்துட்டு வர்றேன். {PAN_P1} ;; A: ஆமா, தொடருங்க. ;; C: {PAN_P2}",
+  "A: பான் நம்பர் சொல்லுங்க (சார்|மேடம்). ;; C: {PAN_P1} ;; A: அவ்ளோதானா? ;; C: இல்லை, {PAN_P2}",
+  "A: மெதுவா சொல்லுங்க, எழுதிக்கிறேன். ;; C: {PAN_P1} ;; A: சரி, அடுத்து சொல்லுங்க. ;; C: {PAN_P2}",
+  "A: உங்க பான் என்ன? ;; C: முதல் பகுதி {PAN_P1} ;; A: ம், ரெண்டாவது? ;; C: {PAN_P2}",
+  "A: பான் எண்ணை பிரிச்சு சொல்லுங்க. ;; C: {PAN_P1} ;; A: இப்போ மீதி. ;; C: {PAN_P2}"
+ ],
+ "call:ta.ask.ACCOUNT.single": [
+  "A: பணம் எந்த கணக்கில் இருந்து போகும்? ;; C: என் சேமிப்பு கணக்கு {ACCOUNT}.",
+  "A: ஆட்டோ டெபிட்டுக்கு கணக்கு எண் சொல்லுங்க (சார்|மேடம்). ;; C: {ACCOUNT} இது.",
+  "C: எந்த அக்கவுண்ட் வேணும்? ;; A: உங்க வங்கி கணக்கு எண். ;; C: {ACCOUNT}.",
+  "A: உங்க பேங்க் அக்கவுண்ட் நம்பர் என்ன? ;; C: எழுதிக்கோங்க, {ACCOUNT}.",
+  "A: பணம் திரும்ப அனுப்பணும், கணக்கு எண் சொல்லுங்க. ;; C: சரி, {ACCOUNT}",
+  "A: சம்பளம் வர்ற அக்கவுண்ட் எது? ;; C: {ACCOUNT} தான்."
+ ],
+ "call:ta.ask.ACCOUNT.split": [
+  "A: அக்கவுண்ட் நம்பரை ரெண்டு பகுதியா சொல்லுங்க. ;; C: {ACCOUNT_P1} ;; A: சரி, மீதி? ;; C: {ACCOUNT_P2}",
+  "C: பாஸ்புக் பாத்து சொல்றேன். {ACCOUNT_P1} ;; A: ஆமா, தொடருங்க. ;; C: {ACCOUNT_P2}",
+  "A: வங்கி கணக்கு எண் சொல்லுங்க (சார்|மேடம்). ;; C: {ACCOUNT_P1} ;; A: இன்னும் இருக்கா? ;; C: ஆமா, {ACCOUNT_P2}",
+  "A: மெதுவா சொல்லுங்க, குறிச்சுக்கிறேன். ;; C: {ACCOUNT_P1} ;; A: சரி, அடுத்த பகுதி. ;; C: {ACCOUNT_P2}",
+  "A: உங்க கணக்கு எண் என்ன? ;; C: முதல்ல {ACCOUNT_P1} ;; A: ம், அப்புறம்? ;; C: {ACCOUNT_P2}",
+  "A: கணக்கு எண்ணை பிரிச்சு சொல்லுங்க. ;; C: {ACCOUNT_P1} ;; A: இப்போ மீதி. ;; C: {ACCOUNT_P2}"
+ ],
+ "call:ta.ask.ACCOUNT.partial": [
+  "A: கணக்கு எண்ணோட கடைசி நாலு இலக்கம் மட்டும் சொல்லுங்க. ;; C: {ACCOUNT}",
+  "A: முழு எண் வேண்டாம், கடைசி இலக்கங்கள் போதும். ;; C: சரி, {ACCOUNT}",
+  "A: சரிபார்க்க அக்கவுண்ட் நம்பரோட கடைசி பகுதி சொல்லுங்க (சார்|மேடம்). ;; C: {ACCOUNT} னு முடியும்.",
+  "C: முழு அக்கவுண்ட் நம்பர் சொல்லணுமா? ;; A: இல்லை, கடைசி இலக்கம் மட்டும். ;; C: {ACCOUNT}",
+  "A: உங்க கணக்கு எப்படி முடியுது? ;; C: {ACCOUNT}",
+  "A: பாதுகாப்புக்காக கடைசி சில இலக்கம் மட்டும் கேக்குறேன். ;; C: ஓகே, {ACCOUNT}"
+ ],
+ "call:ta.ask.LOAN.single": [
+  "A: லோன் அக்கவுண்ட் நம்பர் சொல்ல முடியுமா? ;; C: சரி, {LOAN}.",
+  "A: எந்த கடனுக்கு பேசுறோம்னு பாக்கணும், கடன் எண் சொல்லுங்க (சார்|மேடம்). ;; C: {LOAN} இது.",
+  "C: என்ன நம்பர் வேணும்? ;; A: உங்க லோன் எண். ;; C: {LOAN}.",
+  "A: கடன் ஒப்பந்த எண் உங்ககிட்ட இருக்கா? ;; C: ஆமா, எழுதிக்கோங்க, {LOAN}.",
+  "A: உங்க லோன் ஐடி சொல்லுங்க, சிஸ்டத்துல பாக்குறேன். ;; C: {LOAN}",
+  "A: கடன் கணக்கு நம்பரை உறுதிப்படுத்த முடியுமா? ;; C: ஆமா, என்னோடது {LOAN} தான்."
+ ],
+ "call:ta.ask.LOAN.split": [
+  "A: லோன் எண்ணை ரெண்டு பகுதியா சொல்லுங்க. ;; C: {LOAN_P1} ;; A: சரி, மீதி? ;; C: {LOAN_P2}",
+  "C: பேப்பர் பாத்து சொல்றேன். {LOAN_P1} ;; A: ஆமா, தொடருங்க. ;; C: {LOAN_P2}",
+  "A: கடன் கணக்கு எண் சொல்லுங்க (சார்|மேடம்). ;; C: {LOAN_P1} ;; A: இன்னும் இருக்கா? ;; C: ஆமா, {LOAN_P2}",
+  "A: மெதுவா சொல்லுங்க, எழுதிக்கிறேன். ;; C: {LOAN_P1} ;; A: சரி, அடுத்த பகுதி. ;; C: {LOAN_P2}",
+  "A: உங்க லோன் நம்பர் என்ன? ;; C: முதல்ல {LOAN_P1} ;; A: ம், அப்புறம்? ;; C: {LOAN_P2}",
+  "A: கடன் எண்ணை பிரிச்சு சொல்லுங்க. ;; C: {LOAN_P1} ;; A: இப்போ மீதி. ;; C: {LOAN_P2}"
+ ],
+ "call:ta.ask.ADDRESS.single": [
+  "A: உங்க தற்போதைய முகவரி சொல்லுங்க. ;; C: நாங்க இப்போ {ADDRESS} ல தான் இருக்கோம்.",
+  "A: வீட்டு அட்ரஸ் மாறியிருக்கா (சார்|மேடம்)? ;; C: ஆமா, புது முகவரி {ADDRESS}.",
+  "C: நான் வேற இடத்துக்கு மாறிட்டேன். ;; A: புது முகவரி சொல்லுங்க. ;; C: {ADDRESS}.",
+  "A: கடிதம் எங்க அனுப்பணும்? ;; C: {ADDRESS} க்கு அனுப்புங்க.",
+  "A: நேர்ல வந்து சந்திக்கணும், எங்க இருக்கீங்க? ;; C: {ADDRESS} பக்கத்துல தான்.",
+  "A: ரெக்கார்டுல இருக்கிற முகவரி பழசா இருக்கு, சரியான அட்ரஸ் என்ன? ;; C: எழுதிக்கோங்க, {ADDRESS}."
+ ],
+ "call:ta.ask.UPI.single": [
+  "A: பணம் அனுப்ப யுபிஐ ஐடி சொல்லுங்க. ;; C: சரி, {UPI}.",
+  "A: நீங்க எந்த யுபிஐ ஐடி யூஸ் பண்றீங்க (சார்|மேடம்)? ;; C: {UPI} இது.",
+  "C: லிங்க் எந்த ஐடிக்கு அனுப்புவீங்க? ;; A: உங்க யுபிஐ ஐடி சொல்லுங்க. ;; C: {UPI}.",
+  "A: கூகுள் பே அல்லது போன்பே ஐடி என்ன? ;; C: என்னோட ஐடி {UPI}.",
+  "A: பேமெண்ட் ரிக்வெஸ்ட் அனுப்புறேன், ஐடி சொல்லுங்க. ;; C: {UPI}",
+  "A: உங்க யுபிஐ முகவரியை உறுதிப்படுத்த முடியுமா? ;; C: ஆமா, எழுதிக்கோங்க, {UPI}."
+ ],
+ "call:ta.ask.EMAIL.single": [
+  "A: ரசீது அனுப்ப ஈமெயில் ஐடி சொல்லுங்க. ;; C: சரி, {EMAIL}.",
+  "A: உங்க மெயில் ஐடி என்ன (சார்|மேடம்)? ;; C: {EMAIL} இது.",
+  "C: எந்த மெயிலுக்கு அனுப்புவீங்க? ;; A: உங்க ஈமெயில் முகவரி சொல்லுங்க. ;; C: {EMAIL}.",
+  "A: ஸ்டேட்மெண்ட் மெயில்ல அனுப்பணும், ஐடி சொல்லுங்க. ;; C: எழுதிக்கோங்க, {EMAIL}.",
+  "A: பதிவுல இருக்கிற மெயில் ஐடியை உறுதிப்படுத்த முடியுமா? ;; C: ஆமா, {EMAIL}",
+  "A: உங்க மின்னஞ்சல் முகவரி மாறியிருக்கா? ;; C: ஆமா, புசு ஐடி {EMAIL} தான்."
+ ],
+ "call:ta.ask.DOB.single": [
+  "A: அடையாளத்தை உறுதி செய்ய பிறந்த தேதி சொல்லுங்க. ;; C: சரி, {DOB}.",
+  "A: உங்க டேட் ஆஃப் பர்த் என்ன (சார்|மேடம்)? ;; C: {DOB} இது.",
+  "C: எதுக்கு என் பிறந்த நாள் கேக்குறீங்க? ;; A: சரிபார்ப்புக்கு தான். ;; C: ஓ, {DOB}.",
+  "A: கணக்குல இருக்கிற பிறந்த தேதியை சொல்லுங்க. ;; C: எழுதிக்கோங்க, {DOB}.",
+  "A: பாதுகாப்பு கேள்விக்கு, நீங்க எப்போ பிறந்தீங்க? ;; C: {DOB} அன்னைக்கு.",
+  "A: உங்க ஜனன தேதியை உறுதிப்படுத்த முடியுமா? ;; C: ஆமா, {DOB}"
+ ],
+ "call:ta_rom.open": [
+  "A: Hello, (sir|madam) pesureengala? ;; C: Aama, yaaru pesuradhu?",
+  "C: Haan, sollunga. ;; A: Vanakkam, konjam neram pesalaama?",
+  "A: Good (morning|afternoon|evening) (sir|madam), ippo pesa mudiyuma? ;; C: Sollunga, enna vishayam?",
+  "C: Hello? ;; A: Hello, naan {ORG} la irundhu pesuren, neenga free ah?"
+ ],
+ "call:ta_rom.intro": [
+  "A: Hello, naan {ORG} collections team la irundhu pesuren. Konjam neram irukka? ;; C: Sollunga.",
+  "A: Ungal loan payment pathi oru chinna update kudukka call pannen. ;; C: Oh, sari, sollunga.",
+  "A: Idhu {ORG} la irundhu varra call, quality ku record pannuvom.",
+  "A: Vanakkam, ungal account pathi oru vishayam sollanum. ;; C: Enna vishayam?"
+ ],
+ "call:ta_rom.close": [
+  "A: Vera edhavadhu help venuma? ;; C: Illa, adhu podhum.",
+  "C: Sari, naan paathukkuren. ;; A: Nandri, ungal naal nalla irukkattum.",
+  "A: Call pannadhukku nandri (sir|madam). ;; C: Okay, bye.",
+  "C: Sari, vechudren. ;; A: Sari, nandri, vanakkam."
+ ],
+ "call:ta_rom.due.emi_reminder": [
+  "A: {DATE} anru ungal EMI due aagirukku, innum pay aagala. ;; C: Oh, marandhutten, ippave paathu katturen.",
+  "A: Reminder, {AMOUNT} EMI pending la irukku. ;; C: Sari, {DATE2} ku munnadi clear pannidren.",
+  "A: (Sir|Madam), ungal EMI date thaandi pochu, {AMOUNT} katta vendiyadhu. ;; C: Konjam salary late, {DATE2} la katturen.",
+  "C: Enna vishayama call pannirukeenga? ;; A: EMI {AMOUNT} innum varala, adhaan.",
+  "A: Indha maadha EMI innum credit aagala, eppo kattuveenga? ;; C: Naalaikku UPI la anuppiduren."
+ ],
+ "call:ta_rom.due.dispute": [
+  "C: Naan already kattitten, innum yen call pandreenga? ;; A: Sari, receipt irundha anuppunga, naan check pannuren.",
+  "A: System la {AMOUNT} pending nu kaattudhu. ;; C: Idhu thappu, naan {DATE} anru thaan pay pannen.",
+  "C: Indha charge enakku puriyala, edhukku podureenga? ;; A: (Sir|Madam), late fee serndhu irukku, vivaram sollattuma?",
+  "A: Ungal payment innum engalukku varala. ;; C: Bank la debit aagiduchu, screenshot irukku.",
+  "C: Rendu thadavai kattunen, adhu ungalukku theriyalaya? ;; A: Konjam wait pannunga, ledger paathu solren."
+ ],
+ "call:ta_rom.due.address_update": [
+  "A: Ungal contact details edhavadhu maaritha? ;; C: Illa, adhe thaan irukku.",
+  "C: Naan veedu maathiten. ;; A: Oh, sari, record update pannanum, ready ah?",
+  "A: Ungal registered details pazhasa irukku, puthusa sollungalen. ;; C: Konjam neram kudunga, eduthu varen.",
+  "A: Indha number la thaan neenga irukeengala, vera edhavadhu maaritha? ;; C: Number same, aana veedu maaridhu.",
+  "C: Enna update venum, sollunga? ;; A: Residential details thaan, ungal convenience ku sollunga.",
+  "A: (Sir|Madam), correspondence ku ungal puthu vivaram venum. ;; C: Sari, sollunga ezhudhikkuren."
+ ],
+ "call:ta_rom.due.payment_promise": [
+  "A: Payment eppo varum nu sollunga. ;; C: Vara vaaram sambalam varum, appo katturen.",
+  "A: {AMOUNT} kattarathukku evlo naal venum? ;; C: Oru naal mattum kudunga, {DATE2} ku pidikkuren.",
+  "C: Konjam time kudunga, kandippa kattidren. ;; A: Sari, {DATE2} varaikum wait pannuren, confirm ah?",
+  "A: {DATE2} kulla kattiduveengala? ;; C: Aama, pakka, pannidren.",
+  "C: Ippo kaasu illa, adutha vaaram paarkalaam. ;; A: Sari, aana {DATE2} ku mela late aagakoodadhu."
+ ],
+ "call:ta_rom.ask.NAME.single": [
+  "A: Neenga {NAME} thaana? ;; C: Aama, naan thaan.",
+  "A: Yaar pesuradhu nu sollalaama? ;; C: Naan {NAME} pesuren.",
+  "C: Yaaru venum? ;; A: {NAME} kitta pesanum.",
+  "A: Account la irukkura peyar {NAME} sariya? ;; C: Sariyaana peyar, sollunga.",
+  "A: Ungal full name confirm pannunga. ;; C: En peyar {NAME}."
+ ],
+ "call:ta_rom.ask.PHONE.single": [
+  "A: Ungala contact panna entha number best? ;; C: Indha number thaan, {PHONE}.",
+  "A: Whatsapp number vera irukka? ;; C: Aama, {PHONE} la try pannunga.",
+  "A: Alternate number irundha sollunga. ;; C: {PHONE} nu note pannikonga.",
+  "A: Ungal phone number correct ah nu paarkalaam, sollunga. ;; C: {PHONE}.",
+  "A: Call connect aagala na vera edhavadhu number irukka? ;; C: Aama, {PHONE} ku pannunga."
+ ],
+ "call:ta_rom.ask.PHONE.split": [
+  "A: Mobile number onnu sollunga. ;; C: Mudhal paadhi {PHONE_P1} ;; A: Seri, meedhi? ;; C: {PHONE_P2}",
+  "A: Ungal number rendu paagama sollunga. ;; C: {PHONE_P1} ;; A: Adutha paadhi sollunga. ;; C: {PHONE_P2} nu mudiyum.",
+  "A: Contact number kudunga (sir|madam). ;; C: Mudhalla {PHONE_P1} ;; A: Nandri, innum? ;; C: Appuram {PHONE_P2}",
+  "C: Number pirichu solren, mudhalla {PHONE_P1} ;; A: Sari, adutthu? ;; C: Mudivu {PHONE_P2}",
+  "A: Phone number medhuva sollunga, naan ezhudhuren. ;; C: {PHONE_P1} ;; A: Ok, mudinjudha? ;; C: Illa, innum irukku {PHONE_P2}",
+  "A: Number repeat pannunga. ;; C: Sari, {PHONE_P1} ;; A: Aduthu? ;; C: Idhu dhaan, {PHONE_P2}"
+ ],
+ "call:ta_rom.ask.PHONE.partial": [
+  "A: Mobile number la mudiyara naalu ilakkam enna? ;; C: Adhu {PHONE}.",
+  "A: Ungal number engalukku kidaichirukku, kadaisi ilakkangal mattum sollunga. ;; C: Aama, {PHONE}.",
+  "A: Poora number venaam, mudiyara ilakkam sollunga. ;; C: {PHONE} thaan.",
+  "A: Security ku mobile number oda kadaisi paadhi sollunga. ;; C: Sari, {PHONE}.",
+  "A: Number end la enna varudhu? ;; C: {PHONE} nu mudiyum.",
+  "A: Match panna, unga phone oda last naalu digits kudunga. ;; C: Seri, adhu {PHONE}."
+ ],
+ "call:ta_rom.ask.AADHAAR.single": [
+  "A: KYC ku Aadhaar number venum. ;; C: Ezhudhikonga, {AADHAAR}.",
+  "A: Ungal Aadhaar card number sollunga (sir|madam). ;; C: Aama, adhu {AADHAAR}.",
+  "C: Aadhaar edhukku venum? ;; A: Verification ku thaan. ;; C: Sari, {AADHAAR}.",
+  "A: Aadhaar number kaiyila irukka? ;; C: Irukku, {AADHAAR}.",
+  "A: Records match aaganum, unga Aadhaar sollunga. ;; C: Sari, {AADHAAR} idhu thaan.",
+  "A: Aadhaar details onnu kudunga. ;; C: {AADHAAR} nu irukku."
+ ],
+ "call:ta_rom.ask.AADHAAR.split": [
+  "A: Aadhaar number sollunga, pirichu sollalaam. ;; C: {AADHAAR_P1} ;; A: Seri, meedhi? ;; C: {AADHAAR_P2}",
+  "A: Unga Aadhaar number mudhal paadhi sollunga. ;; C: {AADHAAR_P1} ;; A: Nandri, ippo rendaavadhu paadhi. ;; C: {AADHAAR_P2}",
+  "C: Aadhaar card paathu solren, mudhalla {AADHAAR_P1} ;; A: Aama, thodarndhu sollunga. ;; C: Appuram {AADHAAR_P2}",
+  "A: KYC ku Aadhaar venum, medhuva sollunga. ;; C: Sari, {AADHAAR_P1} ;; A: Innum irukku, sollunga. ;; C: {AADHAAR_P2} thaan.",
+  "A: Aadhaar number rendu bhaagama sollunga. ;; C: Mudhal {AADHAAR_P1} ;; A: Seri, adutthu? ;; C: {AADHAAR_P2} mudinjidhu.",
+  "A: Aadhaar number sollunga please. ;; C: {AADHAAR_P1} ;; A: Konjam repeat panna mudiyuma, adutthu? ;; C: {AADHAAR_P2}"
+ ],
+ "call:ta_rom.ask.AADHAAR.partial": [
+  "A: Aadhaar oda mudiyara naalu ilakkam mattum sollunga. ;; C: {AADHAAR} thaan.",
+  "A: Poora Aadhaar venaam, kadaisi ilakkangal sollunga. ;; C: Seri, {AADHAAR}.",
+  "A: Verify panna Aadhaar oda last naalu digits? ;; C: Adhu {AADHAAR}.",
+  "A: Aadhaar number la kadaisiya enna irukku? ;; C: {AADHAAR} nu mudiyum.",
+  "A: Security kaaga, Aadhaar kadaisi ilakkam podhum (sir|madam). ;; C: Sari, {AADHAAR}.",
+  "A: Ungal Aadhaar card paathu, end la irukkura ilakkam sollunga. ;; C: Paaththen, {AADHAAR}."
+ ],
+ "call:ta_rom.ask.PAN.single": [
+  "A: PAN card number kudunga (sir|madam). ;; C: Aama, {PAN}.",
+  "A: Verify panna PAN venum. ;; C: Ezhudhikonga, {PAN}.",
+  "A: Ungalidam PAN card irukka? ;; C: Irukku, adhu {PAN}.",
+  "A: PAN details sollunga. ;; C: En PAN number {PAN} thaan.",
+  "A: Tax record match aaganum, unga PAN? ;; C: {PAN} idhu.",
+  "A: Konjam PAN number sollungalen. ;; C: Sari, {PAN} nu ezhudhikonga."
+ ],
+ "call:ta_rom.ask.PAN.split": [
+  "A: PAN card paathu mudhal paadhi sollunga. ;; C: {PAN_P1} ;; A: Nandri, adutha paadhi? ;; C: {PAN_P2}",
+  "A: PAN number rendu paagama sollunga. ;; C: Mudhalla {PAN_P1} ;; A: Sari, innum? ;; C: Mudivu {PAN_P2}",
+  "C: PAN pirichu solren, mudhalla {PAN_P1} ;; A: Ok, thodarunga. ;; C: Appuram {PAN_P2}",
+  "A: Ungal PAN number medhuva sollunga. ;; C: {PAN_P1} ;; A: Konjam wait, adutthadhu? ;; C: {PAN_P2}",
+  "A: Tax verification ku PAN venum. ;; C: Sari, {PAN_P1} ;; A: Aama, mudinjudha? ;; C: Illa, {PAN_P2}",
+  "A: PAN sollunga, naan note panren. ;; C: {PAN_P1} ;; A: Adutthu sollunga. ;; C: {PAN_P2} thaan."
+ ],
+ "call:ta_rom.ask.ACCOUNT.single": [
+  "A: EMI debit aagura bank account number sollunga. ;; C: Aama, {ACCOUNT}.",
+  "A: Payment varra account number enna? ;; C: Adhu {ACCOUNT}.",
+  "A: Ungal savings account number kudunga (sir|madam). ;; C: Sari, {ACCOUNT} idhu thaan.",
+  "A: Entha account la irundhu panam edukkanum, number sollunga. ;; C: {ACCOUNT} la irundhu.",
+  "A: Refund aana entha account ku anuppanum? ;; C: En account {ACCOUNT} ku anuppunga.",
+  "A: Bank account details onnu sollunga. ;; C: Account number {ACCOUNT} thaan."
+ ],
+ "call:ta_rom.ask.ACCOUNT.split": [
+  "A: Bank account number pirichu sollunga. ;; C: {ACCOUNT_P1} ;; A: Seri, meedhi? ;; C: {ACCOUNT_P2}",
+  "A: Ungal account number mudhal paadhi sollunga (sir|madam). ;; C: Mudhalla {ACCOUNT_P1} ;; A: Nandri, adutha paadhi? ;; C: {ACCOUNT_P2}",
+  "C: Account number konjam neelam, pirichu solren, {ACCOUNT_P1} ;; A: Aama, thodarunga. ;; C: Appuram {ACCOUNT_P2}",
+  "A: Passbook paathu account number sollunga. ;; C: Sari, {ACCOUNT_P1} ;; A: Innum irukku, sollunga. ;; C: {ACCOUNT_P2} thaan.",
+  "A: Account number medhuva sollunga, naan ezhudhuren. ;; C: {ACCOUNT_P1} ;; A: Ok, mudinjudha? ;; C: Illa, innum {ACCOUNT_P2}",
+  "A: Account number repeat pannunga. ;; C: Sari, {ACCOUNT_P1} ;; A: Aduthu? ;; C: Idhu dhaan, {ACCOUNT_P2}"
+ ],
+ "call:ta_rom.ask.ACCOUNT.partial": [
+  "A: Account number la mudiyara naalu ilakkam enna? ;; C: Adhu {ACCOUNT}.",
+  "A: Poora account number venaam, kadaisi ilakkangal mattum sollunga. ;; C: Aama, {ACCOUNT}.",
+  "A: Verify panna account oda last naalu digits kudunga. ;; C: Seri, {ACCOUNT}.",
+  "A: Ungal bank account end la enna varudhu? ;; C: {ACCOUNT} nu mudiyum.",
+  "A: Security kaaga, account number kadaisi paadhi podhum (sir|madam). ;; C: Sari, {ACCOUNT}.",
+  "A: Passbook paathu, kadaisi ilakkam sollunga. ;; C: Paaththen, {ACCOUNT}."
+ ],
+ "call:ta_rom.ask.LOAN.single": [
+  "A: Loan number enna (sir|madam)? ;; C: Aama, {LOAN}.",
+  "A: Ungal loan agreement la irukkura number sollunga. ;; C: Adhu {LOAN}.",
+  "A: Account match panna loan number venum. ;; C: Sari, {LOAN} nu ezhudhikonga.",
+  "A: Entha loan pathi pesuren nu confirm pannanum, number kudunga. ;; C: {LOAN} thaan.",
+  "A: Loan reference number kaiyila irukka? ;; C: Irukku, {LOAN}.",
+  "A: Ungal loan ID onnu sollunga. ;; C: En loan {LOAN} nu irukku."
+ ],
+ "call:ta_rom.ask.LOAN.split": [
+  "A: Loan number pirichu sollunga. ;; C: {LOAN_P1} ;; A: Seri, meedhi? ;; C: {LOAN_P2}",
+  "A: Ungal loan number mudhal paadhi sollunga (sir|madam). ;; C: Mudhalla {LOAN_P1} ;; A: Nandri, adutha paadhi? ;; C: {LOAN_P2}",
+  "C: Loan number neelam, pirichu solren, {LOAN_P1} ;; A: Aama, thodarunga. ;; C: Appuram {LOAN_P2}",
+  "A: Agreement paathu loan number sollunga. ;; C: Sari, {LOAN_P1} ;; A: Innum irukku, sollunga. ;; C: {LOAN_P2} thaan.",
+  "A: Loan number medhuva sollunga, naan ezhudhuren. ;; C: {LOAN_P1} ;; A: Ok, mudinjudha? ;; C: Illa, innum {LOAN_P2}",
+  "A: Loan number repeat pannunga. ;; C: Sari, {LOAN_P1} ;; A: Aduthu? ;; C: Idhu dhaan, {LOAN_P2}"
+ ],
+ "call:ta_rom.ask.ADDRESS.single": [
+  "A: Ungal ippo irukkura address sollunga. ;; C: Naan ippo {ADDRESS} la thaan irukken.",
+  "A: Letter anuppa vendiyadhu, address maaritha? ;; C: Aama, puthu address {ADDRESS}.",
+  "A: Veetu address confirm pannanum. ;; C: {ADDRESS} idhu thaan.",
+  "A: Neenga ippo entha area la irukeenga? ;; C: {ADDRESS} pakkam.",
+  "C: Naan veedu maathiten, ippo {ADDRESS}. ;; A: Nandri, update pannikkuren.",
+  "A: Statement anuppa entha address sariyaa irukkum? ;; C: {ADDRESS} ku anuppunga."
+ ],
+ "call:ta_rom.ask.UPI.single": [
+  "A: Neenga entha UPI id la pay panreenga? ;; C: {UPI} la thaan.",
+  "A: Payment link anuppa UPI id sollunga. ;; C: Aama, {UPI}.",
+  "A: UPI ID kudunga (sir|madam). ;; C: Ezhudhikonga, {UPI}.",
+  "A: UPI app la entha id use panreenga? ;; C: En id {UPI}.",
+  "A: Collect request anuppanum, ungal VPA enna? ;; C: Adhu {UPI}.",
+  "A: Ungal UPI address onnu sollunga. ;; C: {UPI} nu irukku."
+ ],
+ "call:ta_rom.ask.EMAIL.single": [
+  "A: Statement anuppa email address sollunga. ;; C: Aama, {EMAIL}.",
+  "A: Ungal mail id enna (sir|madam)? ;; C: Adhu {EMAIL}.",
+  "A: Receipt mail la anuppanum, id sollunga. ;; C: {EMAIL} ku anuppunga.",
+  "A: Email edhavadhu maaritha? ;; C: Aama, puthu email {EMAIL}.",
+  "A: Email address correct ah nu check pannanum. ;; C: {EMAIL} idhu thaan.",
+  "A: Ungal mail ID spelling ah konjam sollunga. ;; C: Sari, {EMAIL}."
+ ],
+ "call:ta_rom.ask.DOB.single": [
+  "A: Verification ku birth date sollunga. ;; C: En DOB {DOB}.",
+  "A: Neenga eppo pirandheenga? ;; C: {DOB} anru.",
+  "A: Ungal date of birth confirm pannunga (sir|madam). ;; C: Aama, {DOB}.",
+  "A: Security question, ungal pirandha naal enna? ;; C: Adhu {DOB}.",
+  "A: Records la irukkura DOB sariya? ;; C: Sari, {DOB} thaan.",
+  "A: Date of birth venum, naal maadham varusham sollunga. ;; C: {DOB}."
+ ],
+ "msg:en.ask.NAME.single": [
+  "A: hello, who am i speaking with? ;; C: {NAME} this side",
+  "A: name as per loan records pls ;; C: it's {NAME}"
+ ],
+ "msg:en.ask.PHONE.single": [
+  "A: which no should we reach u on (sir|madam)? ;; C: {PHONE} is my whatsapp no also",
+  "A: send ur alternate contact ;; C: try {PHONE}, i pick up after evening"
+ ],
+ "msg:en.ask.PHONE.split": [
+  "A: can u type ur mobile no? ;; C: {PHONE_P1} ;; A: ok and the rest? ;; C: {PHONE_P2}",
+  "A: share contact number pls ;; C: first part {PHONE_P1} ;; A: next? ;; C: {PHONE_P2} done",
+  "A: whatsapp no? ;; C: {PHONE_P1} ;; A: pls send remaining digits ;; C: {PHONE_P2} 👍",
+  "A: (hi|hello) need ur number to update records ;; C: one sec ;; C: {PHONE_P1} ;; A: yes continue ;; C: {PHONE_P2}"
+ ],
+ "msg:en.ask.PHONE.partial": [
+  "A: just confirm last four of ur number ;; C: {PHONE}",
+  "A: for verification, ending digits of registered mobile? ;; C: it ends with {PHONE}",
+  "A: pls type last four digits only ;; C: {PHONE} 🙏",
+  "A: which no is linked to ur loan? last four digits is enough ;; C: {PHONE}",
+  "A: (sir|madam) last digits of ur phone no? ;; C: ends in {PHONE}"
+ ],
+ "msg:en.ask.AADHAAR.single": [
+  "A: need ur uid number to complete kyc ;; C: ok sending, {AADHAAR}",
+  "A: aadhaar card no pls (sir|madam) ;; C: {AADHAAR} is it",
+  "C: kyc pending right? my aadhaar no {AADHAAR}"
+ ],
+ "msg:en.ask.AADHAAR.split": [
+  "A: type ur aadhaar no in two parts ;; C: {AADHAAR_P1} ;; A: ok next ;; C: {AADHAAR_P2}",
+  "A: aadhaar for kyc? ;; C: {AADHAAR_P1} ;; A: rest of it pls ;; C: {AADHAAR_P2} ok?",
+  "A: pls share ur twelve digit aadhaar ;; C: first half {AADHAAR_P1} ;; A: and second half? ;; C: {AADHAAR_P2}",
+  "A: kindly send aadhaar no, no hurry ;; C: {AADHAAR_P1} ;; A: yes go on ;; C: {AADHAAR_P2} 🙏",
+  "A: need aadhaar to match ur kyc ;; C: wait getting card ;; C: {AADHAAR_P1} ;; A: got it, remaining? ;; C: {AADHAAR_P2}"
+ ],
+ "msg:en.ask.AADHAAR.partial": [
+  "A: for security tell last four of ur aadhaar ;; C: {AADHAAR}",
+  "A: pls confirm ending digits of aadhaar ;; C: ends with {AADHAAR}",
+  "A: just last four digits enough, aadhaar ;; C: {AADHAAR} 👍",
+  "A: (sir|madam) can u verify ur aadhaar by last four? ;; C: sure, {AADHAAR}",
+  "A: aadhaar last digits? ;; C: it's {AADHAAR} at the end"
+ ],
+ "msg:en.ask.PAN.single": [
+  "A: need ur permanent account number ;; C: {PAN}",
+  "A: (sir|madam) pan card details for records ;; C: {PAN} 👍",
+  "C: pan for the loan file is {PAN}, pls update"
+ ],
+ "msg:en.ask.PAN.split": [
+  "A: type ur pan, in two parts is ok ;; C: {PAN_P1} ;; A: and the rest? ;; C: {PAN_P2}",
+  "A: share pan no pls ;; C: {PAN_P1} ;; A: remaining part pls ;; C: {PAN_P2} done",
+  "A: need ur ten character pan ;; C: first half {PAN_P1} ;; A: next half? ;; C: {PAN_P2}",
+  "A: pan card number for kyc update ;; C: ok wait ;; C: {PAN_P1} ;; A: yes ;; C: {PAN_P2} 🙏",
+  "A: kindly send pan, slowly is fine ;; C: {PAN_P1} ;; A: got it, balance part? ;; C: {PAN_P2} ✅"
+ ],
+ "msg:en.ask.ACCOUNT.single": [
+  "A: which bank a/c should we debit? ;; C: {ACCOUNT} 👍",
+  "A: need savings account number for emi mandate ;; C: it is {ACCOUNT}",
+  "C: set up the mandate on {ACCOUNT} pls"
+ ],
+ "msg:en.ask.ACCOUNT.split": [
+  "A: share ur bank account no ;; C: {ACCOUNT_P1} ;; A: ok continue ;; C: {ACCOUNT_P2}",
+  "A: a/c number for emi pls ;; C: {ACCOUNT_P1} ;; A: rest of the digits? ;; C: {ACCOUNT_P2} 🙏",
+  "A: need full account no, send in two msgs if long ;; C: first part {ACCOUNT_P1} ;; A: next part? ;; C: {ACCOUNT_P2}",
+  "A: (sir|madam) pls type account number for auto debit ;; C: hold on ;; C: {ACCOUNT_P1} ;; A: yes, remaining? ;; C: {ACCOUNT_P2}",
+  "A: salary account no? ;; C: {ACCOUNT_P1} ;; A: got that, pls send the balance digits ;; C: {ACCOUNT_P2} ok"
+ ],
+ "msg:en.ask.ACCOUNT.partial": [
+  "A: confirm last four of ur bank account ;; C: {ACCOUNT}",
+  "A: for verification, ending digits of a/c pls ;; C: ends with {ACCOUNT}",
+  "A: (sir|madam) tell last four digits of the debit account ;; C: {ACCOUNT} 👍",
+  "A: which a/c is linked? just last four ;; C: it's {ACCOUNT}",
+  "A: pls verify account by last digits only ;; C: {ACCOUNT} 🙏"
+ ],
+ "msg:en.ask.LOAN.single": [
+  "A: need ur lan for reference ;; C: {LOAN} 👍",
+  "A: loan account id pls ;; C: it is {LOAN}",
+  "C: calling about loan {LOAN}, pls check status"
+ ],
+ "msg:en.ask.LOAN.split": [
+  "A: share loan account no ;; C: {LOAN_P1} ;; A: and rest? ;; C: {LOAN_P2}",
+  "A: what is ur lan? ;; C: {LOAN_P1} ;; A: go on ;; C: {LOAN_P2} 🙏",
+  "A: kindly type loan number from the sms ;; C: first part {LOAN_P1} ;; A: next? ;; C: {LOAN_P2}",
+  "A: (sir|madam) need loan id to pull ur file ;; C: one min ;; C: {LOAN_P1} ;; A: ok, remaining? ;; C: {LOAN_P2}",
+  "A: loan ref no pls ;; C: {LOAN_P1} ;; A: got it, send the balance part ;; C: {LOAN_P2} ✅"
+ ],
+ "msg:en.ask.ADDRESS.single": [
+  "A: where do u stay now? ;; C: {ADDRESS}",
+  "A: need residence address for notice ;; C: at {ADDRESS} now",
+  "C: pls note, i live at {ADDRESS} now"
+ ],
+ "msg:en.ask.UPI.single": [
+  "A: which vpa u will pay from? ;; C: {UPI}",
+  "A: share ur upi handle pls ;; C: {UPI} 👍",
+  "C: use {UPI} for collect request",
+  "A: (sir|madam) upi id? ;; C: it's {UPI}, send now"
+ ],
+ "msg:en.ask.EMAIL.single": [
+  "A: which mail to send the statement on? ;; C: {EMAIL}",
+  "A: pls share ur email address ;; C: {EMAIL} 👍",
+  "C: mail the receipt on {EMAIL}",
+  "A: (sir|madam) need email for noc letter ;; C: it's {EMAIL}"
+ ],
+ "msg:en.ask.DOB.single": [
+  "A: pls tell date of birth to verify ;; C: {DOB}",
+  "A: confirm ur birth date ;; C: born on {DOB}",
+  "C: my date of birth is {DOB} 👍",
+  "A: (sir|madam) dob as per records? ;; C: {DOB} only"
+ ],
+ "msg:hi_rom.open": [
+  "A: Namaste, {ORG} se bol rahe hain, aapki EMI ka reminder tha ;; C: haan bataiye ;; A: {AMOUNT} ki EMI {DATE} tak jama karni hai",
+  "A: hello (sir|madam), aapki EMI pending dikh rahi hai, kab tak bharenge? ;; C: kitna baaki hai ;; A: {AMOUNT} hai, last date {DATE} thi",
+  "C: bhai mera EMI ka message aaya, ye {AMOUNT} kis baat ka? ;; A: aapki kist {DATE} ko cut honi thi, abhi tak nahi hui",
+  "A: Reminder - {AMOUNT} ki kist {DATE} ko due hai. Please time pe pay karein. - {ORG}",
+  "A: Namaste ji, {ORG} ki taraf se call hai ;; C: haan boliye, kya baat hai ;; A: payment {DATE} ko miss ho gaya tha, {DATE2} tak kar dijiye to late fee nahi lagegi"
+ ],
+ "msg:hi_rom.ask.NAME.single": [
+  "A: kis naam se account hai? ;; C: {NAME} ke naam se hai",
+  "A: please apna poora naam bataiye ;; C: ji {NAME}",
+  "C: haan ji, {NAME} hi hu main",
+  "A: namaste, {ORG} se call hai. aap kaun bol rahe hain? ;; C: mera naam {NAME} hai",
+  "A: verify karne ke liye naam batao ;; C: arre {NAME}, wahi jisne loan liya tha"
+ ],
+ "msg:hi_rom.ask.PHONE.single": [
+  "A: aapka contact number kya hai? ;; C: {PHONE} pe call kar lena",
+  "C: purana number band ho gaya, ab {PHONE} use karna",
+  "A: WhatsApp wala number share karo ;; C: {PHONE} hai mera whatsapp",
+  "A: registered mobile number confirm kar dijiye ;; C: ji {PHONE}",
+  "C: aap {PHONE} pe call kar lijiye, shaam ko (free|available) hu"
+ ],
+ "msg:hi_rom.ask.PHONE.split": [
+  "A: mobile number bataiye ;; C: {PHONE_P1} ;; A: aage? ;; C: {PHONE_P2}",
+  "A: number dena zara ;; C: pehle ye note karo {PHONE_P1} ;; A: ok, baaki? ;; C: {PHONE_P2}",
+  "A: apna phone number bolo (sir|madam) ;; C: {PHONE_P1} ;; A: haan, phir? ;; C: uske baad {PHONE_P2}",
+  "A: alternate number chahiye ;; C: ruko, {PHONE_P1} ;; A: ji likh liya, aage ;; C: {PHONE_P2}",
+  "A: WhatsApp no. kya hai? ;; C: {PHONE_P1} ;; A: pura nahi aaya, remaining batao ;; C: {PHONE_P2} hai",
+  "A: ek baar number type kijiye ;; C: {PHONE_P1} ;; A: okay, aur? ;; C: {PHONE_P2}, ho gaya"
+ ],
+ "msg:hi_rom.ask.PHONE.partial": [
+  "A: number ke aakhri chaar digit bata do ;; C: {PHONE}",
+  "A: verification ke liye mobile ke end ke digits bataiye ;; C: {PHONE} hain",
+  "A: poora nahi chahiye, bas last wale digits ;; C: ok {PHONE}",
+  "A: registered number kaunsa hai, sirf aakhri kuch digit bolo ;; C: {PHONE} pe khatam hota hai",
+  "C: mere number ke last digit {PHONE} hain, check kar lo",
+  "A: security ke liye number ka ending bataiye ;; C: {PHONE} hai ending"
+ ],
+ "msg:hi_rom.ask.AADHAAR.single": [
+  "A: identity proof ke liye apna Aadhaar number dijiye ;; C: {AADHAAR}",
+  "A: Aadhaar no. bata do, KYC pending hai ;; C: ye lo {AADHAAR}",
+  "C: mera Aadhaar {AADHAAR} hai, update kar dena",
+  "A: kya aap apna aadhar number share kar sakte hain? ;; C: haan ji {AADHAAR}",
+  "A: KYC complete karni hai, aadhaar bol dijiye ;; C: {AADHAAR}, aur kuch chahiye?",
+  "A: {ORG} ke record me aadhaar missing hai ;; C: achha, {AADHAAR} likh lo"
+ ],
+ "msg:hi_rom.ask.AADHAAR.split": [
+  "A: Aadhaar number bataiye ;; C: {AADHAAR_P1} ;; A: aage? ;; C: {AADHAAR_P2}",
+  "A: KYC ke liye aadhar bolo ;; C: pehle ye likho {AADHAAR_P1} ;; A: haan, baaki? ;; C: {AADHAAR_P2}",
+  "A: apna aadhaar no. dena (sir|madam) ;; C: {AADHAAR_P1} ;; A: ji, uske baad? ;; C: {AADHAAR_P2} hai",
+  "A: aadhaar card pe jo number hai wo batao ;; C: ruko, {AADHAAR_P1} ;; A: noted, aage ;; C: {AADHAAR_P2}",
+  "A: poora aadhaar ek baar me nahi, do hisse me bol do ;; C: {AADHAAR_P1} ;; A: ok, ab dusra hissa ;; C: {AADHAAR_P2}",
+  "A: aadhaar confirm karna hai ;; C: {AADHAAR_P1} ;; A: aur? ;; C: last me {AADHAAR_P2}"
+ ],
+ "msg:hi_rom.ask.AADHAAR.partial": [
+  "A: Aadhaar ke aakhri chaar digit bata do ;; C: {AADHAAR}",
+  "A: verify karne ke liye aadhaar ka end bataiye ;; C: {AADHAAR} hai",
+  "A: poora number nahi chahiye, bas last ke digits ;; C: ok {AADHAAR}",
+  "C: mere aadhaar ke last digit {AADHAAR} hain, match kar lo",
+  "A: aadhaar ka ending kya hai? ;; C: {AADHAAR} pe khatam hota hai",
+  "A: {ORG} ko sirf aakhri kuch digit chahiye aadhaar ke ;; C: {AADHAAR}, bas itna"
+ ],
+ "msg:hi_rom.ask.PAN.single": [
+  "A: apna PAN card number batao ;; C: {PAN}",
+  "A: income proof ke liye PAN dijiye ;; C: ye lo {PAN}",
+  "C: mera PAN {PAN} hai, note kar lo",
+  "A: kya aap PAN share kar sakte hain? ;; C: haan ji {PAN}",
+  "A: PAN number likhwa dijiye (sir|madam) ;; C: {PAN}, theek hai?",
+  "A: {ORG} ke system me PAN update karna hai ;; C: likho {PAN}"
+ ],
+ "msg:hi_rom.ask.PAN.split": [
+  "A: PAN number bataiye ;; C: {PAN_P1} ;; A: aage? ;; C: {PAN_P2}",
+  "A: PAN card wala number bolo ;; C: pehle {PAN_P1} ;; A: ok, baaki? ;; C: {PAN_P2}",
+  "A: apna PAN dena (sir|madam) ;; C: {PAN_P1} ;; A: ji, uske baad? ;; C: {PAN_P2} hai",
+  "A: PAN confirm karna hai, thoda thoda karke bolo ;; C: ruko, {PAN_P1} ;; A: noted, aage ;; C: {PAN_P2}",
+  "A: PAN do hisson me bata do ;; C: {PAN_P1} ;; A: ok, ab dusra hissa ;; C: {PAN_P2}",
+  "A: tax ke liye PAN chahiye ;; C: {PAN_P1} ;; A: aur? ;; C: last me {PAN_P2}"
+ ],
+ "msg:hi_rom.ask.ACCOUNT.single": [
+  "A: aapka bank account number kya hai? ;; C: {ACCOUNT}",
+  "A: EMI kis account se kategi, number bataiye ;; C: {ACCOUNT} se",
+  "C: mera a/c {ACCOUNT} hai, isi me auto debit laga do",
+  "A: salary account ka number share kijiye ;; C: haan ji {ACCOUNT}",
+  "A: account no. bol dijiye (sir|madam) ;; C: {ACCOUNT}, note kar lo",
+  "A: {ORG} ko refund ke liye account chahiye ;; C: likho {ACCOUNT}"
+ ],
+ "msg:hi_rom.ask.ACCOUNT.split": [
+  "A: bank account number bataiye ;; C: {ACCOUNT_P1} ;; A: aage? ;; C: {ACCOUNT_P2}",
+  "A: account number bolo ;; C: pehle ye likho {ACCOUNT_P1} ;; A: ok, baaki? ;; C: {ACCOUNT_P2}",
+  "A: apna a/c no. dena (sir|madam) ;; C: {ACCOUNT_P1} ;; A: ji, uske baad? ;; C: {ACCOUNT_P2} hai",
+  "A: passbook dekh ke account number bata dijiye ;; C: ruko, {ACCOUNT_P1} ;; A: noted, aage ;; C: {ACCOUNT_P2}",
+  "A: lamba number hai, do hisse me bol do ;; C: {ACCOUNT_P1} ;; A: ok, ab dusra hissa ;; C: {ACCOUNT_P2}",
+  "A: auto debit ke liye account confirm karna hai ;; C: {ACCOUNT_P1} ;; A: aur? ;; C: last me {ACCOUNT_P2}"
+ ],
+ "msg:hi_rom.ask.ACCOUNT.partial": [
+  "A: account number ke aakhri chaar digit bata do ;; C: {ACCOUNT}",
+  "A: verification ke liye a/c ka end bataiye ;; C: {ACCOUNT} hai",
+  "A: poora nahi chahiye, bas last ke digits ;; C: ok {ACCOUNT}",
+  "C: mere account ke last digit {ACCOUNT} hain, check kar lo",
+  "A: account ka ending kya hai? ;; C: {ACCOUNT} pe khatam hota hai",
+  "A: {ORG} ko sirf aakhri kuch digit chahiye account ke ;; C: {ACCOUNT}, bas itna"
+ ],
+ "msg:hi_rom.ask.LOAN.single": [
+  "A: aapka loan account number kya hai? ;; C: {LOAN}",
+  "A: kaunsa loan, number bataiye ;; C: {LOAN} wala",
+  "C: mera loan number {LOAN} hai, uska status batao",
+  "A: sanction letter pe jo loan no. hai wo share kijiye ;; C: haan ji {LOAN}",
+  "A: loan ID bol dijiye (sir|madam) ;; C: {LOAN}, note kar lo",
+  "A: {ORG} ke record me search karna hai, loan number dena ;; C: likho {LOAN}"
+ ],
+ "msg:hi_rom.ask.LOAN.split": [
+  "A: loan number bataiye ;; C: {LOAN_P1} ;; A: aage? ;; C: {LOAN_P2}",
+  "A: loan wala number bolo ;; C: pehle ye likho {LOAN_P1} ;; A: ok, baaki? ;; C: {LOAN_P2}",
+  "A: apna loan ID dena (sir|madam) ;; C: {LOAN_P1} ;; A: ji, uske baad? ;; C: {LOAN_P2} hai",
+  "A: papers dekh ke loan number bata dijiye ;; C: ruko, {LOAN_P1} ;; A: noted, aage ;; C: {LOAN_P2}",
+  "A: do hisse me bol do, ek saath nahi samajh aata ;; C: {LOAN_P1} ;; A: ok, ab dusra hissa ;; C: {LOAN_P2}",
+  "A: loan confirm karna hai ;; C: {LOAN_P1} ;; A: aur? ;; C: last me {LOAN_P2}"
+ ],
+ "msg:hi_rom.ask.ADDRESS.single": [
+  "A: current address kya hai? ;; C: {ADDRESS}",
+  "A: ghar ka pata likhwa dijiye ;; C: {ADDRESS} pe (rehta|rehti) hu",
+  "C: main shift (ho gaya|ho gayi), naya pata {ADDRESS} hai",
+  "A: field visit ke liye exact location bataiye ;; C: {ADDRESS}, landmark ke saath aana",
+  "A: aapka residence address update karna hai, bolo ;; C: {ADDRESS} hai ab",
+  "A: letter kahan bhejna hai? ;; C: {ADDRESS} pe bhej dena"
+ ],
+ "msg:hi_rom.ask.UPI.single": [
+  "A: payment ke liye UPI id bataiye ;; C: {UPI}",
+  "A: kis UPI se pay karoge? ;; C: {UPI} se kar (dunga|dungi)",
+  "C: mera UPI {UPI} hai, request bhej do",
+  "A: collect request ke liye apni UPI handle batao ;; C: {UPI} ye hai",
+  "A: UPI wali id share karo, link bhejna hai ;; C: haan {UPI}",
+  "A: {ORG} ke paas aapki UPI id nahi hai, de dijiye ;; C: likho {UPI}"
+ ],
+ "msg:hi_rom.ask.EMAIL.single": [
+  "A: aapka email address kya hai? ;; C: {EMAIL}",
+  "A: statement bhejna hai, mail id bataiye ;; C: {EMAIL} pe bhej do",
+  "C: meri mail id {EMAIL} hai, wahin bhejna",
+  "A: official email share kar dijiye (sir|madam) ;; C: haan ji {EMAIL}",
+  "A: noc ke liye email chahiye, bol dijiye ;; C: {EMAIL}, theek hai?",
+  "A: {ORG} ke record me email missing hai ;; C: likho {EMAIL}"
+ ],
+ "msg:hi_rom.ask.DOB.single": [
+  "A: aapki date of birth kya hai? ;; C: {DOB}",
+  "A: verification ke liye janam tithi bataiye ;; C: {DOB} hai",
+  "C: meri DOB {DOB} hai, check kar lo",
+  "A: birth date bol dijiye (sir|madam) ;; C: haan ji {DOB}",
+  "A: security question hai, aapka janmdin kab hai? ;; C: {DOB} ko",
+  "A: {ORG} ke record se match karna hai, DOB dena ;; C: likho {DOB}"
+ ],
+ "msg:mr_rom.open": [
+  "A: Namaskar, {ORG} kadun bolat ahe. Tumcha {AMOUNT} cha hapta {DATE} la bharaycha ahe ;; C: ho laksha ahe, bharto",
+  "C: mala {ORG} cha message aala hota, kay ahe te? ;; A: Tumcha {AMOUNT} cha hapta baki ahe, last date {DATE}",
+  "A: Hi, reminder ahe ki {AMOUNT} bharayche rahile ahet ;; C: kuthla hapta? ;; A: {DATE} cha",
+  "A: Good morning (sir|madam), tumchya loan cha hapta lavkarach due hoil ;; C: kiti rakkam ahe? ;; A: {AMOUNT}, {DATE} paryant"
+ ],
+ "msg:mr_rom.close": [
+  "A: Tumhi {DATE2} paryant bharal na? ;; C: ho nakki, dhanyavad",
+  "C: chalel, bye ;; A: Okay, kahi garaj aslyas call kara"
+ ],
+ "msg:mr_rom.ask.NAME.single": [
+  "A: Kripaya tumche purna naav sanga ;; C: {NAME} ahe mi",
+  "A: Mi kunashi bolat ahe? ;; C: {NAME} (bolto|bolte), sanga",
+  "A: Account {ORG} madhe konachya navavar ahe? ;; C: maza naav {NAME}",
+  "A: Naav confirm kara plz ;; C: {NAME}"
+ ],
+ "msg:mr_rom.ask.PHONE.single": [
+  "A: Tumcha chalu number konta ahe? ;; C: {PHONE} ya number var kara",
+  "A: Contact number dya ;; C: {PHONE}",
+  "C: maza number badalla ahe, {PHONE} ghya ;; A: Ok, update karto",
+  "A: WhatsApp var jo number vaparta to sanga ;; C: {PHONE} ahe to",
+  "A: Konta number registered karu? ;; C: {PHONE} lava"
+ ],
+ "msg:mr_rom.ask.PHONE.split": [
+  "A: Mobile number sanga ;; C: {PHONE_P1} ;; A: Pudhche ankde? ;; C: {PHONE_P2}",
+  "A: Number don bhagat pathva ;; C: pahila bhag {PHONE_P1} ;; A: ani dusra? ;; C: {PHONE_P2}",
+  "A: Tumcha phone no. kay ahe? ;; C: {PHONE_P1} ;; A: pudhe? ;; C: {PHONE_P2} ahe",
+  "A: Adhi suruvatche ankde sanga ;; C: {PHONE_P1} ;; A: ok ani shevtche ankde? ;; C: {PHONE_P2}",
+  "A: Alternate number lagel, sanga ;; C: {PHONE_P1} ;; A: Pudhcha bhag pathva ;; C: {PHONE_P2}",
+  "C: sangto number, adhi {PHONE_P1} ;; A: Ho, pudhe? ;; C: {PHONE_P2}"
+ ],
+ "msg:mr_rom.ask.PHONE.partial": [
+  "A: Verification sathi shevtche char ank sanga ;; C: {PHONE}",
+  "A: Mobile cha last part kay ahe? ;; C: {PHONE} ahe",
+  "A: Registered number cha shevtcha bhag confirm kara ;; C: {PHONE}",
+  "C: mazya number che shevtche ank {PHONE} ahet ;; A: Ok, verify zale",
+  "A: Number kashane sampto te sanga ;; C: {PHONE}",
+  "A: Pura number nako, fakt shevtche ankde dya ;; C: {PHONE}"
+ ],
+ "msg:mr_rom.ask.ADDRESS.single": [
+  "A: Tumcha current patta sanga ;; C: {ADDRESS}",
+  "A: Aata kuthe rahta? ;; C: {ADDRESS} ithe rahto",
+  "A: Notice pathvaychi ahe, kuthe pathvu? ;; C: {ADDRESS} var pathva",
+  "C: mi shift zalo ahe, navin patta {ADDRESS} ;; A: Dhanyavad, noted",
+  "A: Gharcha purna patta lihun dya, pincode sakat ;; C: {ADDRESS}",
+  "A: {ORG} chya records madhe patta juna ahe, update kara ;; C: {ADDRESS} ahe aata"
+ ],
+ "msg:kn_rom.open": [
+  "A: Namaskara, {ORG} inda matadtiddivi. nimma EMI pending ide ;; C: oh haudaa, eshtu kattbeku ;; A: {AMOUNT} {DATE} olage kodi",
+  "C: yaaru matadodu ;; A: naanu {ORG} inda, nimma loan EMI bagge ;; C: oh sari, eshtu baaki ide ;; A: {AMOUNT} baaki ide",
+  "A: Hello, EMI due date {DATE} aagide, innu payment aagilla ;; C: ayyo marthe hogide, ega kodtini",
+  "A: Reminder: nimma EMI {AMOUNT} kattalikke {DATE} varege time ide. Dayavittu pay madi."
+ ],
+ "msg:kn_rom.close": [
+  "C: ega pay madtini, tension beda ;; A: sari, dhanyavadagalu",
+  "A: {DATE2} olage pay madi ;; C: sari, madtini ;; A: Thanks, have a good day",
+  "C: ok, gottaytu. {AMOUNT} kattidre sari alwa ;; A: haudu, thank you"
+ ],
+ "msg:kn_rom.ask.NAME.single": [
+  "A: nimma full name heli ;; C: {NAME} anta",
+  "A: account yaara hesarinalli ide ;; C: {NAME} hesarinalli ide",
+  "C: hello, nanna hesaru {NAME}, loan bagge kelbeku",
+  "A: {ORG} inda matadtiddini, nimma hesaru ;; C: hesaru {NAME}"
+ ],
+ "msg:kn_rom.ask.PHONE.single": [
+  "A: nimma contact number yenu ;; C: {PHONE} idu",
+  "A: yava number nalli sampark madbeku ;; C: {PHONE} ge madi",
+  "C: nanna WhatsApp number {PHONE}",
+  "A: alternate number ide ya ;; C: haudu, {PHONE}",
+  "C: number badalaytu, ega {PHONE} use madtidini"
+ ],
+ "msg:kn_rom.ask.PHONE.split": [
+  "A: number heli ;; C: {PHONE_P1} ;; A: ok innoo ;; C: {PHONE_P2}",
+  "A: mobile number mundina bhaga heli ;; C: {PHONE_P1} ;; A: sari, ulida bhaga ;; C: {PHONE_P2}",
+  "A: nimma phone number kalisi, eradu bhagadalli ;; C: {PHONE_P1} ;; A: sari, next ;; C: {PHONE_P2}",
+  "A: sari heli ;; C: modalu {PHONE_P1} ;; A: haudu ;; C: nantara {PHONE_P2}",
+  "A: {ORG} record nalli update madtini, number heli ;; C: {PHONE_P1} ;; A: thanks, kone bhaga ;; C: {PHONE_P2}"
+ ],
+ "msg:kn_rom.ask.PHONE.partial": [
+  "A: number na kone naalku anki mathra heli ;; C: {PHONE}",
+  "A: verify madalu phone no na kone anki heli ;; C: {PHONE}",
+  "A: nimma number yaavdu antha confirm madi, kone anki ;; C: {PHONE}",
+  "A: kone naalku digit mathra saaku ;; C: {PHONE}",
+  "A: number na ending heli ;; C: nanna number {PHONE}"
+ ],
+ "msg:kn_rom.ask.ADDRESS.single": [
+  "A: ega nivu yelli idira, address heli ;; C: {ADDRESS}",
+  "A: nimma current address yenu ;; C: {ADDRESS} alli iddini",
+  "A: visit madbeku, address kodi ;; C: {ADDRESS}",
+  "C: naanu ega {ADDRESS} nalli vaasa iddini",
+  "A: manege baro address sariyagi heli ;; C: {ADDRESS} idu",
+  "A: {ORG} record nalli address update madbeku, heli ;; C: sari, {ADDRESS}"
+ ],
+ "msg:ta_rom.open": [
+  "A: Vanakkam, ungal loan EMI {AMOUNT} {DATE} la irundhu pending la irukku. Seekiram pay pannidunga. - {ORG}",
+  "A: Hello, {ORG} la irundhu pesuren ;; C: sollunga ;; A: (sir|madam), EMI {AMOUNT} innum kattala, {DATE} kulla kattidunga",
+  "C: EMI debit aagala, enna achu? ;; A: Account la balance illa pola, {AMOUNT} baaki irukku",
+  "A: Reminder: {AMOUNT} EMI due {DATE}. Late fee thavirkka ippove pay pannidunga.",
+  "C: yen enakku call pannitte irukeenga? ;; A: ungal EMI {AMOUNT} overdue aayiduchu, adha pathi pesa dhan call pannen"
+ ],
+ "msg:ta_rom.close": [
+  "A: Sari, payment pannidunga, nandri ;; C: ok pannidren",
+  "C: naalaikku kandippa pay pannidren, thanks"
+ ],
+ "msg:ta_rom.ask.NAME.single": [
+  "A: Neenga yaar pesuradhu? ;; C: {NAME} pesuren",
+  "A: Account holder peyar sollunga ;; C: en peyar {NAME}",
+  "C: idhu {NAME} oda number dhan"
+ ],
+ "msg:ta_rom.ask.PHONE.single": [
+  "A: Contact number enna? ;; C: {PHONE} dhan",
+  "A: WhatsApp number kuduthinga na easy ah irukkum ;; C: {PHONE} ku anuppunga",
+  "C: en number maariduchu, ippo {PHONE} use pannunga",
+  "A: Ungala reach panna entha number best? ;; C: {PHONE} la call pannunga",
+  "A: Alternate mobile number irundha sollunga ;; C: {PHONE} irukku"
+ ],
+ "msg:ta_rom.ask.PHONE.split": [
+  "A: Mobile number sollunga ;; C: {PHONE_P1} ;; A: Mudhal paadhi kidaichuchu, meedhi? ;; C: {PHONE_P2}",
+  "A: Ungal contact number ethu? ;; C: {PHONE_P1} ;; A: Maththa digits? ;; C: {PHONE_P2}",
+  "A: Number sollunga, naan note pannikiren ;; C: mudhal {PHONE_P1} ;; A: sari, adutha ;; C: appuram {PHONE_P2}"
+ ],
+ "msg:ta_rom.ask.PHONE.partial": [
+  "A: Verify panna mobile number oda last naalu ilakkam podunga ;; C: {PHONE}",
+  "A: Security kaaga registered number oda kadaisi naalu digit sollunga ;; C: {PHONE} dhan",
+  "C: kadaisi naalu ilakkam {PHONE} ;; A: Nandri, correct",
+  "A: Full number venam, last naalu digits mattum sollunga ;; C: {PHONE} nu mudiyum",
+  "A: Number confirm pannanum, ending digits enna? ;; C: {PHONE} la mudiyudhu"
+ ],
+ "msg:ta_rom.ask.ADDRESS.single": [
+  "A: Ippo enga irukkeenga, address sollunga ;; C: {ADDRESS}",
+  "A: Notice anuppanum, current address enna? ;; C: {ADDRESS} la dhan irukken",
+  "C: naan veedu maathitten, pudhu address {ADDRESS}",
+  "A: Ungal residence address confirm pannunga please ;; C: {ADDRESS} idhu dhan",
+  "A: Address la maatram irukka? ;; C: aama, ippo {ADDRESS} la irukken ;; A: Note pannikiten",
+  "A: Vera address la irukeengala? ;; C: illa, {ADDRESS} dhan same"
+ ],
+ "msgnative:hi.open": [
+  "A: नमस्ते, {ORG} की तरफ़ से याद दिला रहे हैं कि {AMOUNT} की किस्त {DATE} तक जमा करनी है।",
+  "A: हेलो, मैं {ORG} से बोल (रहा|रही) हूँ। आपकी ईएमआई बाकी है, क्या अभी बात हो सकती है?",
+  "A: आपकी लोन किस्त {AMOUNT} की {DATE} को कट जाएगी, कृपया खाते में बैलेंस रखिएगा।",
+  "A: नमस्ते (सर|मैडम), आपकी ईएमआई की तारीख निकल चुकी है, जल्दी भर दीजिए।",
+  "A: रिमाइंडर: {AMOUNT} का भुगतान अभी पेंडिंग है। कृपया {DATE} से पहले कर दें। धन्यवाद, {ORG}",
+  "A: हैलो, क्या मैं दो मिनट बात (कर सकता|कर सकती) हूँ? आपकी पिछली किस्त के बारे में कॉल किया है।"
+ ],
+ "msgnative:hi.close": [
+  "C: ठीक है, मैं जल्दी देख (लूँगा|लूँगी)",
+  "C: {AMOUNT} कल तक जमा कर दूँ(गा|गी), आप टेंशन मत लीजिए",
+  "A: तो {DATE2} तक भुगतान पक्का रखिए ;; C: जी, पक्का, धन्यवाद",
+  "C: अभी थोड़ी दिक्कत है, पर {DATE2} से पहले ज़रूर कर दूँ(गा|गी)",
+  "A: कुछ और मदद चाहिए? ;; C: नहीं नहीं, बस इतना ही, थैंक यू"
+ ],
+ "msgnative:hi.ask.NAME.single": [
+  "A: कृपया अपना पूरा नाम बताइए ;; C: {NAME}",
+  "A: हेलो, किससे बात हो रही है? ;; C: जी मैं {NAME} बोल (रहा|रही) हूँ",
+  "A: वेरिफ़िकेशन के लिए नाम बता दीजिए, जैसा खाते में है ;; C: मेरा नाम {NAME} है",
+  "A: ज़रा अपना नाम लिखकर भेजिए ;; C: {NAME} है जी",
+  "A: {ORG} में आपके नाम से लोन है, नाम बताएँगे? ;; C: हाँ, {NAME}",
+  "A: क्या आप ही खाताधारक हैं? नाम बताइए ;; C: जी हाँ, खाता {NAME} के नाम पर है"
+ ],
+ "msgnative:hi.ask.PHONE.single": [
+  "A: कौन सा नंबर आपके पास चालू रहता है? ;; C: मेरा नंबर {PHONE} है",
+  "A: रजिस्टर्ड फ़ोन नंबर बताइए ;; C: जी, {PHONE}",
+  "A: हम आपको व्हाट्सऐप पर लिंक भेजेंगे, नंबर दीजिए ;; C: {PHONE} पर भेज दो",
+  "A: संपर्क के लिए कोई नंबर दे दीजिए ;; C: यह लिख लीजिए, {PHONE}",
+  "A: क्या अभी वाला नंबर ही सही है, या दूसरा है? ;; C: दूसरा है, {PHONE} पर कॉल करना",
+  "A: {ORG} के रिकॉर्ड में अपडेट करना है, नया मोबाइल नंबर बोलिए ;; C: हाँ लिखिए, {PHONE}"
+ ],
+ "msgnative:hi.ask.PHONE.split": [
+  "A: नंबर बताइए ;; C: पहले {PHONE_P1} ;; A: जी, आगे? ;; C: बाकी {PHONE_P2}",
+  "A: मोबाइल नंबर दो हिस्सों में बोल दीजिए ;; C: शुरू के अंक {PHONE_P1} ;; A: ठीक, अब बाकी ;; C: {PHONE_P2}",
+  "A: नंबर लिखवाइए ;; C: {PHONE_P1} ;; A: हाँ लिखा, फिर? ;; C: उसके बाद {PHONE_P2}",
+  "A: अपना कॉन्टैक्ट नंबर बोलिए ;; C: {PHONE_P1} है पहला हिस्सा ;; A: समझ (गया|गई), दूसरा हिस्सा? ;; C: {PHONE_P2}",
+  "A: एक साथ नहीं, आराम से बताइए, नंबर क्या है? ;; C: पहले ये नोट करो, {PHONE_P1} ;; A: नोट कर लिया, आगे बोलिए ;; C: अब ये, {PHONE_P2}",
+  "A: {ORG} के लिए नंबर चाहिए ;; C: जी, {PHONE_P1} ;; A: ठीक है, बाकी के अंक? ;; C: {PHONE_P2} बस"
+ ],
+ "msgnative:hi.ask.ADDRESS.single": [
+  "A: आप अभी कहाँ रह रहे हैं? पूरा पता बताइए ;; C: {ADDRESS}",
+  "A: घर का एड्रेस कन्फ़र्म कर दीजिए ;; C: जी, {ADDRESS} पर (रहता|रहती) हूँ",
+  "A: विज़िट के लिए पता चाहिए, कहाँ आना होगा? ;; C: {ADDRESS} आ जाइए",
+  "A: रिकॉर्ड में पुराना पता है, नया वाला लिखवाइए ;; C: नया पता है {ADDRESS}",
+  "A: लैंडमार्क के साथ पता बताएँगे? ;; C: हाँ, {ADDRESS}, इतना ही है",
+  "A: पोस्ट वाले पते पर ही सब भेजना है ना? ;; C: नहीं, {ADDRESS} पर भेजिए"
+ ],
+ "msgnative:mr.open": [
+  "A: नमस्कार, {ORG} कडून बोलत आहे. तुमच्या कर्जाचा {AMOUNT} चा हप्ता {DATE} ला बाकी आहे.",
+  "A: हॅलो (सर|मॅडम), तुमच्या खात्यावरचा हप्ता अजून भरलेला दिसत नाही. रक्कम {AMOUNT}, शेवटची तारीख {DATE}.",
+  "A: रिमाइंडर: {DATE} पर्यंत {AMOUNT} भरायचे आहेत. लवकर भरा, धन्यवाद.",
+  "A: नमस्कार, {ORG} मधून फोन करत आहे. तुमचा EMI थकलेला आहे, कृपया {DATE2} च्या आत भरा.",
+  "A: काय म्हणताय (सर|मॅडम), तुमचं {AMOUNT} चं पेमेंट पेंडिंग आहे, थोडं बघाल का?",
+  "A: तुमची थकबाकी {AMOUNT} झाली आहे आणि शेवटची तारीख {DATE} होती. आज भरणं शक्य आहे का?"
+ ],
+ "msgnative:mr.close": [
+  "C: आज संध्याकाळपर्यंत पैसे भरून टाक(तो|ते)",
+  "C: थोडा वेळ द्या ना, {DATE2} ला नक्की भरेन",
+  "C: ओके, पगार झाला की लगेच भरून टाकेन",
+  "C: बरं बरं, समजलं. लवकरच पेमेंट कर(तो|ते), काळजी करू नका",
+  "C: ठीक आहे (सर|मॅडम), {AMOUNT} पाठवून दे(तो|ते) {DATE} च्या आधी"
+ ],
+ "msgnative:mr.ask.NAME.single": [
+  "A: कृपया तुमचं पूर्ण नाव सांगा ;; C: {NAME}",
+  "A: हॅलो, मी {ORG} मधून बोलत आहे. तुम्ही कोण बोलताय? ;; C: मी {NAME} बोलत आहे",
+  "A: खातेधारकाचं नाव सांगाल का? ;; C: हो, {NAME}",
+  "A: नाव काय म्हणालात? ;; C: माझं नाव {NAME} आहे",
+  "A: ओळख पटवायला नाव सांगा ना ;; C: {NAME} आहे मी",
+  "A: तुम्ही कोणाशी बोलताय ते सांगाल का (सर|मॅडम)? ;; C: {NAME}"
+ ],
+ "msgnative:mr.ask.PHONE.single": [
+  "A: तुमचा चालू फोन नंबर काय आहे? ;; C: {PHONE}",
+  "A: संपर्कासाठी नंबर द्या ;; C: माझा नंबर {PHONE} आहे",
+  "A: व्हॉट्सॲपवर कुठल्या नंबरवर पाठवू? ;; C: {PHONE} वर पाठवा",
+  "A: कृपया पर्यायी मोबाईल नंबर सांगा ;; C: हो, {PHONE}",
+  "A: {ORG} च्या रेकॉर्डसाठी नंबर कन्फर्म करा ;; C: {PHONE} हाच आहे",
+  "A: तुम्हाला कोणत्या नंबरवर फोन करू? ;; C: {PHONE} वर करा"
+ ],
+ "msgnative:mr.ask.PHONE.split": [
+  "A: मोबाईल नंबर सांगा, आधी सुरुवातीचे आकडे ;; C: {PHONE_P1} ;; A: बरं, आता उरलेले ;; C: {PHONE_P2}",
+  "A: नंबर थोडा थोडा करून सांगाल का? ;; C: {PHONE_P1} ;; A: पुढचा भाग? ;; C: {PHONE_P2}",
+  "A: तुमचा संपर्क नंबर द्या ;; C: हो, आधी {PHONE_P1} ;; A: ओके, पुढे सांगा ;; C: {PHONE_P2}",
+  "A: ऐकू नीट येत नाही, नंबर दोन भागात सांगा ;; C: {PHONE_P1} ;; A: आणि शेवटचा भाग? ;; C: {PHONE_P2}",
+  "A: नंबर लिहून घेत आहे, सांगा ;; C: पहिला भाग {PHONE_P1} ;; A: मग? ;; C: दुसरा भाग {PHONE_P2}",
+  "A: पर्यायी नंबर काय आहे? ;; C: {PHONE_P1} ;; A: हं, पुढचे आकडे? ;; C: {PHONE_P2}"
+ ],
+ "msgnative:mr.ask.ADDRESS.single": [
+  "A: सध्या कुठे राहताय? पूर्ण पत्ता लिहा ;; C: {ADDRESS}",
+  "A: घरचा पत्ता कन्फर्म करा ;; C: माझा पत्ता {ADDRESS} आहे",
+  "A: नोटीस कुठे पाठवायची? ;; C: {ADDRESS} इथे पाठवा",
+  "A: पत्ता बदलला असेल तर आताचा सांगाल का? ;; C: हो, आता {ADDRESS} इथे आहे मी",
+  "A: {ORG} च्या रेकॉर्डमध्ये अपडेट करायला नवीन ऍड्रेस द्या ;; C: {ADDRESS}",
+  "A: भेटायला कुठे यायचं? ;; C: {ADDRESS} ला या"
+ ],
+ "msgnative:kn.open": [
+  "A: ನಮಸ್ಕಾರ, ನಿಮ್ಮ ಲೋನ್ ಇಎಂಐ {AMOUNT} ಇನ್ನೂ ಪೇ ಆಗಿಲ್ಲ, {DATE} ಒಳಗೆ ಕಟ್ಟಿ ದಯವಿಟ್ಟು",
+  "A: (ಸರ್|ಮೇಡಂ), {ORG} ಕಡೆಯಿಂದ ಕರೆ ಮಾಡ್ತಾ ಇದ್ದೀನಿ. {AMOUNT} ಬಾಕಿ ಇದೆ, ಯಾವಾಗ ಕಟ್ತೀರಿ?",
+  "A: ಹಲೋ, ಇಎಂಐ ಡ್ಯೂ ಡೇಟ್ {DATE} ಆಗಿತ್ತು. ಇನ್ನೂ {AMOUNT} ಬರಬೇಕಿದೆ",
+  "A: ರಿಮೈಂಡರ್: {ORG} ಲೋನ್‌ನ {AMOUNT} ಪಾವತಿ {DATE} ರೊಳಗೆ ಮಾಡಿ, ಇಲ್ಲದಿದ್ದರೆ ದಂಡ ಬೀಳುತ್ತೆ",
+  "A: ಗುಡ್ ಮಾರ್ನಿಂಗ್ (ಸರ್|ಮೇಡಂ), ಬಾಕಿ ಇಎಂಐ ವಿಷಯಕ್ಕೆ ಕರೆ ಮಾಡಿದ್ದೆ. ಒಂದು ನಿಮಿಷ ಮಾತಾಡಬಹುದಾ?",
+  "A: ನಿಮ್ಮ ಖಾತೆಯಲ್ಲಿ {AMOUNT} ಪೆಂಡಿಂಗ್ ಇದೆ, {DATE2} ವರೆಗೆ ಸಮಯ ಇದೆ. ಬೇಗ ಪೇ ಮಾಡಿ"
+ ],
+ "msgnative:kn.close": [
+  "C: ಆಯ್ತು, ನಾಳೆಯೇ ಪೇ ಮಾಡ್ತೀನಿ",
+  "C: ಓಕೆ, ಅರ್ಥ ಆಯ್ತು. {DATE2} ಒಳಗೆ ಹಾಕ್ತೀನಿ",
+  "C: ಸರಿ ಸರ್, ಮರೆತಿದ್ದೆ. ಈಗಲೇ ಕಟ್ತೀನಿ",
+  "C: (ಸರಿ|ಆಯ್ತು|ಓಕೆ), ಕರೆ ಮಾಡಿದ್ದಕ್ಕೆ ಥ್ಯಾಂಕ್ಸ್",
+  "C: {AMOUNT} ಈ ವಾರದಲ್ಲೇ ಕಟ್ಟುತ್ತೇನೆ, ಚಿಂತೆ ಬೇಡ"
+ ],
+ "msgnative:kn.ask.NAME.single": [
+  "A: ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪೂರ್ತಿ ಹೆಸರು ಹೇಳಿ ;; C: {NAME}",
+  "A: ಯಾರ ಜೊತೆ ಮಾತಾಡ್ತಾ ಇದ್ದೀನಿ? ;; C: ನಾನು {NAME}",
+  "A: ಲೋನ್ ಖಾತೆಯಲ್ಲಿ ಇರೋ ಹೆಸರು ಹೇಳ್ತೀರಾ? ;; C: {NAME} ಅಂತ",
+  "A: (ಸರ್|ಮೇಡಂ), ವೆರಿಫಿಕೇಶನ್‌ಗೆ ನಿಮ್ಮ ಹೆಸರು ಬೇಕಿತ್ತು ;; C: ನನ್ನ ಹೆಸರು {NAME}",
+  "A: {ORG} ದಾಖಲೆಯಲ್ಲಿ ಹೆಸರು ಹೇಗಿದೆ? ;; C: {NAME}",
+  "A: ಹೆಸರು ಹೇಳಿ ಸಾರ್ ;; C: {NAME} ಮಾತಾಡ್ತಿರೋದು"
+ ],
+ "msgnative:kn.ask.PHONE.single": [
+  "A: ನಿಮ್ಮ ಸಂಪರ್ಕ ನಂಬರ್ ಯಾವುದು? ;; C: {PHONE}",
+  "A: ಫೋನ್ ನಂಬರ್ ಒಂದು ಸಲ ಹೇಳಿ ;; C: ನನ್ನ ನಂಬರ್ {PHONE}",
+  "A: ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಇರೋ ನಂಬರ್ ಕೊಡ್ತೀರಾ? ;; C: {PHONE} ಇದು",
+  "A: (ಸರ್|ಮೇಡಂ), ರೆಕಾರ್ಡ್ ಅಪ್‌ಡೇಟ್ ಮಾಡಬೇಕು, ಮೊಬೈಲ್ ನಂಬರ್ ಹೇಳಿ ;; C: {PHONE}",
+  "A: {ORG} ನಿಂದ ಮತ್ತೆ ಕರೆ ಮಾಡಲು ಯಾವ ನಂಬರ್ ಬೆಸ್ಟ್? ;; C: {PHONE} ಗೆ ಮಾಡಿ",
+  "A: ಬೇರೆ ನಂಬರ್ ಇದ್ರೆ ಕೊಡಿ ;; C: ಹೌದು, {PHONE}"
+ ],
+ "msgnative:kn.ask.PHONE.split": [
+  "A: ಮೊದಲು ನಂಬರ್‌ನ ಆರಂಭದ ಭಾಗ ಹೇಳಿ ;; C: {PHONE_P1} ;; A: ಸರಿ, ಉಳಿದದ್ದು? ;; C: {PHONE_P2}",
+  "A: ನಿಮ್ಮ ಮೊಬೈಲ್ ನಂಬರ್ ಎರಡು ಭಾಗದಲ್ಲಿ ಹೇಳಿ ;; C: ಮೊದಲ ಭಾಗ {PHONE_P1} ;; A: ಓಕೆ, ಮುಂದೆ? ;; C: ಕೊನೆಯದು {PHONE_P2}",
+  "A: ನಂಬರ್ ಸ್ಪಷ್ಟವಾಗಿ ಕೇಳಿಸಲಿಲ್ಲ, ನಿಧಾನವಾಗಿ ಹೇಳಿ ;; C: {PHONE_P1} ;; A: ಹಾಂ, ಮುಂದಿನದು ;; C: {PHONE_P2}",
+  "A: (ಸರ್|ಮೇಡಂ), ಫೋನ್ ನಂಬರ್ ಬೇಕಿತ್ತು ;; C: ಶುರುವಿನದು {PHONE_P1} ;; A: ಬರೆದುಕೊಂಡೆ, ಇನ್ನೂ ಉಳಿದಿದ್ದು ಹೇಳಿ ;; C: {PHONE_P2}",
+  "A: {ORG} ರೆಕಾರ್ಡ್‌ಗೆ ನಂಬರ್ ಹೇಳಿ, ಎರಡು ಭಾಗ ಮಾಡಿ ;; C: {PHONE_P1} ;; A: ಸರಿ, ಈಗ ಉಳಿದ ಅಂಕೆಗಳು ;; C: {PHONE_P2}",
+  "A: ನಿಮ್ಮ ನಂಬರ್ ಹೇಳ್ತೀರಾ? ;; C: ಹೂಂ, {PHONE_P1} ;; A: ಮುಂದೆ? ;; C: {PHONE_P2} ಅಷ್ಟೇ"
+ ],
+ "msgnative:kn.ask.ADDRESS.single": [
+  "A: ನೀವು ಈಗ ಎಲ್ಲಿ ವಾಸ ಮಾಡ್ತಿದ್ದೀರಿ? ವಿಳಾಸ ಹೇಳಿ ;; C: {ADDRESS}",
+  "A: ಅಡ್ರೆಸ್ ಚೇಂಜ್ ಆಗಿದ್ರೆ ಹೊಸದು ಹೇಳಿ ;; C: ಈಗ {ADDRESS} ನಲ್ಲಿ ಇದ್ದೀನಿ",
+  "A: ನಿಮ್ಮ ಮನೆ ವಿಳಾಸ ಕನ್ಫರ್ಮ್ ಮಾಡ್ತೀರಾ? ;; C: {ADDRESS}",
+  "A: (ಸರ್|ಮೇಡಂ), ನೋಟಿಸ್ ಕಳಿಸೋಕೆ ಪೂರ್ತಿ ವಿಳಾಸ ಬೇಕು ;; C: ನನ್ನ ವಿಳಾಸ {ADDRESS}",
+  "A: {ORG} ರೆಕಾರ್ಡ್‌ನಲ್ಲಿ ಇರೋ ವಿಳಾಸ ಹಳೆಯದು, ಈಗಿನದು ಯಾವುದು? ;; C: {ADDRESS}",
+  "A: ಲ್ಯಾಂಡ್‌ಮಾರ್ಕ್ ಜೊತೆ ಅಡ್ರೆಸ್ ಟೈಪ್ ಮಾಡಿ ;; C: {ADDRESS} ಇದೇ ಈಗಿನ ಅಡ್ರೆಸ್"
+ ],
+ "msgnative:ta.open": [
+  "A: வணக்கம், {ORG} இலிருந்து பேசுறோம். உங்க இஎம்ஐ {AMOUNT} இன்னும் கட்டலன்னு பாத்தோம்.",
+  "A: ஹலோ (சார்|மேடம்), உங்க லோன் தவணை {AMOUNT} {DATE} அன்னைக்கே due ஆயிடுச்சு. எப்போ கட்டுவீங்க?",
+  "A: நினைவூட்டல்: {DATE} தேதிக்குள்ள {AMOUNT} செலுத்தணும். இன்னும் பேமெண்ட் வரல.",
+  "A: குட் மார்னிங், உங்க கடன் கணக்கில பணம் நிலுவையில இருக்கு. இப்போ பேச முடியுமா?",
+  "A: {ORG} சார்பா அழைக்கிறேன். போன முறை சொன்ன தவணை இன்னும் வரலீங்க, கொஞ்சம் பாத்து கட்டிடுங்களேன்.",
+  "A: உங்க இஎம்ஐ தேதி {DATE} தாண்டிடுச்சு. தாமதக் கட்டணம் சேர்றதுக்கு முன்னாடி {AMOUNT} கட்டிடுங்க."
+ ],
+ "msgnative:ta.close": [
+  "C: இன்னைக்கே ஆன்லைன்ல கட்டிடுறேன்",
+  "C: கொஞ்சம் டைம் குடுங்க, {DATE2} அன்னைக்கு கண்டிப்பா செலுத்திடுவேன்",
+  "C: ஓகே ஓகே, புரிஞ்சுது. பாத்துக்கிறேன்",
+  "C: சம்பளம் வந்ததும் {AMOUNT} அனுப்பிடுறேன்",
+  "C: சரிங்க, மறக்காம கட்டிடுறேன். ரொம்ப நன்றி"
+ ],
+ "msgnative:ta.ask.NAME.single": [
+  "A: உங்க முழுப் பேரு சொல்லுங்க ;; C: {NAME}",
+  "A: யார் பேசுறீங்க? பேரு சொல்லுங்க ;; C: நான் {NAME} பேசுறேன்",
+  "A: கணக்குல இருக்கிற பேரு என்னன்னு சொல்ல முடியுமா? ;; C: {NAME} தான்",
+  "A: வெரிஃபிகேஷனுக்காக உங்க பேரை சொல்லுங்க சார் ;; C: என் பேரு {NAME}",
+  "A: ஹலோ, {ORG} இலிருந்து பேசுறோம். உங்க பேரு என்ன? ;; C: {NAME} பேசுறேன்",
+  "A: நீங்க தான் கடன் வாங்கினவரா? பேரு சொல்லுங்க ;; C: ஆமா, {NAME} தான்"
+ ],
+ "msgnative:ta.ask.PHONE.single": [
+  "A: உங்க நம்பர் என்ன, சொல்லுங்க ;; C: {PHONE}",
+  "A: தொடர்புக்கு எந்த நம்பர் யூஸ் பண்றீங்க? ;; C: என் நம்பர் {PHONE}",
+  "A: வாட்ஸ்அப் நம்பர் இதே தானா, இல்ல வேற இருக்கா? ;; C: வேற, {PHONE}",
+  "A: ரெஜிஸ்டர் பண்ண மொபைல் நம்பரை டைப் பண்ணி விடுங்க ;; C: {PHONE} இதான்",
+  "A: {ORG} ரெக்கார்டுல நம்பர் அப்டேட் பண்ணணும். புது நம்பர் சொல்லுங்களேன் ;; C: இப்போ {PHONE} ல இருக்கேன்",
+  "A: கால் பண்ண சரியான நம்பர் எது? ;; C: {PHONE} க்கு பண்ணுங்க"
+ ],
+ "msgnative:ta.ask.PHONE.split": [
+  "A: உங்க நம்பர் சொல்லுங்க ;; C: {PHONE_P1} ;; A: சரி, மீதி? ;; C: {PHONE_P2}",
+  "A: மொபைல் நம்பர் முழுசா சொல்லுங்க ;; C: முதல்ல {PHONE_P1} ;; A: ம், அடுத்தது? ;; C: அப்புறம் {PHONE_P2}",
+  "A: நம்பரை ரெண்டு பகுதியா சொல்லுங்க, முதல் பாதி? ;; C: {PHONE_P1} ;; A: மீதி பாதி சொல்லுங்க ;; C: {PHONE_P2}",
+  "A: எந்த நம்பர்ல பேசலாம்? ;; C: {PHONE_P1} ;; A: புரியல, மீதியை இன்னொரு தடவ சொல்லுங்க ;; C: {PHONE_P2}",
+  "A: நம்பர் ரெக்கார்ட் பண்ணணும், மெதுவா சொல்லுங்க ;; C: {PHONE_P1} ;; A: ஓகே, அடுத்த டிஜிட்ஸ்? ;; C: {PHONE_P2} இவ்ளோதான்",
+  "A: வேற நம்பர் இருந்தா குடுங்க ;; C: ஆமா, {PHONE_P1} ;; A: அதுக்கப்புறம்? ;; C: {PHONE_P2}"
+ ],
+ "msgnative:ta.ask.ADDRESS.single": [
+  "A: இப்போ எங்க தங்கியிருக்கீங்க? முகவரி சொல்லுங்க ;; C: {ADDRESS}",
+  "A: வீட்டு அட்ரஸ் மாறிடுச்சா? புதுசா என்னன்னு சொல்லுங்க ;; C: ஆமா, இப்போ {ADDRESS} ல இருக்கேன்",
+  "A: நோட்டீஸ் அனுப்ப சரியான முகவரி வேணும் ;; C: {ADDRESS} இதுதான்",
+  "A: {ORG} ரெக்கார்டுல இருக்கிறது பழைய முகவரி. தற்போதைய அட்ரஸ் சொல்லுங்களேன் ;; C: தற்போது {ADDRESS}",
+  "A: ஊர், தெரு எல்லாம் சேர்த்து முழு முகவரி சொல்லுங்க ;; C: {ADDRESS}",
+  "A: நேர்ல வந்து சந்திக்கணும், எங்க வரணும்? ;; C: {ADDRESS} க்கு வாங்க"
+ ],
+ "prompt.snip.AADHAAR": [
+  "the borrower gave their Aadhaar number as {AADHAAR}, kindly cross-check it against the KYC record"
+ ],
+ "prompt.snip.PAN": [
+  "customer's permanent account number is {PAN}, use it for the tax-id match",
+  "income tax ID on file (sir|madam) - {PAN}, please confirm it is valid"
+ ],
+ "prompt.snip.ACCOUNT": [
+  "EMI will be debited from savings account number {ACCOUNT}, please mention that in the reminder",
+  "acct_no={ACCOUNT} (linked|primary) for auto-debit"
+ ],
+ "prompt.snip.LOAN": [
+  "this call is regarding the loan with reference number {LOAN}, so pull up its repayment history",
+  "loan_ref={LOAN} status=overdue"
+ ],
+ "prompt.snip.ADDRESS": [
+  "send the field executive to the customer's home, which is {ADDRESS}",
+  "registered residence: {ADDRESS}, please draft a polite visit notice"
+ ],
+ "prompt.snip.UPI": [
+  "borrower prefers to pay through UPI handle {UPI}, so include that in the payment link message",
+  "payment can come from the virtual payment address {UPI}, please confirm with them",
+  "the customer says money was sent via {UPI} yesterday, check if it matches"
+ ],
+ "prompt.snip.EMAIL": [
+  "mail the soft copy of the statement to {EMAIL} and keep the tone friendly",
+  "customer's mail address is {EMAIL}, can you write a short payment reminder for it",
+  "contact them over email at {EMAIL} if the phone isn't answered"
+ ],
+ "prompt.snip.DOB": [
+  "customer's date of birth is {DOB}, use it only for identity verification",
+  "please confirm the borrower was born on {DOB} before moving ahead with the call script"
+ ]
+}

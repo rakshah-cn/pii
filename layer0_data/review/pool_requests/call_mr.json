@@ -1,0 +1,403 @@
+{
+ "group": "call:mr",
+ "pools": [
+  {
+   "pool": "call:mr.open",
+   "need": 2,
+   "existing_lines": [
+    "C: हॅलो। ;; A: हॅलो, नमस्कार (सर|मॅडम).",
+    "A: (नमस्कार|हॅलो) (सर|मॅडम), (शुभ सकाळ|शुभ संध्याकाळ). ;; C: हो, बोला.",
+    "C: हॅलो, कोण बोलतंय? ;; A: मी {ORG} मधून बोलत(ोय|ेय)."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr.intro",
+   "need": 2,
+   "existing_lines": [
+    "A: (सर|मॅडम), मी {ORG} मधून बोलत(ोय|ेय). हा कॉल रेकॉर्ड होत आहे.",
+    "A: (सर|मॅडम), तुमच्या कर्जाबद्दल कॉल आहे. ;; C: हो, सांगा.",
+    "A: नमस्कार, {ORG} कडून आठवण करून देणारा कॉल आहे."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr.close",
+   "need": 2,
+   "existing_lines": [
+    "C: ठीक आहे, धन्यवाद. ;; A: धन्यवाद (सर|मॅडम).",
+    "C: हो हो, ठीक आहे. ;; A: तुमचा दिवस शुभ जावो.",
+    "C: बरं बरं, नंतर बोलतो."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr.due.emi_reminder",
+   "need": 3,
+   "existing_lines": [
+    "A: तुमचा हप्ता {AMOUNT} {DATE} रोजी आहे. ;; C: ठीक आहे, मी {DATE2} पर्यंत भरत(ो|े).",
+    "A: (सर|मॅडम), {AMOUNT} बाकी आहे. ;; C: हो हो, {DATE2} ला देत(ो|े)."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr.due.dispute",
+   "need": 3,
+   "existing_lines": [
+    "A: {AMOUNT} बाकी दिसतंय. ;; C: नाही, पैसे आधीच कापले गेलेत, बघा.",
+    "A: ड्यू डेट {DATE} होती. ;; C: मी {DATE2} ला भरलंय."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr.due.address_update",
+   "need": 4,
+   "existing_lines": [
+    "A: (सर|मॅडम), तुमची माहिती अपडेट करायची आहे. ;; C: हो, काय हवंय सांगा."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr.due.payment_promise",
+   "need": 3,
+   "existing_lines": [
+    "A: तुम्ही {AMOUNT} कधी भरणार? ;; C: मी {DATE2} पर्यंत भरत(ो|े), नक्की.",
+    "A: आज भरू शकता का? ;; C: आज नाही, {DATE2} पर्यंत."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: मी {NAME} यांच्याशी बोलत(ोय|ेय) का? ;; C: हो, बोलत(ोय|ेय).",
+    "A: (सर|मॅडम), तुमचं नाव? ;; C: {NAME}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: तुमचा नोंदणीकृत मोबाईल नंबर सांगा. ;; C: हो, {PHONE}.",
+    "A: दुसरा नंबर द्या. ;; C: लिहा, {PHONE}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: मोबाईल नंबर सांगा. ;; C: {PHONE_P1} ;; A: हो, पुढे? ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: मोबाईल नंबरचे शेवटचे चार अंक सांगा. ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.AADHAAR.single",
+   "need": 4,
+   "existing_lines": [
+    "A: पडताळणीसाठी आधार नंबर सांगा. ;; C: माझा आधार {AADHAAR} आहे."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.AADHAAR.split",
+   "need": 4,
+   "existing_lines": [
+    "A: आधार नंबर सांगा. ;; C: {AADHAAR_P1} ;; A: पुढे? ;; C: {AADHAAR_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR_P1",
+    "AADHAAR_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.AADHAAR.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: आधारचे शेवटचे चार अंक? ;; C: {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.PAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: तुमचा पॅन नंबर सांगा. ;; C: पॅन {PAN} आहे."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.PAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: पॅन नंबर? ;; C: {PAN_P1} ;; A: हो? ;; C: {PAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN_P1",
+    "PAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.ACCOUNT.single",
+   "need": 4,
+   "existing_lines": [
+    "A: कोणत्या बँक खात्यातून पेमेंट कराल? ;; C: खाते क्रमांक {ACCOUNT} आहे."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.ACCOUNT.split",
+   "need": 4,
+   "existing_lines": [
+    "A: खाते क्रमांक सांगा. ;; C: {ACCOUNT_P1} ;; A: पुढे? ;; C: {ACCOUNT_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT_P1",
+    "ACCOUNT_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.ACCOUNT.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: खाते क्रमांकाचे शेवटचे चार अंक? ;; C: {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.LOAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: तुमचा कर्ज खाते क्रमांक सांगा. ;; C: {LOAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.LOAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: कर्ज क्रमांक सांगा. ;; C: {LOAN_P1} ;; A: हो? ;; C: {LOAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN_P1",
+    "LOAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: तुमचा पत्ता तोच आहे का? ;; C: नाही, आता मी {ADDRESS} इथे राहत(ो|े)."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.UPI.single",
+   "need": 4,
+   "existing_lines": [
+    "A: तुमचा यूपीआय आयडी? ;; C: {UPI}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.EMAIL.single",
+   "need": 4,
+   "existing_lines": [
+    "A: ईमेल आयडी सांगा. ;; C: {EMAIL}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:mr.ask.DOB.single",
+   "need": 4,
+   "existing_lines": [
+    "A: तुमची जन्मतारीख? ;; C: {DOB}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

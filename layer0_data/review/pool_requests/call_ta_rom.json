@@ -1,0 +1,403 @@
+{
+ "group": "call:ta_rom",
+ "pools": [
+  {
+   "pool": "call:ta_rom.open",
+   "need": 2,
+   "existing_lines": [
+    "C: Hello. ;; A: Hello, vanakkam (sir|madam).",
+    "A: (Vanakkam|Hello) (sir|madam). ;; C: Aama, sollunga.",
+    "C: Hello, yaaru pesuringa? ;; A: Naan {ORG} la irundhu pesuren."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.intro",
+   "need": 2,
+   "existing_lines": [
+    "A: (Sir|Madam), naan {ORG} la irundhu call pannuren. Indha call record aagudhu.",
+    "A: (Sir|Madam), ungal loan pathi call. ;; C: Aama, sollunga.",
+    "A: Vanakkam, {ORG} la irundhu reminder call."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.close",
+   "need": 2,
+   "existing_lines": [
+    "C: Sari, nandri. ;; A: Nandri (sir|madam).",
+    "C: Aama aama, sari. ;; A: Nalla naal.",
+    "C: Sari sari, appuram pesuren."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.due.emi_reminder",
+   "need": 3,
+   "existing_lines": [
+    "A: Ungal EMI {AMOUNT} {DATE} anru baaki irukku. ;; C: Sari, naan {DATE2} kulla katturen.",
+    "A: (Sir|Madam), {AMOUNT} pending. ;; C: Aama aama, {DATE2} ku katturen."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.due.dispute",
+   "need": 3,
+   "existing_lines": [
+    "A: {AMOUNT} baaki kaattudhu. ;; C: Illa, panam already pudichaachu, paarunga.",
+    "A: Last date {DATE}. ;; C: Naan {DATE2} anru kattitten."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.due.address_update",
+   "need": 4,
+   "existing_lines": [
+    "A: (Sir|Madam), unga details update pannanum. ;; C: Sari, enna venum sollunga."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.due.payment_promise",
+   "need": 3,
+   "existing_lines": [
+    "A: Neenga {AMOUNT} eppo kattuvinga? ;; C: Naan {DATE2} kulla katturen, nichayama.",
+    "A: Innaikku katta mudiyuma? ;; C: Innaikku mudiyadhu, {DATE2} kulla."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: Naan {NAME} kitta pesuren aa? ;; C: Aama, sollunga.",
+    "A: (Sir|Madam), ungal peyar? ;; C: {NAME}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: Ungal registered mobile number sollunga. ;; C: Aama, {PHONE}.",
+    "A: Vera number kudunga. ;; C: Ezhudhikonga, {PHONE}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Mobile number sollunga. ;; C: {PHONE_P1} ;; A: Aama, adutthu? ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Mobile number oda kadaisi naalu ilakkam sollunga. ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.AADHAAR.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Verification ku Aadhaar number sollunga. ;; C: En Aadhaar {AADHAAR}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.AADHAAR.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Aadhaar number sollunga. ;; C: {AADHAAR_P1} ;; A: Adutthu? ;; C: {AADHAAR_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR_P1",
+    "AADHAAR_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.AADHAAR.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Aadhaar oda kadaisi naalu ilakkam? ;; C: {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.PAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Unga PAN number sollunga. ;; C: PAN {PAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.PAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: PAN number? ;; C: {PAN_P1} ;; A: Aama? ;; C: {PAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN_P1",
+    "PAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.ACCOUNT.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Entha bank account la irundhu kattuvinga? ;; C: Account number {ACCOUNT}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.ACCOUNT.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Account number sollunga. ;; C: {ACCOUNT_P1} ;; A: Adutthu? ;; C: {ACCOUNT_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT_P1",
+    "ACCOUNT_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.ACCOUNT.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Account number oda kadaisi naalu ilakkam? ;; C: {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.LOAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Unga loan account number sollunga. ;; C: {LOAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.LOAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Loan number sollunga. ;; C: {LOAN_P1} ;; A: Aama? ;; C: {LOAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN_P1",
+    "LOAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Unga address adhe aa? ;; C: Illa, ippo naan {ADDRESS} la irukken."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.UPI.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Unga UPI id? ;; C: {UPI}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.EMAIL.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Email id sollunga. ;; C: {EMAIL}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta_rom.ask.DOB.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Unga pirandha thethi? ;; C: {DOB}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,403 @@
+{
+ "group": "call:ta",
+ "pools": [
+  {
+   "pool": "call:ta.open",
+   "need": 2,
+   "existing_lines": [
+    "C: ஹலோ. ;; A: ஹலோ, வணக்கம் (சார்|மேடம்).",
+    "A: (வணக்கம்|ஹலோ) (சார்|மேடம்). ;; C: ஆமா, சொல்லுங்க.",
+    "C: ஹலோ, யார் பேசுறீங்க? ;; A: நான் {ORG} லிருந்து பேசுறேன்."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta.intro",
+   "need": 2,
+   "existing_lines": [
+    "A: (சார்|மேடம்), நான் {ORG} லிருந்து அழைக்கிறேன். இந்த அழைப்பு பதிவு செய்யப்படுகிறது.",
+    "A: (சார்|மேடம்), உங்கள் கடன் பற்றிய அழைப்பு. ;; C: ஆமா, சொல்லுங்க.",
+    "A: வணக்கம், {ORG} லிருந்து நினைவூட்டல் அழைப்பு."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta.close",
+   "need": 2,
+   "existing_lines": [
+    "C: சரி, நன்றி. ;; A: நன்றி (சார்|மேடம்).",
+    "C: ஆமா ஆமா, சரி. ;; A: நல்ல நாள்.",
+    "C: சரி சரி, அப்புறம் பேசுறேன்."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta.due.emi_reminder",
+   "need": 3,
+   "existing_lines": [
+    "A: உங்கள் இஎம்ஐ {AMOUNT} {DATE} அன்று நிலுவையில் உள்ளது. ;; C: சரி, நான் {DATE2} க்குள் கட்டுகிறேன்.",
+    "A: (சார்|மேடம்), {AMOUNT} நிலுவை. ;; C: ஆமா ஆமா, {DATE2} க்கு கட்டுறேன்."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta.due.dispute",
+   "need": 3,
+   "existing_lines": [
+    "A: {AMOUNT} நிலுவை காட்டுது. ;; C: இல்லை, பணம் ஏற்கனவே பிடிச்சாச்சு, பாருங்க.",
+    "A: கடைசி தேதி {DATE}. ;; C: நான் {DATE2} அன்று கட்டிட்டேன்."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta.due.address_update",
+   "need": 4,
+   "existing_lines": [
+    "A: (சார்|மேடம்), உங்க விவரங்களை புதுப்பிக்கணும். ;; C: சரி, என்ன வேணும் சொல்லுங்க."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta.due.payment_promise",
+   "need": 3,
+   "existing_lines": [
+    "A: நீங்க {AMOUNT} எப்போ கட்டுவீங்க? ;; C: நான் {DATE2} க்குள் கட்டுறேன், நிச்சயமா.",
+    "A: இன்னைக்கு கட்ட முடியுமா? ;; C: இன்னைக்கு முடியாது, {DATE2} க்குள்."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: நான் {NAME} அவர்களிடம் பேசுறேனா? ;; C: ஆமா, சொல்லுங்க.",
+    "A: (சார்|மேடம்), உங்க பேரு? ;; C: {NAME}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: உங்க பதிவு செய்த மொபைல் நம்பர் சொல்லுங்க. ;; C: ஆமா, {PHONE}.",
+    "A: வேற நம்பர் கொடுங்க. ;; C: எழுதிக்கோங்க, {PHONE}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: மொபைல் நம்பர் சொல்லுங்க. ;; C: {PHONE_P1} ;; A: ஆமா, அடுத்து? ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: மொபைல் நம்பரின் கடைசி நான்கு இலக்கம் சொல்லுங்க. ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.AADHAAR.single",
+   "need": 4,
+   "existing_lines": [
+    "A: சரிபார்ப்புக்கு ஆதார் நம்பர் சொல்லுங்க. ;; C: என் ஆதார் {AADHAAR}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.AADHAAR.split",
+   "need": 4,
+   "existing_lines": [
+    "A: ஆதார் நம்பர் சொல்லுங்க. ;; C: {AADHAAR_P1} ;; A: அடுத்து? ;; C: {AADHAAR_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR_P1",
+    "AADHAAR_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.AADHAAR.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: ஆதாரின் கடைசி நான்கு இலக்கம்? ;; C: {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.PAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: உங்க பான் நம்பர் சொல்லுங்க. ;; C: பான் {PAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.PAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: பான் நம்பர்? ;; C: {PAN_P1} ;; A: ஆமா? ;; C: {PAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN_P1",
+    "PAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.ACCOUNT.single",
+   "need": 4,
+   "existing_lines": [
+    "A: எந்த வங்கி கணக்கிலிருந்து கட்டுவீங்க? ;; C: கணக்கு எண் {ACCOUNT}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.ACCOUNT.split",
+   "need": 4,
+   "existing_lines": [
+    "A: கணக்கு எண் சொல்லுங்க. ;; C: {ACCOUNT_P1} ;; A: அடுத்து? ;; C: {ACCOUNT_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT_P1",
+    "ACCOUNT_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.ACCOUNT.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: கணக்கு எண்ணின் கடைசி நான்கு இலக்கம்? ;; C: {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.LOAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: உங்க கடன் கணக்கு எண் சொல்லுங்க. ;; C: {LOAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.LOAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: கடன் எண் சொல்லுங்க. ;; C: {LOAN_P1} ;; A: ஆமா? ;; C: {LOAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN_P1",
+    "LOAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: உங்க முகவரி அதேவா? ;; C: இல்லை, இப்போ நான் {ADDRESS} இல் இருக்கேன்."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.UPI.single",
+   "need": 4,
+   "existing_lines": [
+    "A: உங்க யுபிஐ ஐடி? ;; C: {UPI}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.EMAIL.single",
+   "need": 4,
+   "existing_lines": [
+    "A: மின்னஞ்சல் ஐடி சொல்லுங்க. ;; C: {EMAIL}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:ta.ask.DOB.single",
+   "need": 4,
+   "existing_lines": [
+    "A: உங்க பிறந்த தேதி? ;; C: {DOB}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

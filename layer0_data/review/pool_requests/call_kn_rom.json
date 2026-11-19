@@ -1,0 +1,403 @@
+{
+ "group": "call:kn_rom",
+ "pools": [
+  {
+   "pool": "call:kn_rom.open",
+   "need": 2,
+   "existing_lines": [
+    "C: Hello. ;; A: Hello, namaskara (sir|madam).",
+    "A: (Namaskara|Hello) (sir|madam). ;; C: Haudu, heli.",
+    "C: Hello, yaaru matadtiddira? ;; A: Naanu {ORG} inda matadtiddini."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.intro",
+   "need": 2,
+   "existing_lines": [
+    "A: (Sir|Madam), naanu {ORG} inda call madtiddini. Ee call record agtide.",
+    "A: (Sir|Madam), nimma loan bagge call. ;; C: Haudu, heli.",
+    "A: Namaskara, {ORG} inda reminder call."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.close",
+   "need": 2,
+   "existing_lines": [
+    "C: Sari, dhanyavada. ;; A: Dhanyavada (sir|madam).",
+    "C: Haudu haudu, sari. ;; A: Shubha dina.",
+    "C: Sari sari, aamele matadtini."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.due.emi_reminder",
+   "need": 3,
+   "existing_lines": [
+    "A: Nimma EMI {AMOUNT} {DATE} ge baaki ide. ;; C: Sari, naanu {DATE2} olage kattuttene.",
+    "A: (Sir|Madam), {AMOUNT} pending ide. ;; C: Haudu haudu, {DATE2} ge kattuttene."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.due.dispute",
+   "need": 3,
+   "existing_lines": [
+    "A: {AMOUNT} baaki torisutide. ;; C: Illa, haNa already cut aagide, nodi.",
+    "A: Due date {DATE} aagittu. ;; C: Naanu {DATE2} ge kattidde."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.due.address_update",
+   "need": 4,
+   "existing_lines": [
+    "A: (Sir|Madam), nimma details update madbeku. ;; C: Sari, enu beku heli."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.due.payment_promise",
+   "need": 3,
+   "existing_lines": [
+    "A: Neevu {AMOUNT} yaavaga kattuttiri? ;; C: Naanu {DATE2} olage kattuttene, khandita.",
+    "A: Indu kattabahuda? ;; C: Indu aagalla, {DATE2} olage."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: Naanu {NAME} avara jote matadtiddinaa? ;; C: Haudu, heli.",
+    "A: (Sir|Madam), nimma hesaru? ;; C: {NAME}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: Nimma registered mobile number heli. ;; C: Haudu, {PHONE}.",
+    "A: Bere number kodi. ;; C: Bareyiri, {PHONE}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Mobile number heli. ;; C: {PHONE_P1} ;; A: Haudu, munde? ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Mobile number ge kone naalku anki heli. ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.AADHAAR.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Verification ge Aadhaar number heli. ;; C: Nanna Aadhaar {AADHAAR}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.AADHAAR.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Aadhaar number heli. ;; C: {AADHAAR_P1} ;; A: Munde? ;; C: {AADHAAR_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR_P1",
+    "AADHAAR_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.AADHAAR.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Aadhaar kone naalku anki? ;; C: {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.PAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Nimma PAN number heli. ;; C: PAN {PAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.PAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: PAN number? ;; C: {PAN_P1} ;; A: Haudu? ;; C: {PAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN_P1",
+    "PAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.ACCOUNT.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Yaava bank account inda payment madtira? ;; C: Account number {ACCOUNT}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.ACCOUNT.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Account number heli. ;; C: {ACCOUNT_P1} ;; A: Munde? ;; C: {ACCOUNT_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT_P1",
+    "ACCOUNT_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.ACCOUNT.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Account number kone naalku anki? ;; C: {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.LOAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Nimma loan account number heli. ;; C: {LOAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.LOAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Loan number heli. ;; C: {LOAN_P1} ;; A: Haudu? ;; C: {LOAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN_P1",
+    "LOAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Nimma address adene? ;; C: Illa, eega naanu {ADDRESS} alli iddini."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.UPI.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Nimma UPI id? ;; C: {UPI}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.EMAIL.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Email id heli. ;; C: {EMAIL}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:kn_rom.ask.DOB.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Nimma huttida dina? ;; C: {DOB}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

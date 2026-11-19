@@ -1,0 +1,26 @@
+# secrets and keys (never commit)
+.env
+.env.*
+*.key
+.audit_key
+*.pem
+
+# generated / large / personal data
+data/
+models/
+*.jsonl
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+transcript.csv
+gemini_translation_comparision.pdf
+
+# environments and caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+.claude/

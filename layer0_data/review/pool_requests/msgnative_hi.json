@@ -1,0 +1,99 @@
+{
+ "group": "msgnative:hi",
+ "pools": [
+  {
+   "pool": "msgnative:hi.open",
+   "need": 4,
+   "existing_lines": [
+    "A: प्रिय ग्राहक, आपकी ईएमआई {AMOUNT} {DATE} को देय है। - {ORG}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msgnative:hi.close",
+   "need": 3,
+   "existing_lines": [
+    "C: ठीक है, धन्यवाद",
+    "C: {DATE2} तक भर दूँ(गा|गी)"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msgnative:hi.ask.NAME.single",
+   "need": 4,
+   "existing_lines": [
+    "A: आपका नाम? ;; C: {NAME}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msgnative:hi.ask.PHONE.single",
+   "need": 4,
+   "existing_lines": [
+    "A: अपना मोबाइल नंबर भेजिए ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msgnative:hi.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: नंबर? ;; C: {PHONE_P1} ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msgnative:hi.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: नया पता भेजिए ;; C: {ADDRESS}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

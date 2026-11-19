@@ -1,0 +1,99 @@
+{
+ "group": "msgnative:ta",
+ "pools": [
+  {
+   "pool": "msgnative:ta.open",
+   "need": 4,
+   "existing_lines": [
+    "A: அன்புள்ள வாடிக்கையாளரே, உங்கள் இஎம்ஐ {AMOUNT} {DATE} அன்று நிலுவையில் உள்ளது. - {ORG}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msgnative:ta.close",
+   "need": 3,
+   "existing_lines": [
+    "C: சரி, நன்றி",
+    "C: {DATE2} க்குள் கட்டுறேன்"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "msgnative:ta.ask.NAME.single",
+   "need": 4,
+   "existing_lines": [
+    "A: உங்க பேரு? ;; C: {NAME}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msgnative:ta.ask.PHONE.single",
+   "need": 4,
+   "existing_lines": [
+    "A: உங்க மொபைல் நம்பர் அனுப்புங்க ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msgnative:ta.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: நம்பர்? ;; C: {PHONE_P1} ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msgnative:ta.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: புது முகவரி அனுப்புங்க ;; C: {ADDRESS}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

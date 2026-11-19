@@ -1,0 +1,275 @@
+{
+ "group": "call:en",
+ "pools": [
+  {
+   "pool": "call:en.ask.PHONE.split",
+   "need": 1,
+   "existing_lines": [
+    "A: Please confirm your registered mobile number. ;; C: {PHONE_P1} ;; A: Yes, go on. ;; C: {PHONE_P2}",
+    "A: Tell me your alternate number. ;; C: It is {PHONE_P1} ;; A: Okay? ;; C: {PHONE_P2}, that's it.",
+    "A: Your contact number please? ;; C: {PHONE_P1}... ;; A: Hello? Continue. ;; C: ...{PHONE_P2}",
+    "A: Mobile number? ;; C: {PHONE_P1} ;; C: Wait. ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 2,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.PHONE.partial",
+   "need": 3,
+   "existing_lines": [
+    "A: Tell me the last four digits of your mobile number. ;; C: {PHONE}",
+    "A: Your number ends with? ;; C: It ends with {PHONE}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.AADHAAR.single",
+   "need": 2,
+   "existing_lines": [
+    "A: Please tell me your Aadhaar number for verification. ;; C: My Aadhaar is {AADHAAR}.",
+    "A: For KYC, I need your Aadhaar. ;; C: Yes, {AADHAAR}.",
+    "A: Aadhaar number, (sir|madam)? ;; C: {AADHAAR}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.AADHAAR.split",
+   "need": 3,
+   "existing_lines": [
+    "A: Please tell me your Aadhaar number for verification. ;; C: {AADHAAR_P1} ;; A: Okay, and the rest? ;; C: {AADHAAR_P2}",
+    "A: Your Aadhaar number, (sir|madam)? ;; C: Wait. {AADHAAR_P1} ;; A: Yes. ;; C: {AADHAAR_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "AADHAAR_P1",
+    "AADHAAR_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.AADHAAR.partial",
+   "need": 3,
+   "existing_lines": [
+    "A: Please give the last four digits of your Aadhaar. ;; C: {AADHAAR}",
+    "A: Aadhaar ending with? ;; C: Ends with {AADHAAR}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.PAN.single",
+   "need": 2,
+   "existing_lines": [
+    "A: Your PAN card number please. ;; C: PAN is {PAN}.",
+    "A: Please confirm your PAN. ;; C: It is {PAN}.",
+    "A: PAN number, (sir|madam)? ;; C: {PAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.PAN.split",
+   "need": 3,
+   "existing_lines": [
+    "A: Your PAN card number please. ;; C: {PAN_P1} ;; A: Yes? ;; C: {PAN_P2}",
+    "A: PAN number? ;; C: {PAN_P1} ;; A: Please continue. ;; C: {PAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "PAN_P1",
+    "PAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.ACCOUNT.single",
+   "need": 2,
+   "existing_lines": [
+    "A: Which bank account will you pay from? ;; C: My account number is {ACCOUNT}.",
+    "A: Please confirm the account for the auto-debit. ;; C: Account number {ACCOUNT}.",
+    "A: Your (savings|salary) account number? ;; C: {ACCOUNT}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.ACCOUNT.split",
+   "need": 3,
+   "existing_lines": [
+    "A: Which bank account will you pay from? ;; C: Account number {ACCOUNT_P1} ;; A: Hello? ;; C: {ACCOUNT_P2}",
+    "A: Your bank account number? ;; C: {ACCOUNT_P1} ;; A: Go on, (sir|madam). ;; C: {ACCOUNT_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "ACCOUNT_P1",
+    "ACCOUNT_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.ACCOUNT.partial",
+   "need": 3,
+   "existing_lines": [
+    "A: Tell me the last four digits of your account number. ;; C: {ACCOUNT}",
+    "A: Account number ending with? ;; C: It ends with {ACCOUNT}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.LOAN.single",
+   "need": 1,
+   "existing_lines": [
+    "A: Please tell me your loan account number. ;; C: {LOAN}",
+    "A: It will come in the loan account number, (sir|madam). Tell me the number. ;; C: It is {LOAN}.",
+    "A: Loan agreement number please. ;; C: {LOAN}, that is it.",
+    "A: Which loan is it? Give the (LAN|loan number). ;; C: {LOAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 2,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.LOAN.split",
+   "need": 3,
+   "existing_lines": [
+    "A: Your loan account number is? ;; C: {LOAN_P1} ;; A: Okay. ;; C: {LOAN_P2}",
+    "A: Please read out your loan number. ;; C: {LOAN_P1} ;; A: Yes? ;; C: {LOAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "LOAN_P1",
+    "LOAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.ADDRESS.single",
+   "need": 1,
+   "existing_lines": [
+    "A: Is your address still the same? ;; C: No, I have moved. It is {ADDRESS}.",
+    "A: Where do you live now, (sir|madam)? ;; C: I live at {ADDRESS}.",
+    "A: Please give your current address. ;; C: Write down: {ADDRESS}.",
+    "A: Please confirm the address for the notice. ;; C: {ADDRESS}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 2,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.UPI.single",
+   "need": 3,
+   "existing_lines": [
+    "A: Which UPI id will you pay from? ;; C: It is {UPI}.",
+    "A: Share your UPI id for the collect request. ;; C: {UPI}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.EMAIL.single",
+   "need": 3,
+   "existing_lines": [
+    "A: Which email id should we send the statement to? ;; C: {EMAIL}.",
+    "A: Please confirm your email address. ;; C: It is {EMAIL}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:en.ask.DOB.single",
+   "need": 3,
+   "existing_lines": [
+    "A: For verification, your date of birth? ;; C: {DOB}.",
+    "A: Please tell your date of birth. ;; C: It is {DOB}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

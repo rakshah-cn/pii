@@ -1,0 +1,300 @@
+{
+ "group": "msg:en",
+ "pools": [
+  {
+   "pool": "msg:en.ask.NAME.single",
+   "need": 1,
+   "existing_lines": [
+    "A: May I know your (full |)name pls? ;; C: {NAME}",
+    "A: Pls confirm name ;; C: {NAME} here",
+    "C: this is {NAME}, regarding my loan",
+    "C: hi {NAME} here"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 2,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.PHONE.single",
+   "need": 1,
+   "existing_lines": [
+    "A: pls share ur registered (mobile|contact) (no|number) ;; C: {PHONE}",
+    "A: Which number to call you on? ;; C: {PHONE} this one",
+    "C: my new no is {PHONE}",
+    "C: call me on {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 2,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.PHONE.split",
+   "need": 3,
+   "existing_lines": [
+    "A: pls share ur mobile no ;; C: {PHONE_P1} ;; C: {PHONE_P2}",
+    "A: number? ;; C: {PHONE_P1} ;; C: sorry ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: last 4 digits of ur mobile? ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.AADHAAR.single",
+   "need": 2,
+   "existing_lines": [
+    "A: pls share Aadhaar for KYC ;; C: {AADHAAR}",
+    "C: my aadhaar is {AADHAAR}",
+    "A: Aadhaar number? ;; C: here {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.AADHAAR.split",
+   "need": 4,
+   "existing_lines": [
+    "A: pls share Aadhaar for KYC ;; C: {AADHAAR_P1} ;; C: {AADHAAR_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "AADHAAR_P1",
+    "AADHAAR_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.AADHAAR.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: last 4 digits of aadhaar? ;; C: {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.PAN.single",
+   "need": 2,
+   "existing_lines": [
+    "A: PAN pls ;; C: {PAN}",
+    "C: my pan {PAN}",
+    "A: share ur PAN card no ;; C: {PAN} thanks"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.PAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: PAN pls ;; C: {PAN_P1} ;; C: {PAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PAN_P1",
+    "PAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.ACCOUNT.single",
+   "need": 2,
+   "existing_lines": [
+    "A: Account no for auto debit? ;; C: {ACCOUNT}",
+    "C: a/c no {ACCOUNT}",
+    "C: pay from account {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.ACCOUNT.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Account no? ;; C: {ACCOUNT_P1} ;; C: {ACCOUNT_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "ACCOUNT_P1",
+    "ACCOUNT_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.ACCOUNT.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: last 4 digits of a/c? ;; C: {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.LOAN.single",
+   "need": 2,
+   "existing_lines": [
+    "A: pls share loan (no|number|LAN) ;; C: {LOAN}",
+    "C: my loan no is {LOAN}",
+    "A: Which loan? ;; C: {LOAN}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.LOAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: loan no? ;; C: {LOAN_P1} ;; C: {LOAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "LOAN_P1",
+    "LOAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.ADDRESS.single",
+   "need": 2,
+   "existing_lines": [
+    "A: Pls share current address ;; C: {ADDRESS}",
+    "C: my new address: {ADDRESS}",
+    "C: i shifted. {ADDRESS}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 3,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.UPI.single",
+   "need": 3,
+   "existing_lines": [
+    "A: UPI id to send collect request? ;; C: {UPI}",
+    "C: pay to {UPI}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.EMAIL.single",
+   "need": 3,
+   "existing_lines": [
+    "A: email id for statement? ;; C: {EMAIL}",
+    "C: send it to {EMAIL}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "msg:en.ask.DOB.single",
+   "need": 3,
+   "existing_lines": [
+    "A: dob for verification ;; C: {DOB}",
+    "C: my dob is {DOB}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}

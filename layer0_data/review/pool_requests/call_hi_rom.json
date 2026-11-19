@@ -1,0 +1,403 @@
+{
+ "group": "call:hi_rom",
+ "pools": [
+  {
+   "pool": "call:hi_rom.open",
+   "need": 2,
+   "existing_lines": [
+    "C: Hello. ;; A: Hello, namaste (sir|madam).",
+    "A: (Namaste|Hello) (sir|madam), (good morning|good evening). ;; C: Haan ji, boliye.",
+    "C: Hello, kaun bol raha hai? ;; A: Main {ORG} se bol (raha|rahi) hoon."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.intro",
+   "need": 2,
+   "existing_lines": [
+    "A: (Sir|Madam), main {ORG} se bol (raha|rahi) hoon. Ye call record ho rahi hai.",
+    "A: (Sir|Madam), aapke loan ke baare mein call hai. ;; C: Haan ji, bataiye.",
+    "A: Namaste, {ORG} se reminder call hai."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.close",
+   "need": 2,
+   "existing_lines": [
+    "C: Theek hai, thank you. ;; A: Thank you (sir|madam).",
+    "C: Haan haan, theek hai. ;; A: Aapka din shubh ho.",
+    "C: Achha achha, baad mein baat kart(a|i) hoon."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 4,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.due.emi_reminder",
+   "need": 3,
+   "existing_lines": [
+    "A: Aapki EMI {AMOUNT} ki {DATE} ko hai. ;; C: Theek hai, main {DATE2} tak bhar dun(ga|gi).",
+    "A: (Sir|Madam), {AMOUNT} pending hai. ;; C: Haan haan, {DATE2} ko de dun(ga|gi)."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.due.dispute",
+   "need": 3,
+   "existing_lines": [
+    "A: {AMOUNT} baaki dikh raha hai. ;; C: Nahi, paise kat chuke hain, dekhiye.",
+    "A: Due date {DATE} thi. ;; C: Maine {DATE2} ko bhar diya hai."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.due.address_update",
+   "need": 4,
+   "existing_lines": [
+    "A: (Sir|Madam), aapki details update karni hain. ;; C: Haan, bataiye kya chahiye."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.due.payment_promise",
+   "need": 3,
+   "existing_lines": [
+    "A: Aap {AMOUNT} kab tak bharenge? ;; C: Main {DATE2} tak bhar dun(ga|gi), pakka.",
+    "A: Aaj bhar sakte hain? ;; C: Aaj nahi, {DATE2} tak."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [],
+   "optional_slots": [
+    "ORG",
+    "AMOUNT",
+    "DATE",
+    "DATE2"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.NAME.single",
+   "need": 3,
+   "existing_lines": [
+    "A: Kya meri baat {NAME} ji se ho rahi hai? ;; C: Haan, bol (raha|rahi) hoon.",
+    "A: (Sir|Madam), aapka naam? ;; C: {NAME}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "NAME"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.PHONE.single",
+   "need": 3,
+   "existing_lines": [
+    "A: Aapka registered mobile number bataiye. ;; C: Ji, {PHONE}.",
+    "A: Doosra number dijiye. ;; C: Likhiye, {PHONE}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 5,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.PHONE.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Mobile number bataiye. ;; C: {PHONE_P1} ;; A: Haan, aage? ;; C: {PHONE_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE_P1",
+    "PHONE_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.PHONE.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Mobile number ke aakhri chaar ank bataiye. ;; C: {PHONE}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PHONE"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.AADHAAR.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Verification ke liye Aadhaar number bataiye. ;; C: Mera Aadhaar {AADHAAR} hai."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.AADHAAR.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Aadhaar number bataiye. ;; C: {AADHAAR_P1} ;; A: Aage? ;; C: {AADHAAR_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR_P1",
+    "AADHAAR_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.AADHAAR.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Aadhaar ke aakhri chaar ank? ;; C: {AADHAAR}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "AADHAAR"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.PAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Aapka PAN number bataiye. ;; C: PAN {PAN} hai."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.PAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: PAN number? ;; C: {PAN_P1} ;; A: Ji? ;; C: {PAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "PAN_P1",
+    "PAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.ACCOUNT.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Kis bank account se payment karenge? ;; C: Account number {ACCOUNT} hai."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.ACCOUNT.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Account number bataiye. ;; C: {ACCOUNT_P1} ;; A: Aage? ;; C: {ACCOUNT_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT_P1",
+    "ACCOUNT_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.ACCOUNT.partial",
+   "need": 4,
+   "existing_lines": [
+    "A: Account number ke aakhri chaar ank? ;; C: {ACCOUNT}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ACCOUNT"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.LOAN.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Aapka loan account number bataiye. ;; C: {LOAN}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.LOAN.split",
+   "need": 4,
+   "existing_lines": [
+    "A: Loan number bataiye. ;; C: {LOAN_P1} ;; A: Ji? ;; C: {LOAN_P2}"
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "LOAN_P1",
+    "LOAN_P2"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.ADDRESS.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Kya aapka address wahi hai? ;; C: Nahi, ab main {ADDRESS} mein reht(a|i) hoon."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "ADDRESS"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.UPI.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Aapki UPI id? ;; C: {UPI}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "UPI"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.EMAIL.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Email id bataiye. ;; C: {EMAIL}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "EMAIL"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  },
+  {
+   "pool": "call:hi_rom.ask.DOB.single",
+   "need": 4,
+   "existing_lines": [
+    "A: Aapki date of birth? ;; C: {DOB}."
+   ],
+   "kind": "turn_block",
+   "write_this_many": 6,
+   "required_slots": [
+    "DOB"
+   ],
+   "optional_slots": [
+    "ORG"
+   ]
+  }
+ ]
+}
