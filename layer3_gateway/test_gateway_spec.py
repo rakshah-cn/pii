@@ -613,6 +613,44 @@ def test_the_in_memory_log_is_capped():
         G.LOG_MAX = old
 
 
+# ---------------------------------------------------------------- retry state lives in the vault, not in one process
+def test_a_retry_that_lands_on_a_different_process_gets_the_same_reply_without_a_second_llm_call():
+    v = VaultClient(); calls = []
+    llm = lambda m: calls.append(m) or "Noted " + ", ".join(sorted(set(re.findall(r"<[A-Z_]+_\d+>", m))))
+    a = mk(vault=v, llm=llm); b = mk(vault=v, llm=llm)
+    first = a.process(REQ); assert first["status"] == "success" and len(calls) == 1
+    again = b.process(REQ)                                                       # non-sticky routing: the retry goes to the OTHER process
+    assert len(calls) == 1 and again["borrower_reply"] == first["borrower_reply"] and again["log_entry"] == first["log_entry"]
+    assert [e["outcome"] for e in events_of(b) if e["event"] == "LLM_RESPONDED"] == ["replayed"]
+    restarted = mk(vault=v, llm=llm); assert restarted.process(REQ)["borrower_reply"] == first["borrower_reply"] and len(calls) == 1, "a brand-new process (restart) replays it too"
+    assert len(a.history["C-999"]) == 1 and "C-999" not in b.history or len(b.history.get("C-999", [])) <= 1, "a replay adds nothing to the conversation history"
+
+
+def test_the_replies_are_stored_encrypted_and_only_in_tokenised_form():
+    v = VaultClient(); a = mk(vault=v, llm=lambda m: "Thank you, noted the number in " + m); a.process(REQ)
+    with v.svc.ctx.db.transaction() as tx: row = tx.query("SELECT * FROM vault_context")[0]
+    cells = b"".join(x if isinstance(x, bytes) else str(x).encode() for x in row.values())
+    assert b"Thank you" not in cells and b"98450" not in cells and b"<PHONE_1>" not in cells, "the stored context is ciphertext"
+    ver, state = v.load_context("C-999", "B-777"); stored = [r[2] for r in state["replies"]]
+    assert stored and all("98450" not in r and "<PHONE_1>" in r for r in stored), "what is stored is the TOKENISED reply, never a rehydrated one"
+
+
+def test_the_stored_replies_are_bounded_and_a_failed_attempt_is_never_stored():
+    v = VaultClient(); a = mk(vault=v, detector=Stub())
+    for i in range(30): a.handle("c", "C", f"hello {i}", borrower_id="b1", purpose="collections", request_id=f"R{i}")
+    ver, state = v.load_context("c", "b1"); assert len(state["replies"]) == 8 and [r[0] for r in state["replies"]] == [f"R{i}" for i in range(22, 30)]
+    boom = mk(vault=VaultClient(), detector=Stub(), llm=lambda m: (_ for _ in ()).throw(RuntimeError("down")))
+    assert boom.handle("c", "C", "hello", borrower_id="b1", purpose="collections", request_id="X1")["status"] == "blocked"
+    assert boom.vault.load_context("c", "b1") is None or not boom.vault.load_context("c", "b1")[1]["replies"]
+
+
+def test_erasing_the_borrower_removes_the_stored_replies_with_everything_else():
+    v = VaultClient(); a = mk(vault=v); a.process(REQ); v.destroy_borrower("B-777")
+    with v.svc.ctx.db.transaction() as tx: assert tx.query("SELECT 1 FROM vault_context") == []
+    b = mk(vault=v); calls = []; b.llm = lambda m: calls.append(m) or "fresh"
+    assert b.process(REQ)["status"] == "blocked" and not calls, "after erasure nothing is replayed and nothing new is stored"
+
+
 # ---------------------------------------------------------------- vault swap, status mapping
 def test_the_gateway_runs_on_the_modular_vault_and_does_not_import_the_legacy_one():
     assert isinstance(Gateway(detector=Stub(), audit_detector=Stub()).vault, VaultClient)

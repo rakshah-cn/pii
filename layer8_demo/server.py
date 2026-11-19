@@ -167,9 +167,10 @@ def _slim_event(r):
     out["hash"] = r["hash"][:12]
     out["prev"] = r["prev_hash"][:12]
     out["borrower"] = (r.get("borrower_hash") or "")[:10]
+    out["request"] = r.get("request_id")
     out["kind_name"] = r.get("event") or r.get("kind") or r.get("type") or "record"
     if r.get("type") == "erasure":                                      # keep the chain view small
-        out = {k: out[k] for k in ("seq", "ts", "hash", "prev", "borrower", "kind_name", "status", "passes") if k in out}
+        out = {k: out[k] for k in ("seq", "ts", "hash", "prev", "borrower", "request", "kind_name", "status", "passes") if k in out}
     return out
 
 
@@ -500,6 +501,60 @@ def erase_borrower():
 
 
 # ---------------------------------------------------------------- API: layer 7 (audit)
+@app.get("/api/audit/full")
+def audit_full():
+    """Every record with ALL its fields, plus a per-record check recomputed here: hash matches its body, prev_hash matches the record before, seq is in order."""
+    import hashlib
+    from layer7_audit.chain import GENESIS, _canon
+    s = sess()
+    prev, out = GENESIS, []
+    for i, r in enumerate(_records(s)):
+        body = {k: v for k, v in r.items() if k != "hash"}
+        h = hashlib.sha256((prev + _canon(body)).encode()).hexdigest()
+        out.append({**r, "kind_name": r.get("event") or r.get("kind") or r.get("type") or "record",
+                    "_verify": {"hash_ok": h == r.get("hash"), "link_ok": r.get("prev_hash") == prev, "seq_ok": r.get("seq") == i}})
+        prev = r.get("hash", prev)
+    ok, bad, why = s.audit.verify_chain()
+    return {"records": out, "length": len(out), "head": s.audit.head(), "genesis": GENESIS, "chain": {"ok": ok, "bad_seq": bad, "reason": why},
+            "algorithm": "SHA-256(prev_hash + canonical_json(record))", "borrower_hash": s.audit.hash_borrower(s.B), "session": s.sid}
+
+
+@app.get("/api/audit/export")
+def audit_export():
+    from fastapi.responses import Response
+    s = sess()
+    data = open(s.audit.path, "rb").read()
+    return Response(content=data, media_type="application/x-ndjson", headers={"Content-Disposition": f'attachment; filename="audit_{s.sid}.jsonl"'})
+
+
+class DetectReq(BaseModel):
+    text: str
+
+
+@app.post("/api/detect")
+def detect_only(b: DetectReq):
+    """Layer 1 on its own: nothing is tokenised, stored or sent anywhere."""
+    with LOCK:
+        t = time.perf_counter()
+        res = DET["det"].inner.detect_calls([[{"speaker": "Customer", "text": b.text}]])[0][-1]
+        ms = (time.perf_counter() - t) * 1000
+    spans = [sp for sp in merge_spans(res) if 0 <= sp["start"] < sp["end"] <= len(b.text)]
+    return {"ms": round(ms, 1), "chars": len(b.text), "spans": [{"start": sp["start"], "end": sp["end"], "label": sp["label"], "sources": sp.get("sources", [sp.get("source")]), "conf": sp.get("conf"),
+                                                                   "uncertain": bool(sp.get("uncertain")), "text": b.text[sp["start"]:sp["end"]], "entity": sp.get("entity"), "part": sp.get("part")} for sp in spans]}
+
+
+@app.get("/api/vault")
+def vault_view():
+    s = sess()
+    entries, keys = vault_rows(s)
+    try:
+        access = list(s.vault.access_log())[-200:]
+    except Exception:                                                   # noqa: BLE001
+        access = []
+    return {"entries": entries, "keys": keys, "access_log": access, "borrower": s.B, "borrower_hash": s.audit.hash_borrower(s.B)[:16], "conversation": s.CID, "backend": s.vault_kind,
+            "cipher": "AES-256-GCM", "kdf": "HKDF-SHA256 (master -> KEK); per-borrower DEK wrapped by the KEK", "blind_index": "HMAC-SHA256"}
+
+
 @app.get("/api/audit")
 def audit_view(limit: int = 80):
     s = sess()

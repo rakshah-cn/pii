@@ -44,7 +44,9 @@ DETECT_TIMEOUT = 10.0      # seconds; None is NOT allowed to mean 'wait forever'
 MAX_STUCK_DETECTIONS = 3   # abandoned (timed-out) detector calls tolerated before failing closed outright
 HISTORY_TTL = 900.0        # seconds (15 min): everything the gateway remembers about a conversation is dropped after this much idle time (DPDP: no raw text kept longer than needed)
 LOG_MAX = 10000            # the in-memory (masked) log keeps the newest entries only
-REPLAY_CACHE_MAX = 1000    # sanitised, TOKENISED replies kept so a retried request does not call the LLM again (bounded; lost on restart)
+REPLAY_CACHE_MAX = 1000    # this process's local copy of sanitised, TOKENISED replies (bounded). The SOURCE OF TRUTH is the encrypted shared context in the vault (below)
+CONTEXT_REPLIES = 8        # replies per conversation kept in the vault context: enough for a client retrying its last few requests, small enough to stay far below the size cap
+CONTEXT_REPLY_MAX_CHARS = 4000
 MODEL_CACHE_MAX = 2000     # Layer 1's model keeps an in-memory result cache that is ALWAYS on (use_cache=False only stops the disk copy): bounded here so a long-running gateway cannot grow without limit
 SAFE_KEYS = ("request_id", "conversation_id", "status", "reason", "masked_text", "reply", "reply_masked", "log_entry", "trace", "retries",
              "warnings", "masked_share", "turn_no", "audit_results", "pre_llm_ms")
@@ -255,7 +257,9 @@ class Gateway:
         nm = self.names.get(cid)
         return {"v": 1, "n": self.turns.get(cid, 0), "history": self.history.get(cid, [])[-HISTORY_TURNS:], "names": dict(nm.parts) if nm else {},
                 "name_tokens": {k: v for k, v in self.name_tokens.get(cid, {}).items() if isinstance(v, str)},
-                "entities": [[k[1], dict(rec)] for k, rec in self.entity_tokens.items() if k[0] == cid and isinstance(rec["token"], str)]}
+                "entities": [[k[1], dict(rec)] for k, rec in self.entity_tokens.items() if k[0] == cid and isinstance(rec["token"], str)],
+                # sanitised, tokenised replies of the latest requests: lets ANY process answer a client retry without calling the LLM again (stored encrypted, expires, erased with the borrower)
+                "replies": [[k[0], k[2], v] for k, v in self.replies.items() if k[1] == cid and len(v) <= CONTEXT_REPLY_MAX_CHARS][-CONTEXT_REPLIES:]}
 
     def _apply(self, cid, state):
         if not isinstance(state, dict) or state.get("v") != 1:
@@ -268,6 +272,10 @@ class Gateway:
             self.entity_tokens.pop(k)
         for ent, rec in state.get("entities", []):
             self.entity_tokens[(cid, ent)] = rec
+        for req, h, reply in state.get("replies", []):
+            self.replies[(req, cid, h)] = reply                        # a retry that lands on THIS process finds the answer another process already gave
+        while len(self.replies) > REPLAY_CACHE_MAX:
+            self.replies.popitem(last=False)
 
     def _sync_in(self, cid, borrower_id):
         """If ANOTHER process advanced this conversation since we last looked, adopt its memory (one cheap version check; the context is only decrypted when it changed)."""
