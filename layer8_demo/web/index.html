@@ -8,6 +8,12 @@
 <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
+<script>
+if (location.protocol === 'file:') {   // opened by double-click: the page needs the server for styles and data
+  document.write('<div style="font:16px/1.6 system-ui;max-width:640px;margin:15vh auto;padding:0 24px;color:#e9edf3;background:#0a0d12"><h2>This page needs the demo server</h2><p>Do not open the HTML file directly. Start the server, then open the address it prints:</p><pre style="background:#10141b;padding:14px;border-radius:8px;color:#9be7ef">.venv/bin/python layer8_demo/server.py</pre><p>then go to <b>http://127.0.0.1:8808</b></p></div>');
+  document.body.style.background = '#0a0d12';
+}
+</script>
 <div id="app">
   <header class="top">
     <div class="brand">

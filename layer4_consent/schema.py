@@ -2,7 +2,7 @@
 from dataclasses import asdict, dataclass, field
 from typing import Optional
 
-PURPOSES = ("service", "collections", "compliance", "dispute", "analytics", "model_improvement")
+from shared.constants import PURPOSES           # one list for the whole project (shared/constants.py)
 LAWFUL_BASIS = ("consent", "contract", "legal_obligation", "legitimate_use")
 
 

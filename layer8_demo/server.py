@@ -19,7 +19,12 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 
-import common.llm  # noqa: F401  (loads .env; secrets are never printed or returned)
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT not in sys.path:                                              # lets this file run directly (VS Code "Run Python File") as well as with -m
+    sys.path.insert(0, _ROOT)
+os.chdir(_ROOT)                                                        # the layers use project-relative paths (data/..., models/...)
+
+import common.llm  # noqa: F401,E402  (loads .env; secrets are never printed or returned)
 
 os.environ.setdefault("LINEAGE_HMAC_KEY", uuid.uuid4().hex)           # demo process only: avoids the dev-key warning
 
@@ -42,12 +47,13 @@ from layer6_erasure.vault_adapter import get_vault                      # noqa: 
 from layer7_audit.chain import AuditLog                                 # noqa: E402
 from layer7_audit.proof import render_proof                             # noqa: E402
 
-from . import ui_content                                                # noqa: E402
+from layer8_demo import ui_content                                     # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 WEB = os.path.join(HERE, "web")
 UI_ROOT = os.path.join(ROOT, "data", "stores", "ui")
+PORT = int(os.environ.get("DEMO_PORT", "8808"))
 BEDROCK_MODEL = "apac.amazon.nova-pro-v1:0"
 LOCK = threading.RLock()                                                # one conversation at a time: the gateway keeps per-conversation state
 
@@ -136,7 +142,14 @@ async def lifespan(app):
     DET["det"] = RecordingDetector(make_detector(model=True))
     sess()
     DET["det"].inner.detect_calls([[{"speaker": "Customer", "text": "warm up my number is nine eight four five"}]])     # first call is slow (model load)
-    print(f"[ui] detector + vault warm in {time.perf_counter() - t:.1f}s  vault={S['s'].vault_kind}  ->  http://127.0.0.1:8808")
+    url = f"http://127.0.0.1:{PORT}"
+    print(f"\n{'=' * 64}\n  READY in {time.perf_counter() - t:.1f}s (vault: {S['s'].vault_kind})\n  Open  {url}   in your browser (Ctrl+C here to stop)\n{'=' * 64}\n", flush=True)
+    if not os.environ.get("DEMO_NO_BROWSER"):
+        try:
+            import webbrowser
+            webbrowser.open(url)
+        except Exception:                                               # noqa: BLE001  (no browser available: the URL above is enough)
+            pass
     yield
 
 
@@ -584,8 +597,16 @@ app.mount("/static", StaticFiles(directory=WEB), name="static")
 
 
 def main():
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=int(os.environ.get("DEMO_PORT", "8808")), log_level="warning")
+    try:
+        import uvicorn
+    except ImportError:
+        sys.exit("uvicorn is not installed for THIS Python (" + sys.executable + ").\nUse the project environment:  .venv/bin/python layer8_demo/server.py   (or: pip install uvicorn)")
+    import socket
+    with socket.socket() as sk:
+        if sk.connect_ex(("127.0.0.1", PORT)) == 0:
+            sys.exit(f"Port {PORT} is already in use (is the demo already running?). Open http://127.0.0.1:{PORT} or set DEMO_PORT=9000.")
+    print(f"Starting the demo server (loading the detector, about 8 s)...", flush=True)
+    uvicorn.run(app, host="127.0.0.1", port=PORT, log_level="warning")
 
 
 if __name__ == "__main__":

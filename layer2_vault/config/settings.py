@@ -12,6 +12,7 @@ import json
 import os
 from dataclasses import dataclass, field
 
+from shared.constants import PURPOSE_ALIASES, PURPOSES
 from ..core.errors import ValidationFailed
 
 CAPABILITIES = frozenset({"tokenize", "rehydrate", "metadata", "erase", "rotate", "health", "erasure_sweep", "scan", "admin", "retention", "context"})
@@ -157,7 +158,7 @@ class Settings:
     master_secrets: dict = field(repr=False)                # {key_version: secret bytes}
     current_key_version: int = 1
     db_url: str = "sqlite:///:memory:"
-    allowed_purposes: frozenset = frozenset({"service", "collections", "collection", "compliance", "analytics", "model_improvement"})
+    allowed_purposes: frozenset = frozenset(PURPOSES) | frozenset(PURPOSE_ALIASES)      # from shared/constants.py: the same list Layer 4 uses
     rehydrate_policy: dict = field(default_factory=dict)    # purpose(casefold) -> set of allowed destinations; EMPTY = deny all
     registry: ServiceRegistry = field(default_factory=ServiceRegistry, repr=False)
     max_body_bytes: int = 2_000_000                         # HTTP request body cap (413). Derived from the schema bounds: 100k chars of text (<=4 bytes each) + 500 entities

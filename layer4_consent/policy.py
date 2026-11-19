@@ -10,7 +10,17 @@ POLICY = {
 }
 
 
-ALIASES = {"collection": "collections"}      # the brief says 'collection'; our table says 'collections'
+from shared.constants import PURPOSES, PURPOSE_ALIASES as ALIASES      # the brief says 'collection'; the canonical name is 'collections' (shared/constants.py)
+
+
+def check_consistency():
+    """Every purpose a rule names must be a project purpose (shared/constants.py): a rule for an unknown purpose would be a silent drift between layers."""
+    bad = sorted({p for rules in POLICY.values() for p in rules} - set(PURPOSES))
+    if bad:
+        raise ValueError(f"policy.py names purposes that are not in shared/constants.py: {bad}")
+
+
+check_consistency()
 
 
 def decide(store, tag):

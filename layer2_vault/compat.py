@@ -8,6 +8,8 @@ SAFE BY DEFAULT: without services/settings it REFUSES to start unless a master s
 on restart). Tests and demos opt out explicitly: ephemeral=True or VAULT_ALLOW_EPHEMERAL=1."""
 import uuid
 
+from shared.constants import PURPOSE_ALIASES, PURPOSES
+
 from .config.settings import ServiceIdentity, ServiceRegistry, Settings
 from .core.errors import VaultDenied, VaultError, VaultUnavailable
 from .schemas.vault_schemas import EraseRequest, RehydrateRequest
@@ -34,7 +36,7 @@ class ModularVault:
                         raise RuntimeError("No vault database is configured (VAULT_DB_URL or VAULT_DB_PATH): refusing to use an in-memory database that would lose everything on restart "
                                            "(tests and demos may pass ephemeral=True or set VAULT_ALLOW_EPHEMERAL=1)")
                 settings = Settings(master_secrets={1: master_key or os.urandom(32)}, db_url=db_url or "sqlite:///:memory:", registry=ServiceRegistry(),
-                                    rehydrate_policy={p: frozenset({"borrower_reply"}) for p in ("service", "collections", "collection", "compliance", "analytics", "model_improvement")}).validate()
+                                    rehydrate_policy={p: frozenset({"borrower_reply"}) for p in (*PURPOSES, *PURPOSE_ALIASES)}).validate()
             services = build_services(settings)
         self.svc = services
 

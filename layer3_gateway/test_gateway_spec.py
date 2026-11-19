@@ -498,6 +498,16 @@ def test_a_gateway_without_vault_configuration_refuses_to_start_instead_of_using
             assert "VAULT_MASTER_KEY" in str(e)
 
 
+def test_every_purpose_layer_4_allows_for_the_log_is_accepted_by_the_gateway_and_the_vault():
+    """Regression: Layer 4 allowed 'dispute' but the vault rejected it, so the gateway blocked those messages (purpose_not_permitted)."""
+    from layer4_consent.policy import POLICY
+    for purpose in POLICY["logs"]:
+        gw = mk(); out = gw.handle("c", "C", T, borrower_id="b1", purpose=purpose)
+        assert out["status"] == "ok", (purpose, out.get("reason"))
+        assert "98450 12345" in out["reply"], purpose                       # and the vault's rehydration policy covers it too
+    assert mk().handle("c", "C", T, borrower_id="b1", purpose="marketing")["status"] == "blocked"
+
+
 # ---------------------------------------------------------------- vault swap, status mapping
 def test_the_gateway_runs_on_the_modular_vault_and_does_not_import_the_legacy_one():
     assert isinstance(Gateway(detector=Stub(), audit_detector=Stub()).vault, VaultClient)

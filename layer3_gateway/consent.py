@@ -7,7 +7,9 @@ ASSUMPTION: Layer 4's table (layer4_consent/policy.py) is the team's reading of 
 from dataclasses import dataclass
 from typing import Optional
 
-ALIASES = {"loan_collection": "collections", "collection": "collections", "loan_servicing": "service", "customer_service": "service"}
+from shared.constants import PURPOSE_ALIASES
+
+ALIASES = {**PURPOSE_ALIASES, "loan_collection": "collections", "loan_servicing": "service", "customer_service": "service"}      # shared spellings + the gateway-only ones
 
 
 @dataclass(frozen=True)

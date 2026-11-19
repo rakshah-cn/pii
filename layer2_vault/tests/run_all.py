@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 FILES = ["test_encryption", "test_key_manager", "test_blind_index", "test_tokeniser", "test_rehydration", "test_erasure", "test_concurrency",
-         "test_leakage", "test_rotation", "test_api", "test_lifecycle_extras", "test_review_fixes", "test_postgres", "test_integration", "test_retention", "test_crypto_lifecycle", "test_database_hardening", "test_api_hardening", "test_batching", "test_backup_restore", "test_security_regression", "test_context", "test_secure_defaults"]
+         "test_leakage", "test_rotation", "test_api", "test_lifecycle_extras", "test_review_fixes", "test_postgres", "test_integration", "test_retention", "test_crypto_lifecycle", "test_database_hardening", "test_api_hardening", "test_batching", "test_backup_restore", "test_security_regression", "test_context", "test_secure_defaults", "test_purposes"]
 
 
 def main():
