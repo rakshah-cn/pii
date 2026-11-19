@@ -41,7 +41,7 @@ def test_logs_events_operations_and_error_messages_are_free_of_values_and_keys()
         root.removeHandler(h); root.setLevel(old[0])
 def test_the_events_sent_to_layer7_hold_only_safe_metadata():
     s, v = make(); _flow(s, v)
-    allowed = {"op", "request_id", "caller", "borrower", "status", "code", "entities", "tokens", "destination", "job", "scope", "keys", "records", "version", "conversation", "hits", "texts", "values"}
+    allowed = {"op", "request_id", "caller", "borrower", "status", "code", "entities", "tokens", "destination", "job", "scope", "keys", "records", "version", "conversation", "hits", "texts", "values", "files_clean"}
     for e in v.ctx.events.events: assert set(e) <= allowed, set(e) - allowed
 def test_database_file_never_holds_plaintext_or_the_master_key_even_after_erasure_and_rotation():
     with tempfile.TemporaryDirectory() as d:

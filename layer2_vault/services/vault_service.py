@@ -6,12 +6,13 @@ import random
 import re
 import time
 
+from shared.constants import canonical_purpose
 from ..core import encryption as enc
 from ..core.blind_index import blind_index
 from ..core.errors import KeyStateError, ValidationFailed, VaultDenied, VaultError, VaultUnavailable
 from ..core.tokeniser import TYPE_RE, new_id, placeholder
 from ..database.connection import ConflictError
-from ..schemas.vault_schemas import ID_RE, LifecycleResponse, MetadataResponse, Mapping, TokenizeRequest, TokenizeResponse
+from ..schemas.vault_schemas import LifecycleResponse, MetadataResponse, Mapping, TokenizeRequest, TokenizeResponse, is_id
 from .context import VaultContext, log
 
 
@@ -32,7 +33,7 @@ class VaultService:
                 raise KeyStateError("key_not_active")
             key_id = new_id("key")
             dek = c.keys.new_dek()
-            version, nonce, wrapped = c.keys.wrap(dek, borrower_id, key_id)
+            version, nonce, wrapped = c.keys.wrap(dek, borrower_id, key_id, c.persisted_versions(tx)[0])      # the version the deployment is on, not the one this process started with
             c.repo.insert_key(tx, key_id, borrower_id, wrapped, nonce, version, now=c.clock())
             key = c.repo.active_key(tx, borrower_id)
             return key, dek
@@ -46,7 +47,7 @@ class VaultService:
             raise VaultDenied("borrower_not_active")
         c.repo.lock_conversation(tx, conversation_id)
         key, dek = self._dek_for(tx, borrower_id)
-        purpose = str(purpose_id).casefold()
+        purpose = canonical_purpose(purpose_id)
         now = c.clock()
         ttl = c.settings.retention.ttl_for(purpose)
         expires_at = None if ttl is None else now + ttl
@@ -54,7 +55,7 @@ class VaultService:
             if not g["value"] or len(g["value"]) > c.settings.max_value_len:
                 raise ValidationFailed("bad_value")
         bkeys = {v: c.keys.blind_key(v) for v in c.keys.versions}                 # derived once per call (locals only; nothing is cached across calls)
-        cur_v = c.keys.current_blind_version
+        local_v = c.keys.current_blind_version                                    # only used to recognise equal values inside this request; the version a NEW row is indexed under is read below
         digs = [[(v, blind_index(bk, borrower_id, conversation_id, purpose, g["type"], g["value"])) for v, bk in bkeys.items()] for g in groups]
         hits = c.repo.find_by_digests_batch(tx, borrower_id, conversation_id, purpose, [(g["type"], v, d) for g, ds in zip(groups, digs) for v, d in ds])   # ONE query per 100 values
         out, pending, retired = [None] * len(groups), {}, set()
@@ -74,19 +75,22 @@ class VaultService:
             if live:
                 out[i] = (live["token"], live["vault_id"])
             else:
-                pending.setdefault((g["type"], dict(ds)[cur_v]), []).append(i)     # the same value twice in one request still gets ONE token
+                pending.setdefault((g["type"], dict(ds)[local_v]), []).append(i)   # the same value twice in one request still gets ONE token (the digest normalises: '98450 12345' == '9845012345')
         if pending:
+            cur_v = c.persisted_versions(tx)[1]                                   # read only when something is actually new: the hot (all-reuse) path costs nothing extra
+            if cur_v not in bkeys:
+                raise VaultUnavailable("master_key_unavailable")                  # the deployment's index version is not loaded (or is revoked) in THIS process
             counter = c.repo.allocate_nonces(tx, key["key_id"], len(pending), c.settings.key_usage_limit)   # one atomic reservation for the whole batch; raises key_usage_limit_reached
             seqs = c.repo.next_seqs(tx, conversation_id, [t for t, _ in pending])
             bundles = []
-            for n, ((typ, cur), idxs) in enumerate(pending.items()):
+            for n, ((typ, _), idxs) in enumerate(pending.items()):
                 seqs[typ] += 1
                 vault_id, token_id, token = new_id("v"), new_id("t"), placeholder(typ, seqs[typ])
                 value = groups[idxs[0]]["value"]
                 nonce, ct = enc.encrypt(dek, value, enc.record_aad(borrower_id, conversation_id, vault_id, typ, key["key_id"]), nonce=c.nonces.nonce(counter + n))
                 bundles.append(({"vault_id": vault_id, "borrower_id": borrower_id, "conversation_id": conversation_id, "token_id": token_id, "pii_type": typ,
                                  "ciphertext": ct, "nonce": nonce, "key_id": key["key_id"], "purpose_id": purpose},
-                                {"token_id": token_id, "token": token, "seq": seqs[typ]}, {"version": cur_v, "digest": cur}))
+                                {"token_id": token_id, "token": token, "seq": seqs[typ]}, {"version": cur_v, "digest": dict(digs[idxs[0]])[cur_v]}))
                 for i in idxs:
                     out[i] = (token, vault_id)
             c.repo.insert_bundles(tx, bundles, now, expires_at)                    # executemany: three statements for the whole batch
@@ -161,7 +165,7 @@ class VaultService:
         c = self.ctx
         c.require(caller, "tokenize")
         # same checks as the HTTP path: id alphabet, type name, and the permission decision (unavailable => deny)
-        if not all(isinstance(x, str) and re.match(ID_RE, x) for x in (borrower_id, conversation_id, purpose_id)) or not all(TYPE_RE.match(t) for t, _ in items):
+        if not all(is_id(x) for x in (borrower_id, conversation_id, purpose_id)) or not all(TYPE_RE.match(t) for t, _ in items):
             raise ValidationFailed("invalid_request")
         try:
             c.engine.authorize(caller, "tokenize", borrower_id, purpose_id)
@@ -169,7 +173,7 @@ class VaultService:
             c.record_failure("TOKENIZE", borrower_id, request_id, caller, "denied" if e.code != "forbidden" else e.code)
             raise
         groups = [{"type": t, "value": v} for t, v in items]
-        payload = {"b": borrower_id, "c": conversation_id, "p": str(purpose_id).casefold(), "items": [list(i) for i in items]}
+        payload = {"b": borrower_id, "c": conversation_id, "p": canonical_purpose(purpose_id), "items": [list(i) for i in items]}
 
         def work():
             with c.db.transaction() as tx:

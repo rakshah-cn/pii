@@ -3,6 +3,7 @@ import logging
 import threading
 import time
 
+from shared.constants import canonical_purpose
 from ..config.settings import ServiceIdentity, Settings
 from ..core.errors import VaultDenied
 from ..core.key_manager import KeyManager
@@ -22,7 +23,7 @@ class PolicyPermissions:
         self.s = settings
 
     def check(self, action, purpose_id, destination, caller, borrower_id) -> bool:
-        p = str(purpose_id).casefold()
+        p = canonical_purpose(purpose_id)
         if action == "tokenize":
             return p in self.s.allowed_purposes
         if action == "rehydrate":
@@ -131,6 +132,12 @@ class VaultContext:
             if self.db.role_info()["superuser"]:
                 raise VaultUnavailable("db_role_too_privileged")      # the vault must run as vault_app (see database/roles.sql), never as a superuser
         self._idempotency = None
+
+    def persisted_versions(self, tx):
+        """(KEK version, blind-index version) the deployment is ON, as recorded by the last rotation (any process); this process's own setting until a rotation has been recorded.
+        Without it a process started before a rotation keeps wrapping NEW borrower keys under the OLD master secret - keys that are lost once that secret is retired."""
+        st = self.repo.key_state(tx)
+        return st.get("kek", self.keys.current_kek_version), st.get("blind_index", self.keys.current_blind_version)
 
     @property
     def engine(self):

@@ -1,20 +1,15 @@
-# Demo console (Layer 8 front end)
+# PII Vault: the application (Layer 8 front end)
 
-Run from the project root:
+Run:  `.venv/bin/python layer8_demo/server.py`  (or `-m layer8_demo.server`), wait for READY, open http://127.0.0.1:8808.
 
-    .venv/bin/python -m layer8_demo.server        # then open http://127.0.0.1:8808
-    DEMO_PORT=9000 .venv/bin/python -m layer8_demo.server   # another port
+A collections workspace over the real layers. One shared workspace (one vault with a key per borrower, one audit chain, one lineage registry, one set of mock stores, one gateway) with several borrower cases (4 sample cases are loaded by running real messages through the pipeline).
 
-Startup takes about 8 s (it loads and warms the detector). Needs `uvicorn` in the venv (`pip install uvicorn`).
+Workspace: Conversations (case inbox, thread with Protected/Original view, per-message protection trail, Borrower and Protection panels) · Borrowers (profile, where the data lives, lineage, activity) · Privacy requests (DPDP erasure workflow ending in a certificate) · Audit trail (activity feed over the L7 chain, raw records, verify, tamper test, export).
+Governance: Consent policy (L4) · Data inventory (L5) · Architecture (live diagram of L0-L8 with test status).
+Engineering: Detection lab (L1) · Vault inspector (L2) · Test data (L0) · Scenario (L8) · Test suites.
 
-## What it is
-A thin web layer over the real layers. `server.py` calls the layers' own code (L1 detector, L2 vault, L3 gateway, L4 `guarded_write`, L5 registry, L6 agent, L7 chain); `web/` is plain HTML/CSS/JS with no CDN, so it works offline.
-One stage per layer (L0-L8), each with: what it does, a live panel, measured numbers, a "run this layer's tests" button, and its known limits. The bar at the bottom sends one message through the whole stack; every stage shows its own slice of that message.
+Every id is a link; `/` focuses search; "Layer details" gives evidence, tests and limits per layer.
 
-## Things to know
-- One global session at a time. Page load or "New" starts a clean session (fresh vault, key, stores, audit chain).
-- Stores are MOCK JSONL files under `data/stores/ui/<session>/`. All values are fake.
-- LLM is a local stub by default. The header switch calls Bedrock Nova Pro with TOKENISED text only. A live model can invent facts (it has no loan data): use the stub when you need a deterministic demo.
-- `/api/message` returns the raw text you just typed so the page can highlight it. The production gateway never does.
-- "Detector blind" replaces Layer 1 with one that finds nothing, to show the audit net. It catches phone / email / PAN-like values and CANNOT catch names (documented limit; the page shows it).
-- Layer 5 lineage and the Layer 4 `guarded_write` are wired in by `server.py`, not by the gateway itself.
+Notes: stores are MOCK files under data/stores/ui/<workspace>/. The LLM is a stub unless the sidebar switch is on (tokenised text only goes to Bedrock Nova Pro; a live model can invent facts).
+Erasing one borrower leaves the others intact; the demo server also drops that borrower's raw text from its own memory. "Detector off (test)" disables Layer 1 so the audit net is exercised; it cannot catch names.
+/api/message returns the raw typed text only so the page can offer the "Original text" view.

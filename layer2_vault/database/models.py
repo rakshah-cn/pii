@@ -3,9 +3,10 @@ The database holds ONLY ciphertext, wrapped keys, blind-index digests, tokens an
 All timestamps are epoch seconds in UTC (REAL / DOUBLE PRECISION).
 
 v1 -> v2 adds: retention (expires_at / expired_at / revoked_at, EXPIRED status), durable nonce state (key_nonce_state + UNIQUE(key_id, nonce)),
-dek_version / rotated_at / destroy_reason on keys, tombstones, idempotency, and indexes for the real query patterns. See database/migrations.py."""
+dek_version / rotated_at / destroy_reason on keys, tombstones, idempotency, and indexes for the real query patterns. See database/migrations.py.
+v3 adds vault_context (shared encrypted conversation context). v4 adds vault_key_state (which master-secret versions the WHOLE deployment is on)."""
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 TABLES = [
     """CREATE TABLE IF NOT EXISTS vault_meta (
@@ -112,6 +113,12 @@ TABLES = [
         updated_at {REAL} NOT NULL,
         expires_at {REAL} NOT NULL,
         PRIMARY KEY (borrower_id, conversation_id))""",
+    # v4: a KEK / blind-index rotation done by ONE process must be seen by every other process, or a stale process keeps wrapping NEW borrower keys under the OLD master version
+    # (and loses them when that secret is retired). A separate table, not vault_meta, so the running app role never needs to write the schema version.
+    """CREATE TABLE IF NOT EXISTS vault_key_state (
+        name TEXT NOT NULL PRIMARY KEY CHECK (name IN ('kek', 'blind_index')),
+        version INTEGER NOT NULL CHECK (version >= 1),
+        updated_at {REAL} NOT NULL)""",
     """CREATE TABLE IF NOT EXISTS vault_idempotency (
         idempotency_key TEXT NOT NULL,
         operation TEXT NOT NULL,

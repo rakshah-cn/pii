@@ -82,6 +82,20 @@ class Repository:
             n = tx.execute("UPDATE borrower_keys SET key_status = ? WHERE borrower_id = ? AND key_status = 'ACTIVE'", (status, borrower_id)).rowcount
         return n
 
+    def key_state(self, tx):
+        """{'kek': n, 'blind_index': n} for whatever a rotation has recorded (empty until the first one)."""
+        return {r["name"]: r["version"] for r in tx.query("SELECT name, version FROM vault_key_state")}
+
+    def set_key_state(self, tx, name, version, now):
+        tx.execute("INSERT INTO vault_key_state (name, version, updated_at) VALUES (?, ?, ?) ON CONFLICT (name) DO UPDATE SET version = ?, updated_at = ?", (name, version, now, version, now))
+
+    def keys_by_kek_version(self, tx):
+        """{master version: number of keys still wrapped under it} (destroyed keys hold no wrapped key, so they do not count)."""
+        out = {}
+        for r in tx.query("SELECT kek_version, COUNT(*) AS n FROM borrower_keys WHERE wrapped_dek IS NOT NULL GROUP BY kek_version ORDER BY kek_version"):
+            out[str(r["kek_version"])] = r["n"]
+        return out
+
     def all_keys(self, tx):
         return tx.query("SELECT * FROM borrower_keys WHERE wrapped_dek IS NOT NULL")
 
@@ -315,6 +329,10 @@ class Repository:
         rows = tx.query(f"SELECT m.vault_id FROM token_mappings m JOIN vault_records r ON r.vault_id = m.vault_id WHERE m.vault_id IN ({self._in(ids)}) "
                         "AND m.status = 'ACTIVE' AND r.status = 'ACTIVE' AND (m.expires_at IS NULL OR m.expires_at > ?) AND (r.expires_at IS NULL OR r.expires_at > ?)", list(ids) + [now, now])
         return {r["vault_id"] for r in rows}
+
+    def open_borrower_jobs(self, tx, borrower_id, exclude_job=None):
+        """Is a BORROWER-scope erasure job for this borrower still unfinished (pending / in progress / partially failed)? It alone may move the borrower to ERASED."""
+        return tx.one("SELECT COUNT(*) AS n FROM erasure_jobs WHERE borrower_id = ? AND scope = 'BORROWER' AND status <> 'COMPLETED' AND job_id <> ?", (borrower_id, exclude_job or ""))["n"] > 0
 
     def job_statuses(self, tx, borrower_id, conversation_id):
         return {r["status"] for r in tx.query("SELECT status FROM erasure_jobs WHERE borrower_id = ? AND status <> 'COMPLETED' AND (scope = 'BORROWER' OR conversation_id = ?)", (borrower_id, conversation_id))}

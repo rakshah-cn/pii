@@ -49,7 +49,11 @@ class RetentionService:
                     keys = {r["key_id"]: r["borrower_id"] for r in rows}
                     if pol.destroy_idle_keys:
                         self._step("retire_keys")
-                        for key_id in keys:
+                        for key_id, borrower in keys.items():
+                            # Lock the borrower's row FIRST (PostgreSQL: FOR UPDATE). A tokenise holds that same lock until it commits, so we wait for it and then SEE its new record;
+                            # without this, "is the key still used?" could run before a concurrent tokenise committed and the key was destroyed under a live record (found by review).
+                            if c.repo.borrower_state(tx, borrower) != "ACTIVE":
+                                continue                                    # a borrower under erasure: the erasure owns their key
                             if not c.repo.key_in_use(tx, key_id):          # checked in the SAME transaction as the delete
                                 out["keys_retired"] += c.repo.retire_key(tx, key_id, now, "RETENTION")
                     touched.update(keys)
@@ -67,5 +71,7 @@ class RetentionService:
             c.record_failure("RETENTION_CLEANUP", None, op_id, caller, code)
             c.emit(op="retention_cleanup", status="partial_failure", code=code)
             return out
+        if out["records_deleted"] or out["keys_retired"] or out["contexts_purged"]:
+            c.db.scrub()                                                   # deleted ciphertext must not survive in the SQLite write-ahead log
         c.emit(op="retention_cleanup", status="completed", expired=out["records_expired"], deleted=out["records_deleted"], keys=out["keys_retired"])
         return out

@@ -1,5 +1,6 @@
 """Request/response schemas (pydantic). Strict: unknown fields are rejected, ids are restricted to a safe alphabet, and every
 detected span must match the text it points at - so a wrong offset can never cause the wrong region to be masked or leaked."""
+import re
 from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -7,6 +8,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from ..core.tokeniser import PLACEHOLDER_RE, TYPE_RE
 
 ID_RE = r"^[A-Za-z0-9_.:\-]{1,128}$"
+
+
+def is_id(x) -> bool:
+    """True for a safe id. Python's re.match lets '$' match BEFORE a trailing newline ('b1\\n' would pass and become a SEPARATE borrower), so the whole string must match."""
+    return isinstance(x, str) and re.fullmatch(ID_RE, x) is not None
 
 
 class _Strict(BaseModel):
@@ -150,6 +156,7 @@ class RotateResponse(_Strict):
     records_reencrypted: int = 0
     borrowers_failed: int = 0
     target_dek_version: Optional[int] = None
+    keys_by_kek_version: Optional[Dict[str, int]] = None      # how many borrower keys are wrapped under each master version AFTER this call: retire an old master secret only when its count is 0
     note: Optional[str] = None
 
 

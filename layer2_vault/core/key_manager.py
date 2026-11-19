@@ -15,10 +15,15 @@ from .encryption import NONCE_BYTES, canonical
 from .errors import DecryptionError, KeyStateError, ValidationFailed, VaultUnavailable
 
 
+MIN_SECRET_BYTES = 32
+
+
 class KeyManager:
     def __init__(self, master_secrets: dict, current_version: int, revoked_versions=()):
         if current_version not in master_secrets or current_version in revoked_versions:
             raise ValidationFailed("master_secret_missing")
+        if any(not isinstance(s, (bytes, bytearray)) or len(s) < MIN_SECRET_BYTES for s in master_secrets.values()):
+            raise ValidationFailed("master_secret_too_short")                 # HKDF would happily stretch a 1-byte secret into a 'strong-looking' key
         self._masters = dict(master_secrets)
         self.revoked = set(revoked_versions)             # versions that must never be used again (compromised / retired): fail closed
         self.current_kek_version = self.current_blind_version = current_version     # KEK rotation and blind-index rotation move independently

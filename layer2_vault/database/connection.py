@@ -86,6 +86,7 @@ class Database:
             path = url[len("sqlite:///"):] or ":memory:"
             self._conn = sqlite3.connect(path, check_same_thread=False, isolation_level=None)
             self._conn.row_factory = sqlite3.Row
+            self._conn.execute("PRAGMA secure_delete=ON")         # freed / overwritten content (a destroyed wrapped key, an erased ciphertext) is zero-filled, not just unlinked
             if path != ":memory:":
                 self._conn.execute("PRAGMA journal_mode=WAL")
         elif url.startswith(("postgresql://", "postgres://")):
@@ -208,6 +209,23 @@ class Database:
                 tx.one("SELECT 1 AS ok")
             return True
         except Exception:
+            return False
+
+    def scrub(self):
+        """Make the database FILES match what was just erased / overwritten. Call after a commit that destroyed or replaced key material or ciphertext.
+        SQLite: secure_delete (set at open) zero-fills the freed content in the pages, but the write-ahead log still holds the earlier page images until a checkpoint copies the new
+        pages over the old ones and empties the log; this runs that checkpoint (TRUNCATE). Returns True when it completed, False when a reader blocked it (it then happens at the next
+        checkpoint). PostgreSQL: returns None - nothing here can do it (dead row versions stay until VACUUM; old page images stay in the WAL segments until they are recycled or
+        archived): see RESIDUAL_RISK in services/key_lifecycle.py and RUNBOOK.md."""
+        if self.kind != "sqlite" or self._conn is None:
+            return None
+        if self.url.rstrip("/") in ("sqlite://", "sqlite:///:memory:", "sqlite:///"):
+            return True                                              # in-memory: nothing on disk
+        try:
+            with self._lock:                                         # never between another thread's BEGIN and COMMIT on this connection
+                busy = self._conn.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()[0]
+            return busy == 0
+        except (sqlite3.OperationalError, sqlite3.DatabaseError):
             return False
 
     def close(self):

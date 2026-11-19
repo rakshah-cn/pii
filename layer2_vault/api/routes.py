@@ -2,7 +2,6 @@
 its own identity or role. Errors are coded and GENERIC: request bodies (which contain PII) are never echoed back, and bodies are
 never logged. Docs/openapi are disabled: this is an internal service."""
 import logging
-import re
 import threading
 import time
 import uuid
@@ -13,7 +12,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from ..core.errors import IdempotencyError, RateLimited, ValidationFailed, VaultDenied, VaultError, VaultUnavailable
-from ..schemas.vault_schemas import (ID_RE, EraseRequest, EraseResponse, HealthResponse, LifecycleResponse, MetadataResponse, RehydrateRequest, RehydrateResponse,
+from ..schemas.vault_schemas import (is_id, EraseRequest, EraseResponse, HealthResponse, LifecycleResponse, MetadataResponse, RehydrateRequest, RehydrateResponse,
                                      RotateRequest, RotateResponse, TokenizeRequest, TokenizeResponse)
 from ..services import VaultServices
 
@@ -120,9 +119,8 @@ def create_app(svc: VaultServices) -> FastAPI:
 
     @app.middleware("http")
     async def access_log(request: Request, call_next):
-        import re
         t0, hdr = time.perf_counter(), request.headers.get("x-request-id") or ""
-        rid = hdr if re.match(ID_RE, hdr) else uuid.uuid4().hex[:12]          # a caller-controlled header is only logged if it is a safe id
+        rid = hdr if is_id(hdr) else uuid.uuid4().hex[:12]          # a caller-controlled header is only logged if it is a safe id
         request.state.rid = rid
         status = 500
         try:
@@ -157,13 +155,13 @@ def create_app(svc: VaultServices) -> FastAPI:
 
     @app.get("/vault/records/{vault_id}", response_model=MetadataResponse)
     def metadata(vault_id: str, who=Depends(caller)):
-        if not re.match(ID_RE, vault_id):
+        if not is_id(vault_id):
             raise ValidationFailed("invalid_request")
         return svc.tokenizer.get_metadata(vault_id, who)
 
     @app.get("/vault/records/{vault_id}/lifecycle", response_model=LifecycleResponse)
     def lifecycle(vault_id: str, who=Depends(caller)):
-        if not re.match(ID_RE, vault_id):
+        if not is_id(vault_id):
             raise ValidationFailed("invalid_request")
         return svc.tokenizer.lifecycle(vault_id, who)
 

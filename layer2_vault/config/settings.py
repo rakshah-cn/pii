@@ -12,11 +12,11 @@ import json
 import os
 from dataclasses import dataclass, field
 
-from shared.constants import PURPOSE_ALIASES, PURPOSES
+from shared.constants import PURPOSE_ALIASES, PURPOSES, canonical_purpose
 from ..core.errors import ValidationFailed
+from ..core.key_manager import MIN_SECRET_BYTES
 
 CAPABILITIES = frozenset({"tokenize", "rehydrate", "metadata", "erase", "rotate", "health", "erasure_sweep", "scan", "admin", "retention", "context"})
-MIN_SECRET_BYTES = 32
 
 
 def decode_secret(text: str) -> bytes:
@@ -61,7 +61,7 @@ class RetentionPolicy:
         return self
 
     def ttl_for(self, purpose_id):
-        return self.purpose_ttl_seconds.get(str(purpose_id).casefold(), self.ttl_seconds)
+        return self.purpose_ttl_seconds.get(canonical_purpose(purpose_id), self.ttl_seconds)
 
     @classmethod
     def from_json(cls, text):
@@ -70,7 +70,7 @@ class RetentionPolicy:
         if unknown:
             raise ValidationFailed("retention_policy_unknown_field")
         if "purpose_ttl_seconds" in d:
-            d["purpose_ttl_seconds"] = {str(k).casefold(): v for k, v in d["purpose_ttl_seconds"].items()}
+            d["purpose_ttl_seconds"] = {canonical_purpose(k): v for k, v in d["purpose_ttl_seconds"].items()}
         return cls(**d).validate()
 
 
@@ -91,7 +91,7 @@ class ServiceIdentity:
         return isinstance(borrower_id, str) and any(borrower_id == b or (b.endswith("*") and borrower_id.startswith(b[:-1])) for b in self.borrower_scope)
 
     def covers_purpose(self, purpose_id) -> bool:
-        return self.allowed_purposes is None or (isinstance(purpose_id, str) and purpose_id.casefold() in self.allowed_purposes)
+        return self.allowed_purposes is None or (isinstance(purpose_id, str) and canonical_purpose(purpose_id) in self.allowed_purposes)
 
 
 class ServiceRegistry:
@@ -110,12 +110,17 @@ class ServiceRegistry:
         for token, spec in (entries or {}).items():
             name, caps = spec[0], spec[1]
             opts = dict(spec[2]) if len(spec) > 2 and spec[2] else {}
+            def _names(v):
+                """A scope must be a LIST of non-empty strings: a bare string would silently become a tuple of single characters, and a lone '*' would match every borrower."""
+                return isinstance(v, (list, tuple, set, frozenset)) and all(isinstance(x, str) and x.strip() and x != "*" for x in v)
+            if (opts.get("borrowers") is not None and not _names(opts["borrowers"])) or (opts.get("purposes") is not None and not _names(opts["purposes"])):
+                raise ValidationFailed("service_registry_invalid")
             bad = set(caps) - CAPABILITIES
             if (bad or not isinstance(token, str) or len(token) < 16 or isinstance(caps, str) or set(opts) - {"expires_at", "not_before", "purposes", "borrowers"}
                     or any(opts.get(k) is not None and (isinstance(opts[k], bool) or not isinstance(opts[k], (int, float))) for k in ("expires_at", "not_before"))):
                 raise ValidationFailed("service_registry_invalid")
             ident = ServiceIdentity(name, frozenset(caps),
-                                    None if opts.get("purposes") is None else frozenset(str(x).casefold() for x in opts["purposes"]),
+                                    None if opts.get("purposes") is None else frozenset(canonical_purpose(x) for x in opts["purposes"]),
                                     None if opts.get("borrowers") is None else tuple(opts["borrowers"]))
             if name in self._by_name and self._by_name[name] != ident:
                 raise ValidationFailed("service_registry_invalid")          # one service name = one set of rights, however many credentials it holds
@@ -157,7 +162,7 @@ def _with_revocations(registry, env):
 class Settings:
     master_secrets: dict = field(repr=False)                # {key_version: secret bytes}
     current_key_version: int = 1
-    db_url: str = "sqlite:///:memory:"
+    db_url: str = field(default="sqlite:///:memory:", repr=False)       # may carry a database password: never part of repr() / logs
     allowed_purposes: frozenset = frozenset(PURPOSES) | frozenset(PURPOSE_ALIASES)      # from shared/constants.py: the same list Layer 4 uses
     rehydrate_policy: dict = field(default_factory=dict)    # purpose(casefold) -> set of allowed destinations; EMPTY = deny all
     registry: ServiceRegistry = field(default_factory=ServiceRegistry, repr=False)
@@ -210,9 +215,14 @@ class Settings:
                         raise ValidationFailed("service_token_duplicated")
                     opts = {k: v for k, v in {**{k: spec[k] for k in ("purposes", "borrowers") if k in spec}, **{k: cred[k] for k in ("expires_at", "not_before") if k in cred}}.items()}
                     entries[cred["token"]] = (name, spec.get("capabilities", []), opts)
-        policy = {p.casefold(): frozenset(d) for p, d in json.loads(env.get("VAULT_REHYDRATE_POLICY", "{}")).items()}
+        db_url = env.get("VAULT_DB_URL")
+        if not db_url:
+            if env.get("VAULT_ALLOW_EPHEMERAL") != "1":
+                raise ValidationFailed("database_url_missing")                 # same rule as the library path (compat.py): an unconfigured vault must not start on a throw-away in-memory database
+            db_url = "sqlite:///:memory:"
+        policy = {canonical_purpose(p): frozenset(d) for p, d in json.loads(env.get("VAULT_REHYDRATE_POLICY", "{}")).items()}
         return cls(master_secrets=secrets_, current_key_version=int(env.get("VAULT_KEY_VERSION", max(secrets_) if secrets_ else 1)),
-                   db_url=env.get("VAULT_DB_URL", "sqlite:///:memory:"), registry=_with_revocations(ServiceRegistry(entries), env), rehydrate_policy=policy,
+                   db_url=db_url, registry=_with_revocations(ServiceRegistry(entries), env), rehydrate_policy=policy,
                    db_auto_migrate=env.get("VAULT_DB_AUTO_MIGRATE", "true").lower() != "false",
                    revoked_key_versions=frozenset(int(x) for x in json.loads(env.get("VAULT_REVOKED_KEY_VERSIONS", "[]"))),
                    retention=RetentionPolicy.from_json(env.get("VAULT_RETENTION_POLICY", ""))).validate()

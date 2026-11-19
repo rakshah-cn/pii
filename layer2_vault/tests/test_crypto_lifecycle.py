@@ -291,7 +291,7 @@ def test_the_kms_provider_unseals_the_master_secret_and_fails_closed_otherwise()
     e = expect(VaultUnavailable, lambda: AwsKmsMasterKeyProvider({1: b1}, FakeKms(down=True), "key-a").load()); assert "amazonaws" not in str(e) and "arn:" not in str(e)
     expect(ValidationFailed, lambda: AwsKmsMasterKeyProvider({1: seal_master_secret(kms, "key-a", 1, b"short")}, kms, "key-a").load(), "master_secret_invalid_or_too_short")
     expect(ValidationFailed, lambda: AwsKmsMasterKeyProvider({}, kms))
-    env = {"VAULT_KMS_CIPHERTEXT_V1": b1, "VAULT_KMS_KEY_ID": "key-a", "VAULT_SERVICE_TOKENS": "{}"}
+    env = {"VAULT_KMS_CIPHERTEXT_V1": b1, "VAULT_KMS_KEY_ID": "key-a", "VAULT_SERVICE_TOKENS": "{}", "VAULT_DB_URL": "sqlite:///:memory:"}
     st = Settings.from_env(env, kms_client=kms); assert st.master_secrets == {1: m1} and "VAULT_MASTER_KEY" not in env
     expect(VaultUnavailable, lambda: Settings.from_env(env, kms_client=FakeKms(down=True)), "master_key_unavailable")           # cannot reach KMS: the vault does not start
 

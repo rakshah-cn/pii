@@ -7,6 +7,7 @@ the same message as every layer saw it. Honest scope (the UI says the same):
   * /api/message returns the raw text the user just typed (to draw the highlights). The production gateway never returns it.
 """
 import collections
+import contextvars
 import json
 import os
 import random
@@ -95,55 +96,120 @@ def _llm(masked_text):
 
 
 # ---------------------------------------------------------------- one demo session = one borrower + one conversation
-class Session:
-    def __init__(self, name="Ramesh Kumar"):
-        self.sid = "S" + uuid.uuid4().hex[:7]
-        self.root = os.path.join(UI_ROOT, self.sid)
+class Workspace:
+    """Everything shared by all borrowers: ONE vault (a key per borrower), ONE audit chain, ONE lineage registry, ONE set of mock stores, ONE gateway."""
+    def __init__(self):
+        self.id = "WS" + uuid.uuid4().hex[:6]
+        self.root = os.path.join(UI_ROOT, self.id)
         os.makedirs(os.path.join(self.root, "debug_dump"), exist_ok=True)
-        self.name = name
-        self.B, self.CID = f"B-{self.sid}", f"conv-{self.sid}"
         self.vault, self.vault_kind = get_vault()
         self.audit = AuditLog(os.path.join(self.root, "audit_log.jsonl"))
         self.events = Events(sink=Layer7Sink(self.audit))
         self.gw = Gateway(detector=DET["det"], vault=self.vault, events=self.events, llm=_llm)
         self.reg = LineageRegistry()
-        self.reg.add_borrower(self.B, name=name)
-        self.reg.add_conversation(self.B, self.CID)
         self.logs = JsonlStore(os.path.join(self.root, "logs.jsonl"), "logs", "logs")
         self.vecs = JsonlStore(os.path.join(self.root, "vectors.jsonl"), "vector_store", "vector_store")
         self.evals = JsonlStore(os.path.join(self.root, "eval_sets.jsonl"), "eval_sets", "eval_sets")
         self.adapters = {"logs": self.logs, "vector_store": self.vecs, "eval_sets": self.evals}
+        self.borrowers = collections.OrderedDict()
+        self.requests = []                                                     # privacy (erasure) requests, all borrowers
+        self.next_case, self.last = 1041, None
+
+    def add(self, name):
+        s = Session(self, name)
+        self.borrowers[s.sid] = s
+        self.last = s
+        return s
+
+    def reload_stores(self):                                                   # the erasure agent edits the files directly: refresh the in-memory copies
+        for a in self.adapters.values():
+            a._load()
+
+
+class Session:
+    """One borrower case. Shared things (vault, audit, registry, stores, gateway, root) are read from the workspace."""
+    def __init__(self, ws, name):
+        self.ws = ws
+        self.sid = "C" + uuid.uuid4().hex[:6]
+        self.case = ws.next_case
+        ws.next_case += 1
+        self.name = name
+        self.B, self.CID = f"B-{self.sid}", f"conv-{self.sid}"
+        ws.reg.add_borrower(self.B, name=name)
+        ws.reg.add_conversation(self.B, self.CID)
         self.turns, self.values, self.n = [], collections.OrderedDict(), 0     # values: raw -> label (server memory only; never returned)
         self.planted, self.erased, self.last_erasure = False, False, None
-        self.chunks = []                                                       # (record id) of chunks for lineage / eval writes
-        self.rejections = 0
+        self.requests, self.planted_items, self.chunks, self.rejections = [], [], [], 0
+        self.history = []                                                      # message responses, for the conversation view
+
+    def __getattr__(self, name):
+        if name in ("vault", "vault_kind", "audit", "events", "gw", "reg", "logs", "vecs", "evals", "adapters", "root"):
+            return getattr(self.ws, name)
+        raise AttributeError(name)
 
     def reg_path(self):
         return os.path.join(self.root, "registry.json")
 
 
-S = {"s": None}
+WS = {"ws": None}
+CASE = contextvars.ContextVar("case", default=None)
+
+
+class CaseMiddleware:
+    """Pure ASGI: reads the X-Case header (which borrower case a request is about) into a context variable that sess() uses."""
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            v = dict(scope["headers"]).get(b"x-case")
+            tok = CASE.set(v.decode() if v else None)
+            try:
+                await self.app(scope, receive, send)
+            finally:
+                CASE.reset(tok)
+        else:
+            await self.app(scope, receive, send)
 
 
 def sess():
-    if S["s"] is None:
-        S["s"] = Session()
-    return S["s"]
+    ws = WS["ws"]
+    return ws.borrowers.get(CASE.get()) or ws.last
 
 
-def new_session(name="Ramesh Kumar"):
-    S["s"] = Session(name)
-    return S["s"]
+def new_session(name="Borrower"):
+    return WS["ws"].add(name)
+
+
+SEEDS = [
+    ("Ramesh Kumar", [("Agent", "Hello sir, am I speaking with Ramesh Kumar?"), ("Customer", "Yes, speaking."), ("Agent", "Please confirm your registered mobile number."), ("Customer", "nine eight four five zero"),
+                      ("Agent", "Yes, go on."), ("Customer", "one two three four five"), ("Agent", "Your PAN card number please."), ("Customer", "ABCPK1234L. This is Kumar here."),
+                      ("Agent", "Your EMI of \u20b94,200 is due on the 5th. Thank you."), ("Customer", "Okay, I will pay by the 7th.")]),
+    ("Priya Nair", [("Agent", "\u0b89\u0b99\u0bcd\u0b95\u0bb3\u0bcd \u0bae\u0bca\u0baa\u0bc8\u0bb2\u0bcd \u0b8e\u0ba3\u0bcd\u0ba3\u0bc8\u0b9a\u0bcd \u0b9a\u0bca\u0bb2\u0bcd\u0bb2\u0bc1\u0b99\u0bcd\u0b95\u0bb3\u0bcd."), ("Customer", "\u0b8e\u0ba9\u0bcd \u0ba8\u0bae\u0bcd\u0baa\u0bb0\u0bcd \u0b92\u0ba9\u0bcd\u0baa\u0ba4\u0bc1 \u0b8e\u0b9f\u0bcd\u0b9f\u0bc1 \u0ba8\u0bbe\u0ba9\u0bcd\u0b95\u0bc1 \u0b90\u0ba8\u0bcd\u0ba4\u0bc1"),
+                    ("Agent", "\u0ba4\u0bca\u0b9f\u0bb0\u0bc1\u0b99\u0bcd\u0b95\u0bb3\u0bcd."), ("Customer", "\u0baa\u0bc2\u0b9c\u0bcd\u0baf\u0bae\u0bcd \u0b92\u0ba9\u0bcd\u0bb1\u0bc1 \u0b87\u0bb0\u0ba3\u0bcd\u0b9f\u0bc1 \u0bae\u0bc2\u0ba9\u0bcd\u0bb1\u0bc1 \u0ba8\u0bbe\u0ba9\u0bcd\u0b95\u0bc1 \u0b90\u0ba8\u0bcd\u0ba4\u0bc1. \u0b8e\u0ba9\u0bcd \u0baa\u0bc6\u0baf\u0bb0\u0bcd \u0baa\u0bbf\u0bb0\u0bbf\u0baf\u0bbe \u0ba8\u0bbe\u0baf\u0bb0\u0bcd.")]),
+    ("Suresh Patil", [("Agent", "Please share your Aadhaar number."), ("Customer", "\u092e\u093e\u091d\u093e \u0928\u0902\u092c\u0930 \u0928\u090a \u0906\u0920 \u091a\u093e\u0930 \u092a\u093e\u091a \u0936\u0942\u0928\u094d\u092f \u090f\u0915 \u0926\u094b\u0928 \u0924\u0940\u0928 \u091a\u093e\u0930 \u092a\u093e\u091a \u0906\u0939\u0947. \u092e\u093e\u091d\u0947 \u0928\u093e\u0935 \u0938\u0941\u0930\u0947\u0936 \u092a\u093e\u091f\u0940\u0932 \u0906\u0939\u0947.")]),
+    ("Lakshmi Devi", [("Agent", "Please confirm your email address."), ("Customer", "My email is lakshmi.devi@example.com"), ("Agent", "Thank you. Your EMI is due on the 5th."), ("Customer", "I will pay through UPI lakshmi@okbank")]),
+]
+
+
+def seed_workspace():
+    ws = WS["ws"]
+    for name, turns in SEEDS:
+        s = ws.add(name)
+        for who, text in turns:
+            _message(s, Msg(text=text, speaker=who))
+    ws.last = next(iter(ws.borrowers.values()))
 
 
 @asynccontextmanager
 async def lifespan(app):
     t = time.perf_counter()
     DET["det"] = RecordingDetector(make_detector(model=True))
-    sess()
+    WS["ws"] = Workspace()
     DET["det"].inner.detect_calls([[{"speaker": "Customer", "text": "warm up my number is nine eight four five"}]])     # first call is slow (model load)
+    seed_workspace()
     url = f"http://127.0.0.1:{PORT}"
-    print(f"\n{'=' * 64}\n  READY in {time.perf_counter() - t:.1f}s (vault: {S['s'].vault_kind})\n  Open  {url}   in your browser (Ctrl+C here to stop)\n{'=' * 64}\n", flush=True)
+    print(f"\n{'=' * 64}\n  READY in {time.perf_counter() - t:.1f}s (vault: {WS['ws'].vault_kind}, {len(WS['ws'].borrowers)} sample cases)\n  Open  {url}   in your browser (Ctrl+C here to stop)\n{'=' * 64}\n", flush=True)
     if not os.environ.get("DEMO_NO_BROWSER"):
         try:
             import webbrowser
@@ -154,6 +220,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title="TE-03 demo console", lifespan=lifespan)
+app.add_middleware(CaseMiddleware)
 
 
 # ---------------------------------------------------------------- helpers
@@ -188,14 +255,20 @@ def vault_rows(S_):
 
 
 def store_snapshot(S_):
+    """This borrower's records in every store (other borrowers' records are not shown)."""
     known = S_.reg.known_for(S_.B)
     known_ids = {i for ids in known.values() for i in ids}
+    planted_ids = {x.rsplit(":", 1)[-1] for x in S_.planted_items}
     out = []
     for a in StoreCatalog(S_.root).all():
         ids = [i for i, _, _ in a.records()]
-        out.append({"store": a.name, "registered_store": bool(a.registered), "count": a.count(),
-                    "records": [{"id": i, "in_registry": i in known_ids} for i in ids[:40]],
-                    "unregistered_records": sum(1 for i in ids if i not in known_ids)})
+        mine = [i for i in ids if i in known_ids or i in planted_ids]
+        if not a.registered and not mine:
+            continue
+        rel = os.path.relpath(a.path, ROOT) if getattr(a, "path", None) else a.name
+        out.append({"store": a.name, "path": rel, "registered_store": bool(a.registered), "count": len(mine),
+                    "records": [{"id": i, "in_registry": i in known_ids} for i in mine[:300]],
+                    "unregistered_records": sum(1 for i in mine if i not in known_ids)})
     return out
 
 
@@ -208,7 +281,9 @@ def lineage_graph(S_):
     for r in sorted(refs):
         kind, ident = r.split(":", 1) if ":" in r else ("?", r)
         md = reg.ref_metadata.get(r, {})
-        nodes.append({"id": r, "kind": kind, "label": ident, "purpose": md.get("purpose"), "consent_id": md.get("consent_id")})
+        nodes.append({"id": r, "kind": kind, "label": ident, "purpose": md.get("purpose"), "consent_id": md.get("consent_id"),
+                      "parents": sorted(reg.parents.get(r, ())), "children": sorted(reg.children.get(r, ())), "tokens": sorted(reg.ref_tokens.get(r, ())),
+                      "conversations": sorted(reg.ref_conv.get(r, ()))})
     edges = [{"from": p, "to": c, "relation": reg.relation.get((p, c), "derived_from")} for p in refs for c in reg.children.get(p, ()) if c in refs]
     return {"borrower": "borrower (name kept only as keyed hash)", "conversation": S_.CID, "nodes": nodes, "edges": edges}
 
@@ -231,7 +306,7 @@ def status():
     s = sess()
     return {"session": s.sid, "vault": s.vault_kind, "detector": "rules + spoken engine + Chitragupta (XLM-R, int8 ONNX)", "llm_live": LLM["live"], "llm_model": BEDROCK_MODEL,
             "stores": "MOCK (JSONL files; real layout not provided)", "turns": s.n, "chain_len": len(_records(s)), "planted": s.planted, "erased": s.erased,
-            "borrower_name": s.name}
+            "borrower_name": s.name, "conversation": s.CID, "borrower": s.B, "borrower_hash": s.audit.hash_borrower(s.B)[:16], "case": s.case, "cases": len(WS["ws"].borrowers)}
 
 
 @app.get("/api/content")
@@ -250,14 +325,35 @@ def llm_toggle(b: LlmToggle):
 
 
 class NewSession(BaseModel):
-    name: str = "Ramesh Kumar"
+    name: str = "Borrower"
+
+
+def case_summary(s):
+    last = s.history[-1] if s.history else None
+    ok = [h for h in s.history if h.get("status") not in ("blocked", "erased")]
+    return {"sid": s.sid, "case": s.case, "hash": s.audit.hash_borrower(s.B)[:16], "messages": s.n, "state": "ERASED" if s.erased else "ACTIVE",
+            "last_ts": last["ts"] if last else None, "preview": (ok[-1]["l3"].get("llm_saw") if ok and not s.erased else None), "planted": s.planted,
+            "key_present": s.vault.has_key(s.B), "values": len(s.vault.entries_for_borrower(s.B)), "conversation": s.CID, "borrower": s.B}
+
+
+@app.get("/api/cases")
+def cases():
+    return [case_summary(x) for x in WS["ws"].borrowers.values()]
+
+
+@app.get("/api/case/{sid}")
+def case_detail(sid: str):
+    s = WS["ws"].borrowers.get(sid)
+    if not s:
+        raise HTTPException(404, "no such case")
+    return {"summary": case_summary(s), "history": s.history}
 
 
 @app.post("/api/session/new")
 def session_new(b: NewSession):
     with LOCK:
-        new_session(b.name.strip() or "Ramesh Kumar")
-    return status()
+        s = new_session(b.name.strip() or "Borrower")
+    return case_summary(s)
 
 
 # ---------------------------------------------------------------- API: one message through layers 1-5 and 7
@@ -272,10 +368,13 @@ class Msg(BaseModel):
 
 @app.post("/api/message")
 def message(m: Msg):
+    return _message(sess(), m)
+
+
+def _message(s, m):
     with LOCK:
-        s = sess()
         if s.erased:
-            raise HTTPException(409, "session already erased: start a new session")
+            raise HTTPException(409, "this borrower has been erased")
         before = len(_records(s))
         DET["det"].blind = (m.detector == "blind")
         if m.llm_live is not None:
@@ -312,14 +411,14 @@ def message(m: Msg):
         l4 = {"purpose": m.purpose, "gateway_decision": "denied" if str(out.get("reason", "")).startswith("consent") else "allowed", "writes": []}
         l5 = {"added": []}
         if ok and masked:
-            rid = f"log-{s.n:03d}"
+            rid = f"log-{s.case}-{s.n:03d}"
             tag = new_tag(m.purpose, consent_id=m.consent_id, explicit=False, note="loan servicing", borrower_id=s.B)
             written = guarded_write("logs", {"id": rid, "conversation_id": s.CID, "speaker": m.speaker, "text": masked, "consent": tag}, s.logs, s.audit)
             l4["writes"].append({"store": "logs", "id": rid, "allowed": written})
             if written:
                 s.reg.register_write(s.B, "logs", rid, masked_text=masked, conversation_id=s.CID, purpose=m.purpose)
                 l5["added"].append(ref("log", rid))
-            cid_ = f"vec-{s.n:03d}"
+            cid_ = f"vec-{s.case}-{s.n:03d}"
             vrec = {"id": cid_, "conversation_id": s.CID, "text": masked, "embedding": [round(float(x), 4) for x in embed(masked)], "consent": tag}
             written = guarded_write("vector_store", vrec, s.vecs, s.audit)
             l4["writes"].append({"store": "vector_store", "id": cid_, "allowed": written})
@@ -347,9 +446,13 @@ def message(m: Msg):
             s.turns.append({"speaker": m.speaker, "masked": masked})
         entries, keys = vault_rows(s)
         l2 = {"tokens_this_message": sorted(set(toks)), "entries": entries, "keys": keys, "vault": s.vault_kind}
-        return {"turn": s.n, "speaker": m.speaker, "text": m.text, "status": out.get("status"), "reason": out.get("reason"),
+        res = {"turn": s.n, "speaker": m.speaker, "text": m.text, "status": out.get("status"), "reason": out.get("reason"),
+                "request_id": out.get("request_id"), "ts": time.time(), "conversation_id": s.CID, "borrower_hash": s.audit.hash_borrower(s.B)[:16], "purpose": m.purpose,
+                "canonical_purpose": out.get("purpose"), "consent_id": m.consent_id, "message_id": f"msg-{s.n:03d}",
                 "l1": l1, "l2": l2, "l3": l3, "l4": l4, "l5": l5, "l7": {"events": new_events, "chain_len": len(recs), "head": recs[-1]["hash"][:16] if recs else None},
                 "demo_note": "the raw text is returned only so the console can draw highlights; the production gateway never returns it"}
+        s.history.append(res)
+        return res
 
 
 # ---------------------------------------------------------------- API: layer 2 (vault)
@@ -448,19 +551,28 @@ def plant():
         pan = by.get("PAN")
         pieces = [f"{k}={v}" for k, v in (("name", name), ("mobile", phone), ("pan", pan)) if v] or [f"value={next(iter(s.values))}"]
         summary = "Summary: " + ", ".join(pieces) + ". Borrower promised to pay the EMI."
-        s.vecs.put({"id": "vec-derived-summary", "text": summary, "conversation_id": None, "embedding": [round(float(x), 4) for x in embed(summary)], "consent": new_tag("service", borrower_id=s.B)})
-        s.logs.put({"id": "log-debug-retry", "conversation_id": None, "consent": new_tag("service"), "text": "DEBUG retry payload " + " ".join(pieces)})
-        with open(os.path.join(s.root, "debug_dump", "app_debug.jsonl"), "w", encoding="utf-8") as f:
-            f.write(json.dumps({"id": "dbg-0", "text": "crash dump: customer " + " ".join(pieces)}) + "\n")
+        s.vecs.put({"id": f"vec-derived-summary-{s.case}", "text": summary, "conversation_id": None, "embedding": [round(float(x), 4) for x in embed(summary)], "consent": new_tag("service", borrower_id=s.B)})
+        s.logs.put({"id": f"log-debug-retry-{s.case}", "conversation_id": None, "consent": new_tag("service"), "text": "DEBUG retry payload " + " ".join(pieces)})
+        with open(os.path.join(s.root, "debug_dump", f"app_debug_{s.case}.jsonl"), "w", encoding="utf-8") as f:
+            f.write(json.dumps({"id": f"dbg-{s.case}", "text": "crash dump: customer " + " ".join(pieces)}) + "\n")
         s.reg.save(s.reg_path())
         s.planted = True
-        return {"planted": [{"store": "vector_store", "id": "vec-derived-summary", "what": "derived summary chunk (not in the registry)"},
-                            {"store": "logs", "id": "log-debug-retry", "what": "application debug log holding RAW values"},
+        s.planted_items = [f"vector_store:vec-derived-summary-{s.case}", f"logs:log-debug-retry-{s.case}", f"unmapped:debug_dump/app_debug_{s.case}.jsonl:dbg-{s.case}"]
+        return {"planted": [{"store": "vector_store", "id": f"vec-derived-summary-{s.case}", "what": "derived summary chunk (not in the registry)"},
+                            {"store": "logs", "id": f"log-debug-retry-{s.case}", "what": "application debug log holding RAW values"},
                             {"store": "unmapped:debug_dump/app_debug.jsonl", "id": "dbg-0", "what": "crash dump in a folder nobody registered"}],
                 "stores": store_snapshot(s)}
 
 
 # ---------------------------------------------------------------- API: layer 6 (erasure)
+@app.get("/api/erasure")
+def erasure_view():
+    s = sess()
+    return {"requests": s.ws.requests, "borrower": {"id": s.B, "case": s.case, "sid": s.sid, "hash": s.audit.hash_borrower(s.B)[:16], "conversation": s.CID, "messages": s.n, "state": "ERASED" if s.erased else "ACTIVE"},
+            "stores": store_snapshot(s), "vault_entries": len(s.vault.entries_for_borrower(s.B)), "key_present": s.vault.has_key(s.B), "planted": s.planted_items,
+            "methods": ["registry", "conversation_sweep", "raw_value_sweep(sealed)", "independent_collapsed_scan(sealed)", "derivative_sweep", "vector_probe", "file_grep", "unmapped_store_discovery"]}
+
+
 @app.post("/api/erase")
 def erase_borrower():
     s = sess()
@@ -471,15 +583,17 @@ def erase_borrower():
             raise HTTPException(400, "nothing to erase yet")
         needles = [v for v in s.values if len(v) >= 4]
         s.reg.save(s.reg_path())
-        before_stores = {a.name: a.count() for a in StoreCatalog(s.root).all()}
+        before_stores = {x["store"]: x["count"] for x in store_snapshot(s)}
         raw_before = raw_scan(s, needles)
         vault_before = len(s.vault.entries_for_borrower(s.B))
         t0 = time.perf_counter()
         app_ = build_agent(s.root, s.vault, s.reg, s.audit, registry_path=s.reg_path())
-        out = erase(app_, {"request_id": f"ER-{s.sid}", "borrower_id": s.B})
+        out = erase(app_, {"request_id": f"ER-{s.case}-{uuid.uuid4().hex[:4]}", "borrower_id": s.B})
         secs = time.perf_counter() - t0
         ok, bad, why = s.audit.verify_chain()
-        after_stores = {a.name: a.count() for a in StoreCatalog(s.root).all()}
+        s.ws.reload_stores()
+        after_snap = {x["store"]: x["count"] for x in store_snapshot(s)}
+        after_stores = {k: after_snap.get(k, 0) for k in before_stores}
         raw_after = raw_scan(s, needles)
         toks = sorted(set(TOKEN.findall(" ".join(t.get("masked", "") for t in s.turns)))) if s.turns else []
         try:
@@ -489,10 +603,17 @@ def erase_borrower():
             probe_result = f"decrypt failed ({type(e).__name__})"
         s.gw.forget(s.CID)
         s.erased = True
+        s.values.clear()
+        s.turns.clear()
+        s.history = [{"turn": h["turn"], "message_id": h["message_id"], "ts": h["ts"], "speaker": h["speaker"], "status": "erased"} for h in s.history]     # raw text must not outlive the erasure, even in this demo server
         rec = out["record"]
         s.last_erasure = rec
         clean = raw_after == 0 and not s.vault.entries_for_borrower(s.B)
-        return {"status": out["status"], "trace": out["trace"], "secs": round(secs, 2), "stores_before": before_stores, "stores_after": after_stores,
+        s.ws.requests.append({"case": s.case, "sid": s.sid, "request_id": rec["request_id"], "status": out["status"], "secs": round(secs, 2), "ts": rec["ts"], "audit_seq": rec["seq"], "hash": rec["hash"],
+                              "borrower_hash": rec["borrower_hash"], "stores": len(rec["stores"]), "found": sum(x["found"] for x in rec["stores"]), "clean": clean})
+        s.requests.append({"request_id": rec["request_id"], "status": out["status"], "secs": round(secs, 2), "ts": rec["ts"], "audit_seq": rec["seq"], "hash": rec["hash"],
+                           "borrower_hash": rec["borrower_hash"], "stores": len(rec["stores"]), "found": sum(x["found"] for x in rec["stores"]), "clean": clean})
+        return {"request_id": rec["request_id"], "audit_seq": rec["seq"], "ts": rec["ts"], "full_hash": rec["hash"], "full_borrower_hash": rec["borrower_hash"], "status": out["status"], "trace": out["trace"], "secs": round(secs, 2), "stores_before": before_stores, "stores_after": after_stores,
                 "raw_before": raw_before, "raw_after": raw_after, "vault_before": vault_before, "vault_after": len(s.vault.entries_for_borrower(s.B)),
                 "key_present": s.vault.has_key(s.B), "probe": probe_result, "clean": clean, "record": {k: rec[k] for k in ("seq", "request_id", "status", "passes", "stores", "vault", "methods", "methods_run",
                                                                                                          "probabilistic", "unresolved_count", "unregistered_stores_with_hits", "escalate")},
@@ -599,6 +720,29 @@ def _corpus_rows(lang):
                 _CORPUS_INDEX.setdefault(m.group(1).decode() if m else "?", []).append(off)
                 off += len(line)
     return path, _CORPUS_INDEX.get(lang) or [o for v in _CORPUS_INDEX.values() for o in v]
+
+
+@app.get("/api/data/list")
+def data_list(lang: str = "", page: int = 0, size: int = 40):
+    path, offs = _corpus_rows(lang)
+    out = []
+    with open(path, "rb") as f:
+        for off in offs[page * size:(page + 1) * size]:
+            f.seek(off)
+            r = json.loads(f.readline())
+            out.append({"id": r["id"], "lang": r["lang"], "scenario": r["scenario"], "channel": r["channel"], "form": r["form"], "primary_pii": r.get("primary_pii"),
+                        "spans": len(r["spans"]), "turns": len(r["turns"]), "hard": r.get("hard"), "offset": off})
+    return {"rows": out, "total": len(offs), "page": page, "size": size, "languages": sorted(k for k in _CORPUS_INDEX if k != "?"), "per_language": {k: len(v) for k, v in _CORPUS_INDEX.items() if k != "?"}}
+
+
+@app.get("/api/data/row")
+def data_row(offset: int):
+    path, _ = _corpus_rows("")
+    with open(path, "rb") as f:
+        f.seek(offset)
+        r = json.loads(f.readline())
+    return {"id": r["id"], "lang": r["lang"], "scenario": r["scenario"], "channel": r["channel"], "form": r["form"], "text": r["text"], "turns": r["turns"],
+            "spans": [{"start": x["start"], "end": x["end"], "type": x["type"], "turn": x.get("turn"), "rendering": x.get("rendering"), "value": x.get("value"), "group": x.get("group_id")} for x in r["spans"]]}
 
 
 @app.get("/api/data/sample")

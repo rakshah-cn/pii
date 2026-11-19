@@ -5,7 +5,7 @@ import re
 
 from ..core import encryption as enc
 from ..core.blind_index import blind_index
-from ..core.errors import KeyStateError, VaultDenied, VaultUnavailable
+from ..core.errors import KeyStateError, ValidationFailed, VaultDenied, VaultUnavailable
 from ..database.connection import ConflictError
 from ..core.sealed_match import SealedMaterial
 from .context import VaultContext
@@ -38,17 +38,24 @@ class InternalOps:
             if (not row or not caller.covers_borrower(row["borrower_id"]) or row["record_status"] != "ACTIVE" or row["mapping_status"] != "ACTIVE"
                     or any(x is not None and x <= now for x in (row["mapping_expires_at"], row["record_expires_at"]))):
                 raise VaultDenied("token_not_found")
+            try:
+                c.engine.authorize(caller, "tokenize", row["borrower_id"], row["purpose_id"], policy=False)      # the caller's PURPOSE scope too, not only its borrower scope (extend rewrites the record)
+            except VaultDenied:
+                raise VaultDenied("token_not_found")                                                              # same answer as an unknown token: a caller outside its scope learns nothing
             key, dek = self._dek(tx, row["borrower_id"])
             cur = self._plain(row, dek)
             new = joined if joined else (cur if not piece else f"{cur} {piece}")
             if new == cur:
                 return token
+            if len(new) > c.settings.max_value_len:
+                raise ValidationFailed("bad_value")                                                               # the same limit tokenise enforces
             counter = c.repo.allocate_nonces(tx, key["key_id"], 1, c.settings.key_usage_limit)     # every encryption under a DEK takes a counter, not only first inserts
             nonce, ct = enc.encrypt(dek, new, enc.record_aad(row["borrower_id"], row["conversation_id"], row["vault_id"], row["pii_type"], row["key_id"]), nonce=c.nonces.nonce(counter))
             c.repo.update_cipher(tx, row["vault_id"], ct, nonce)
-            digest = blind_index(c.keys.blind_key(), row["borrower_id"], row["conversation_id"], row["purpose_id"], row["pii_type"], new)
+            bv = c.persisted_versions(tx)[1]
+            digest = blind_index(c.keys.blind_key(bv), row["borrower_id"], row["conversation_id"], row["purpose_id"], row["pii_type"], new)
             try:
-                c.repo.replace_index(tx, row["vault_id"], c.keys.current_blind_version, digest)
+                c.repo.replace_index(tx, row["vault_id"], bv, digest)
             except ConflictError:
                 raise VaultDenied("value_collision")
             c.repo.log_op(tx, "EXTEND", row["borrower_id"], None, caller.name, "SUCCESS", vault_id=row["vault_id"])

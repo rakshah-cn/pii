@@ -215,14 +215,14 @@ def test_a_v1_database_is_upgraded_in_place_keeping_its_data():
     db = Database(url)
     assert db.migrated_from == 1
     with db.transaction() as tx:
-        assert tx.one("SELECT value FROM vault_meta WHERE key = 'schema_version'")["value"] == "3"
+        assert tx.one("SELECT value FROM vault_meta WHERE key = 'schema_version'")["value"] == "4"
         r = tx.one("SELECT status, expires_at, expired_at FROM vault_records WHERE vault_id = 'v_old'"); assert r == {"status": "ACTIVE", "expires_at": None, "expired_at": None}
         assert tx.one("SELECT status, expires_at FROM token_mappings WHERE token_id = 't_old'")["expires_at"] is None
         tx.execute("UPDATE vault_records SET status = 'EXPIRED' WHERE vault_id = 'v_old'")                   # the widened CHECK accepts EXPIRED
         tx.execute("UPDATE token_mappings SET status = 'EXPIRED' WHERE token_id = 't_old'")
         for t in ("key_nonce_state", "vault_record_tombstones", "vault_idempotency"): tx.query(f"SELECT 1 FROM {t}")
     expect(Exception, lambda: db.transaction().__enter__().execute("UPDATE vault_records SET status = 'BOGUS'"))
-    db2 = Database(url); assert db2.migrated_from == 3, "running it again is a no-op"
+    db2 = Database(url); assert db2.migrated_from == 4, "running it again is a no-op"
     with db2.transaction() as tx: assert tx.one("SELECT COUNT(*) AS n FROM vault_records")["n"] == 1
 
 

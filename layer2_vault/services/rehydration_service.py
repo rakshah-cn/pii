@@ -4,6 +4,7 @@ Checks (all must pass, in order): caller capability -> Layer-4 style purpose/des
 scope and ACTIVE and recorded under the SAME purpose -> unwrap DEK -> AES-GCM decrypt with the record's AAD.
 The request is ATOMIC: one bad token denies the whole request, so nothing partial is ever returned.
 Missing token, wrong scope and wrong purpose all give the SAME error, so the response cannot be used to probe for tokens."""
+from shared.constants import canonical_purpose
 from ..core import encryption as enc
 from ..core.errors import KeyStateError, VaultDenied, VaultError, VaultUnavailable
 from ..schemas.vault_schemas import RehydrateRequest, RehydrateResponse
@@ -47,7 +48,7 @@ class RehydrationService:
             if key is None:
                 raise KeyStateError("key_not_active")
             dek = c.keys.unwrap(key["wrapped_dek"], key["wrap_nonce"], req.borrower_id, key["key_id"], key["kek_version"])
-            purpose = req.purpose_id.casefold()
+            purpose = canonical_purpose(req.purpose_id)
             now = c.clock()
             for token in dict.fromkeys(req.tokens):
                 r = c.repo.mapping_with_record(tx, req.conversation_id, token)

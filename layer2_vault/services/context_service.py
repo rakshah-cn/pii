@@ -13,7 +13,7 @@ import json
 
 from ..core import encryption as enc
 from ..core.errors import DecryptionError, KeyStateError, ValidationFailed, VaultDenied
-from ..schemas.vault_schemas import ID_RE
+from ..schemas.vault_schemas import is_id
 from .context import VaultContext
 
 MAX_BYTES = 65536
@@ -25,8 +25,7 @@ class ContextService:
 
     @staticmethod
     def _check(borrower_id, conversation_id):
-        import re
-        if not all(isinstance(x, str) and re.match(ID_RE, x) for x in (borrower_id, conversation_id)):
+        if not all(is_id(x) for x in (borrower_id, conversation_id)):
             raise ValidationFailed("invalid_request")
 
     @staticmethod
@@ -34,7 +33,8 @@ class ContextService:
         return enc.canonical("ctx", borrower_id, conversation_id, key_id, str(version))
 
     def load(self, borrower_id, conversation_id, caller, newer_than=None, strict=False):
-        """-> None (no usable context) | (version, None) when version <= newer_than (nothing changed) | (version, state dict).
+        """-> None (no usable context) | (version, None) when version == newer_than (nothing changed) | (version, state dict). ANY other version counts as changed, a LOWER one too: after a deletion
+        (erasure, DEK rotation, expiry) the numbering starts again at 1, and a reader that had seen version 5 must not take the new context for an old one.
         strict=True: a borrower that is ERASED or being erased raises VaultDenied('borrower_not_active') instead of returning None, so a caller can tell 'erased' from 'no context yet'
         (the gateway uses it to flush everything it remembers about that borrower)."""
         c = self.ctx
@@ -49,7 +49,7 @@ class ContextService:
             row = c.repo.get_context(tx, borrower_id, conversation_id)
             if row is None or row["expires_at"] <= c.clock():
                 return None
-            if newer_than is not None and row["version"] <= newer_than:
+            if newer_than is not None and row["version"] == newer_than:
                 return row["version"], None
             key = c.repo.active_key(tx, borrower_id)
             if key is None or key["key_id"] != row["key_id"]:

@@ -53,7 +53,7 @@ def run(kms, key_id, make_unreachable=None, out=print):
     def vault():
         from ..compat import ModularVault
         env = {"VAULT_KMS_CIPHERTEXT_V1": box["b1"], "VAULT_KMS_KEY_ID": key_id}
-        st = Settings.from_env({**env, "VAULT_SERVICE_TOKENS": "{}"}, kms_client=kms)
+        st = Settings.from_env({**env, "VAULT_SERVICE_TOKENS": "{}", "VAULT_ALLOW_EPHEMERAL": "1"}, kms_client=kms)       # a throw-away database: this script only proves the KMS path
         assert "VAULT_MASTER_KEY" not in os.environ or True
         with tempfile.TemporaryDirectory() as d:
             v = ModularVault(settings=Settings.for_testing(master_secrets=st.master_secrets, db_url=f"sqlite:///{d}/v.db"))

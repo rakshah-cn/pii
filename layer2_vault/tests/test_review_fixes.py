@@ -154,7 +154,7 @@ def test_config_mistakes_are_rejected_not_silently_accepted():
     expect(ValidationFailed, lambda: ServiceRegistry({"tok-aaaaaaaaaaaaaaaaaa": ("svc", {"tokenize"}), "tok-bbbbbbbbbbbbbbbbbb": ("svc", {"rehydrate"})}))
     expect(ValidationFailed, lambda: Settings.for_testing(rehydrate_policy={"collections": "borrower_reply"}))
     expect(ValidationFailed, lambda: ServiceRegistry({"tok-aaaaaaaaaaaaaaaaaa": ("svc", "tokenize")}))
-    expect(ValidationFailed, lambda: Settings.from_env({"VAULT_MASTER_KEY": os.urandom(32).hex(), "VAULT_SERVICE_TOKENS": json.dumps({"a": {"token": "t" * 20, "capabilities": ["tokenize"]}, "b": {"token": "t" * 20, "capabilities": ["tokenize"]}})}))
+    expect(ValidationFailed, lambda: Settings.from_env({"VAULT_MASTER_KEY": os.urandom(32).hex(), "VAULT_DB_URL": "sqlite:///:memory:", "VAULT_SERVICE_TOKENS": json.dumps({"a": {"token": "t" * 20, "capabilities": ["tokenize"]}, "b": {"token": "t" * 20, "capabilities": ["tokenize"]}})}))
 
 if __name__ == "__main__":
     run(globals())

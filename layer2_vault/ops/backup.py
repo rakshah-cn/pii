@@ -46,7 +46,10 @@ def backup_key(env=None) -> bytes:
     env = os.environ if env is None else env
     if not env.get("VAULT_BACKUP_KEY"):
         raise BackupError("backup_key_missing")                       # no key, no backup: an unencrypted backup is never written
-    return decode_secret(env["VAULT_BACKUP_KEY"])
+    key = decode_secret(env["VAULT_BACKUP_KEY"])
+    if env.get("VAULT_MASTER_KEY") and decode_secret(env["VAULT_MASTER_KEY"]) == key:
+        raise BackupError("backup_key_must_differ_from_master_secret")   # one leaked secret must not open both the vault and its backups
+    return key
 
 
 def _file_key(key: bytes, salt: bytes) -> bytes:
@@ -89,6 +92,8 @@ def decrypt_stream(src, dst, key: bytes) -> dict:
             raise BackupError("bad_backup_header")
         header = src.read(n)
         meta = json.loads(header)
+        if not isinstance(meta.get("chunk"), int) or not 1 <= meta["chunk"] <= (1 << 26) or not isinstance(meta.get("salt"), str):
+            raise BackupError("bad_backup_header")
         aes = AESGCM(_file_key(key, bytes.fromhex(meta["salt"])))
         i = 0
         while True:
@@ -109,7 +114,7 @@ def decrypt_stream(src, dst, key: bytes) -> dict:
                 return meta
     except BackupError:
         raise
-    except (InvalidTag, ValueError, KeyError):
+    except (InvalidTag, ValueError, KeyError, TypeError):
         raise BackupError("backup_authentication_failed")          # wrong key, edited, or reordered: one generic answer
 
 
@@ -129,16 +134,45 @@ def split_url(url):
     return urlunsplit(sp._replace(query=urlencode(q))), schema
 
 
+def _without_password(libpq_url):
+    """(url with NO password, environment for the child process). A password on the command line is readable by every local user (ps, /proc/<pid>/cmdline), so it travels in PGPASSWORD."""
+    sp = urlsplit(libpq_url); q = dict(parse_qsl(sp.query)); pw = sp.password or q.pop("password", None)
+    if pw is None:
+        return libpq_url, None
+    host = sp.hostname or ""
+    netloc = (sp.username + "@" if sp.username else "") + (f"[{host}]" if ":" in host else host) + (f":{sp.port}" if sp.port else "")
+    return urlunsplit(sp._replace(netloc=netloc, query=urlencode(q))), {**os.environ, "PGPASSWORD": pw}
+
+
+def _wipe_and_remove(path, chunk=1 << 20):
+    """Best-effort overwrite with zeros IN SMALL CHUNKS (the old code allocated the whole file in memory, so a big dump could raise MemoryError and skip the delete), then ALWAYS remove.
+    (Overwriting does not defeat SSD wear levelling or journaling: keep the temp directory on an encrypted volume.)"""
+    try:
+        zeros, left = b"\x00" * chunk, os.path.getsize(path)
+        with open(path, "r+b") as f:
+            while left > 0:
+                n = min(chunk, left); f.write(zeros[:n]); left -= n
+            f.flush(); os.fsync(f.fileno())
+    except Exception:                                               # wiping is an extra; failing to wipe must never prevent the delete
+        pass
+    finally:
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+
+
 def backup_postgres(db_url, out_path, key, schema=None):
     """pg_dump (custom format) of the vault schema, piped straight into the encryptor: the plaintext dump never touches the disk."""
     libpq, url_schema = split_url(db_url); schema = schema or url_schema
     if not schema:
         raise ValidationFailed("schema_required")
+    libpq, child_env = _without_password(libpq)
     cmd = [_pg_bin("pg_dump"), "--format=custom", "--no-owner", "--no-privileges", f"--schema={schema}", f"--dbname={libpq}"]
     fd = os.open(out_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     try:
         with os.fdopen(fd, "wb") as dst:
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=child_env)
             n, digest = encrypt_stream(p.stdout, dst, key, {"kind": "postgres", "schema": schema})
             err = p.stderr.read(); rc = p.wait()
         if rc != 0 or n == 0:
@@ -159,31 +193,30 @@ def restore_postgres(in_path, target_url, key, schema=None, clean=False):
             meta = decrypt_stream(src, plain, key)
         if meta.get("kind") != "postgres":
             raise BackupError("not_a_postgres_backup")
+        libpq, child_env = _without_password(libpq)
         cmd = [_pg_bin("pg_restore"), "--no-owner", "--no-privileges", f"--dbname={libpq}"] + (["--clean", "--if-exists"] if clean else []) + [tmp]
-        r = subprocess.run(cmd, capture_output=True)
+        r = subprocess.run(cmd, capture_output=True, env=child_env)
         if r.returncode != 0:
             raise BackupError("pg_restore_failed")
         return meta
     finally:
-        try:
-            with open(tmp, "r+b") as f:                                # best-effort: overwrite before unlinking (does not defeat SSD wear levelling / journaling)
-                f.write(b"\x00" * os.path.getsize(tmp))
-        except OSError:
-            pass
-        os.remove(tmp)
+        _wipe_and_remove(tmp)
 
 
 # ---------------------------------------------------------------- SQLite
 def backup_sqlite(db_path, out_path, key):
     """Consistent online copy via SQLite's backup API (safe while the vault is running), encrypted straight to the output file."""
+    if not os.path.isfile(db_path):
+        raise BackupError("database_not_found")                      # sqlite3.connect would CREATE an empty database at a mistyped path and 'back it up'
     fd, tmp = tempfile.mkstemp(prefix="te03-sqlite-", suffix=".db"); os.close(fd); os.chmod(tmp, 0o600)
     try:
         src = sqlite3.connect(db_path); dst = sqlite3.connect(tmp); src.backup(dst); dst.close(); src.close()
         with open(tmp, "rb") as plain, os.fdopen(os.open(out_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "wb") as out:
             n, digest = encrypt_stream(plain, out, key, {"kind": "sqlite"})
+        os.chmod(out_path, 0o600)                                    # an existing file keeps its old mode otherwise
         return {"bytes_plain": n, "sha256": digest}
     finally:
-        os.remove(tmp)
+        _wipe_and_remove(tmp)                                        # this is a PLAINTEXT copy of the database
 
 
 def restore_sqlite(in_path, dest_path, key):
@@ -202,7 +235,7 @@ def restore_sqlite(in_path, dest_path, key):
         return meta
     finally:
         if tmp and os.path.exists(tmp):
-            os.remove(tmp)
+            _wipe_and_remove(tmp)
 
 
 def main(argv=None):

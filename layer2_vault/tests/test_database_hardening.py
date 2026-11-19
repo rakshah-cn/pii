@@ -268,7 +268,7 @@ def test_every_hot_query_is_served_by_an_index():
                 plan = " | ".join(list(r.values())[0] for r in tx.query("EXPLAIN " + sql.replace("DELETE FROM", "SELECT 1 FROM") if sql.startswith("DELETE") else "EXPLAIN " + sql, params))
                 if "Index" not in plan: bad.append((name, plan))
     assert not bad, bad
-    assert len(INDEXES) >= 16 and all("IF NOT EXISTS" in i for i in INDEXES) and len(TABLES) == 12
+    assert len(INDEXES) >= 16 and all("IF NOT EXISTS" in i for i in INDEXES) and len(TABLES) == 13
 
 
 # ================================================================ restricted roles (scratch cluster)
@@ -307,6 +307,24 @@ def test_pg_restricted_roles_can_run_the_vault_but_cannot_change_schema_read_sec
     assert v.lifecycle.rotate(RotateRequest(target_key_version=1, operation="DEK"), who(st, KO)).deks_rotated == 1
     assert v.rehydration.rehydrate(reh_req(["<PHONE_1>"]), g).values and v.retention.cleanup_expired_records(who(st, "tok-retention-0000000000000"))["status"] == "COMPLETED"
     assert v.deletion.erase(EraseRequest(job_id="J-roles", borrower_id="B1"), who(st, ER)).status == "COMPLETED"
+    # --- ... and EVERY other thing the app does works under the least-privilege grants (tightening must not break a feature): idempotency, context, extend, all four rotations,
+    #     token revocation, conversation-scope erase, retention with key retirement and metadata purge, borrower erase
+    import time as _t
+    from layer2_vault.config.settings import RetentionPolicy, ServiceIdentity
+    gwid, off = ServiceIdentity("gw", frozenset({"context", "tokenize", "admin"})), [0.0]
+    st2 = Settings.for_testing(db_url=app, db_auto_migrate=False, retention=RetentionPolicy(ttl_seconds=60, destroy_idle_keys=True, tombstone_ttl_seconds=60, operations_ttl_seconds=60))
+    v2 = build_services(st2, clock=lambda: _t.time() + off[0]); g2 = who(st2, GW)
+    for _ in range(2): v2.tokenizer.tokenize(tok_req(f"call {PH}", [("PHONE", PH)], borrower="B2", conv="C1", rid="p1"), g2, idempotency_key="idem-key-0001")      # the second one is a replay
+    v2.tokenizer.tokenize(tok_req("mail a@b.co", [("EMAIL", "a@b.co")], borrower="B2", conv="C2", rid="p2"), g2)
+    assert v2.context.save("B2", "C1", {"n": 1}, gwid) == 1 and v2.context.load("B2", "C1", gwid)[1] == {"n": 1}
+    assert v2.internal.extend("C1", "<PHONE_1>", gwid, joined=PH + " 1") == "<PHONE_1>"
+    for op in ("KEK", "BLIND_INDEX", "ALL", "DEK"): assert v2.lifecycle.rotate(RotateRequest(target_key_version=1, operation=op), who(st2, KO)).status == "success", op
+    with psycopg.connect(db_url, autocommit=True) as su: assert su.execute("SELECT version FROM vault.vault_key_state WHERE name = 'kek'").fetchone() == (1,), "the rotation was recorded by the app role"
+    assert v2.lifecycle.revoke_token("C2", "<EMAIL_1>", gwid)
+    assert v2.deletion.erase(EraseRequest(job_id="J-conv", borrower_id="B2", scope="CONVERSATION", conversation_id="C2"), who(st2, ER)).status == "COMPLETED"
+    off[0] = 7200.0                                                                                # two hours later: records, tombstones, log rows and the context have all expired
+    r = v2.retention.cleanup_expired_records(who(st2, "tok-retention-0000000000000")); assert r["status"] == "COMPLETED" and r["records_deleted"] >= 1 and r["operations_purged"] >= 1, r
+    assert v2.deletion.erase(EraseRequest(job_id="J-b2", borrower_id="B2"), who(st2, ER)).status == "COMPLETED"
     # --- what vault_app must NOT be able to do
     def denied(sql, role_url=app):
         raw = role_url.replace("&schema=vault", "").replace("schema=vault&", "") + "&options=-csearch_path%3Dvault"       # libpq does not know the vault-only 'schema' parameter
@@ -317,6 +335,12 @@ def test_pg_restricted_roles_can_run_the_vault_but_cannot_change_schema_read_sec
     assert denied("CREATE TABLE vault.evil (x int)") and denied("DROP TABLE vault.vault_records") and denied("TRUNCATE vault.vault_records")
     assert denied("DROP TRIGGER destroyed_key_is_final ON vault.borrower_keys") and denied("ALTER TABLE vault.borrower_keys DISABLE TRIGGER destroyed_key_is_final")
     assert denied("ALTER TABLE vault.borrower_keys DROP CONSTRAINT borrower_keys_destroyed_check") and denied("CREATE ROLE sneaky") and denied("CREATE EXTENSION pgcrypto")
+    # least privilege (review finding): the app cannot forge the schema version, delete key / state / counter rows, or rewrite the operations log
+    assert denied("UPDATE vault.vault_meta SET value = '1' WHERE key = 'schema_version'") and denied("DELETE FROM vault.vault_meta") and denied("INSERT INTO vault.vault_meta VALUES ('x', 'y')")
+    assert denied("DELETE FROM vault.borrower_keys") and denied("DELETE FROM vault.key_nonce_state") and denied("DELETE FROM vault.vault_key_state") and denied("DELETE FROM vault.borrower_state")
+    assert denied("UPDATE vault.vault_operations SET status = 'FORGED'") and denied("DELETE FROM vault.erasure_jobs")
+    with psycopg.connect(_as("vault_migration", url), autocommit=True) as c: c.execute("CREATE TABLE vault.added_later (x int)")
+    assert denied("SELECT * FROM vault.added_later"), "a table added by a later migration is NOT open to the app role until it is granted on purpose"
     # --- vault_readonly: metadata yes, secrets no, writes no
     for sql in ("SELECT ciphertext FROM vault.vault_records", "SELECT nonce FROM vault.vault_records", "SELECT wrapped_dek FROM vault.borrower_keys", "SELECT index_digest FROM vault.blind_indexes",
                 "SELECT * FROM vault.vault_records", "SELECT request_hash FROM vault.vault_idempotency", "INSERT INTO vault.vault_meta VALUES ('x','y')", "DELETE FROM vault.vault_meta"):

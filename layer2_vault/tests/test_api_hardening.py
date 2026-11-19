@@ -129,7 +129,7 @@ def test_a_revoked_identity_or_credential_is_refused_immediately_even_mid_sessio
 
 
 def test_credentials_are_configured_from_the_environment_with_rotation_scope_and_revocation():
-    env = {"VAULT_MASTER_KEY": os.urandom(32).hex(), "VAULT_REVOKED_SERVICES": '["old-svc"]',
+    env = {"VAULT_MASTER_KEY": os.urandom(32).hex(), "VAULT_DB_URL": "sqlite:///:memory:", "VAULT_REVOKED_SERVICES": '["old-svc"]',
            "VAULT_SERVICE_TOKENS": json.dumps({"gateway": {"capabilities": ["tokenize"], "purposes": ["collections"], "borrowers": ["P-*"],
                                                            "tokens": [{"token": "tok-g1-00000000000000000", "expires_at": 9e9}, {"token": "tok-g2-00000000000000000"}]},
                                                "old-svc": {"capabilities": ["tokenize"], "token": "tok-old-00000000000000000"}})}

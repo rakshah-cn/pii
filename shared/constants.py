@@ -8,3 +8,11 @@ PURPOSES = ("service", "collections", "compliance", "dispute", "analytics", "mod
 
 # alternative spellings accepted everywhere and mapped to the canonical name (the organisers' brief says 'collection')
 PURPOSE_ALIASES = {"collection": "collections"}
+
+
+def canonical_purpose(purpose):
+    """The ONE way to normalise a purpose: strip, case-fold, then map an alias to its canonical name ('collection' -> 'collections').
+    Every place that stores, compares or looks up a purpose (vault scope and blind index, rehydration, retention TTL, service-identity scope, permission policy) uses this,
+    so an alias can never be a separate scope or escape a rule written for the canonical name."""
+    p = str(purpose).strip().casefold()
+    return PURPOSE_ALIASES.get(p, p)

@@ -40,7 +40,7 @@ class DeletionService:
     def _erase(self, req: EraseRequest, caller) -> EraseResponse:
         c = self.ctx
         c.engine.authorize(caller, "erase", req.borrower_id)           # the erasure agent may only erase borrowers inside its scope
-        prev, prior = {}, None
+        prev, we_set = {}, False
         with c.db.transaction() as tx:
             job = c.repo.get_job(tx, req.job_id)
             if job:
@@ -49,19 +49,22 @@ class DeletionService:
                 prev = json.loads(job["counts"] or "{}")
                 if job["status"] == "COMPLETED":
                     return EraseResponse(job_id=req.job_id, status="COMPLETED", counts=self._public(prev), key_destroyed=bool(prev.get("key_destroyed")))
-                prior = prev.get("_prior_state")                      # resume: the state the borrower was in BEFORE this job first touched it
+                we_set = bool(prev.get("_we_set_pending"))            # resume: did THIS job move the borrower to ERASURE_PENDING? (only then may it move them back)
             else:
                 c.repo.upsert_job(tx, req.job_id, req.borrower_id, req.scope, req.conversation_id, "PENDING", {})
-                prior = c.repo.borrower_state(tx, req.borrower_id)    # None / ACTIVE / ERASURE_PENDING / ERASED
-            c.repo.upsert_job(tx, req.job_id, req.borrower_id, req.scope, req.conversation_id, "IN_PROGRESS", dict(prev, _prior_state=prior))
+            c.repo.upsert_job(tx, req.job_id, req.borrower_id, req.scope, req.conversation_id, "IN_PROGRESS", dict(prev, _we_set_pending=we_set))
         counts, key_destroyed = self._public(prev), bool(prev.get("key_destroyed"))
-        meta = lambda: dict(counts, key_destroyed=key_destroyed, _prior_state=prior)
+        meta = lambda: dict(counts, key_destroyed=key_destroyed, _we_set_pending=we_set)
         try:
             self._step("mark_pending")
             with c.db.transaction() as tx:
-                # a CONVERSATION erase must never move a borrower that is already PENDING or ERASED, and never re-open one
-                if req.scope == "BORROWER" or prior in (None, "ACTIVE"):
+                # The CURRENT state is read under lock at every step (a state remembered from when the job first started can be stale: another job may have finished since).
+                # A BORROWER erase always goes to PENDING. A CONVERSATION erase moves only an ACTIVE (or not yet known) borrower, and remembers that it did.
+                cur = c.repo.borrower_state(tx, req.borrower_id)
+                if req.scope == "BORROWER":
                     c.repo.set_borrower_state(tx, req.borrower_id, "ERASURE_PENDING")
+                elif cur in (None, "ACTIVE"):
+                    c.repo.set_borrower_state(tx, req.borrower_id, "ERASURE_PENDING"); we_set = True
                 c.repo.mark_pending(tx, req.borrower_id, req.conversation_id)
             self._step("delete_rows")
             with c.db.transaction() as tx:
@@ -76,8 +79,9 @@ class DeletionService:
             with c.db.transaction() as tx:
                 if req.scope == "BORROWER":
                     c.repo.set_borrower_state(tx, req.borrower_id, "ERASED")
-                elif prior in (None, "ACTIVE"):
-                    c.repo.set_borrower_state(tx, req.borrower_id, "ACTIVE")      # only restore what WE changed; ERASED / PENDING stay as they were
+                elif (we_set and c.repo.borrower_state(tx, req.borrower_id) == "ERASURE_PENDING"
+                      and not c.repo.open_borrower_jobs(tx, req.borrower_id, exclude_job=req.job_id)):
+                    c.repo.set_borrower_state(tx, req.borrower_id, "ACTIVE")      # restore ONLY what this job changed, and never while a borrower-wide erasure is still open; ERASED is final
                 c.repo.upsert_job(tx, req.job_id, req.borrower_id, req.scope, req.conversation_id, "COMPLETED", meta())
                 c.repo.log_op(tx, "DELETE", req.borrower_id, req.job_id, caller.name, "SUCCESS")
         except Exception as e:
@@ -90,6 +94,9 @@ class DeletionService:
                 pass
             c.emit(op="erase", job=req.job_id, caller=caller.name, borrower=req.borrower_id, status="partial_failure", code=code)
             return EraseResponse(job_id=req.job_id, status="PARTIAL_FAILURE", counts=counts, key_destroyed=key_destroyed, note="retry the same job_id; not complete")
-        c.emit(op="erase", job=req.job_id, caller=caller.name, borrower=req.borrower_id, status="completed", scope=req.scope)
+        clean = c.db.scrub()                                           # SQLite: nothing erased may survive in the write-ahead log (PostgreSQL: see RESIDUAL_RISK)
+        c.emit(op="erase", job=req.job_id, caller=caller.name, borrower=req.borrower_id, status="completed", scope=req.scope, files_clean=clean)
         note = ("; ".join(RESIDUAL_RISK) + ". Downstream copies and derived data are Layer 6's job.") if req.scope == "BORROWER" else "rows deleted; the borrower's key is unchanged (not a crypto-shred)"
+        if clean is False:
+            note += " The database write-ahead log could not be emptied just now (a reader was active); it is emptied at the next checkpoint."
         return EraseResponse(job_id=req.job_id, status="COMPLETED", counts=counts, key_destroyed=key_destroyed, note=note)

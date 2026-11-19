@@ -3,6 +3,7 @@ The upgrade is additive (new columns, new tables) plus WIDENING two CHECK constr
 transaction, so a failure leaves the old schema untouched. It never touches data other than adding defaults."""
 import re
 
+from ..core.errors import VaultUnavailable
 from .models import SCHEMA_VERSION, V2_NEW_COLUMNS, V2_WIDENED_CHECKS, TABLES
 
 
@@ -39,6 +40,8 @@ def _widen_check_sqlite(tx, table, ddl_sql):
 def migrate(tx, blob, real):
     """Bring the schema to SCHEMA_VERSION inside the caller's transaction. Returns (from_version, to_version)."""
     start = current_version(tx)
+    if start > SCHEMA_VERSION:
+        raise VaultUnavailable("schema_newer_than_this_code")      # never re-stamp a database written by NEWER code as if it were ours (a later strict open would then pass)
     sub = lambda s: s.replace("{BLOB}", blob).replace("{REAL}", real)
     if start == 0:
         for ddl in TABLES:
@@ -59,7 +62,7 @@ def migrate(tx, blob, real):
                     if marker not in sql:
                         ddl = next(sub(d) for d in TABLES if re.search(rf"CREATE TABLE IF NOT EXISTS {table}\b", d))
                         _widen_check_sqlite(tx, table, ddl.replace("IF NOT EXISTS ", ""))
-    if 0 < start < 3:                                         # v3 added tables only (CREATE ... IF NOT EXISTS leaves existing ones alone)
+    if 0 < start < 4:                                         # v3 and v4 added tables only (CREATE ... IF NOT EXISTS leaves existing ones alone)
         for ddl in TABLES:
             tx.execute(sub(ddl))
     tx.execute("INSERT INTO vault_meta (key, value) VALUES ('schema_version', ?) ON CONFLICT (key) DO UPDATE SET value = ?", (str(SCHEMA_VERSION), str(SCHEMA_VERSION)))

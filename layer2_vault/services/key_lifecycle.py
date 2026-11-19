@@ -10,6 +10,7 @@ from ..schemas.vault_schemas import RotateRequest, RotateResponse
 from .context import VaultContext, log
 
 RESIDUAL_RISK = ("database backups/replicas taken before destruction may still hold the wrapped key",
+                 "PostgreSQL only: the destroyed key row and deleted records stay as dead row versions until VACUUM, and as old page images in WAL segments until those are recycled or their archive expires (SQLite is zero-filled and checkpointed by Database.scrub)",
                  "any retained copy of the master secret that unwrapped it can still decrypt such a copy: rotate the master secret and retire old backups")
 
 
@@ -91,6 +92,11 @@ class KeyLifecycle:
                         reindexed += 1
                 c.repo.log_op(tx, "ROTATE_" + req.operation, None, None, caller.name, "SUCCESS")
                 if do_kek:
+                    c.repo.set_key_state(tx, "kek", target, c.clock())                 # in the SAME transaction: every other process now wraps new keys under this version
+                if do_blind:
+                    c.repo.set_key_state(tx, "blind_index", target, c.clock())
+                remaining = c.repo.keys_by_kek_version(tx)
+                if do_kek:
                     c.keys.current_kek_version = target
                 if do_blind:
                     c.keys.current_blind_version = target
@@ -99,8 +105,9 @@ class KeyLifecycle:
             c.keys.current_kek_version, c.keys.current_blind_version = old_kek, old_blind
             c.settings.current_key_version = old_kek
             raise
+        c.db.scrub()                                                       # the old wrapped keys / digests must not survive in the write-ahead log
         c.emit(op="rotate", caller=caller.name, status="success", kind=req.operation, keys=rewrapped, records=reindexed, version=target)
-        return RotateResponse(operation=req.operation, keys_rewrapped=rewrapped, records_reindexed=reindexed, current_key_version=c.keys.current_kek_version)
+        return RotateResponse(operation=req.operation, keys_rewrapped=rewrapped, records_reindexed=reindexed, current_key_version=c.keys.current_kek_version, keys_by_kek_version=remaining)
 
     def _rotate_deks(self, req: RotateRequest, caller) -> RotateResponse:
         c = self.ctx
@@ -122,7 +129,7 @@ class KeyLifecycle:
                     plain = [(r, enc.decrypt(old_dek, r["nonce"], r["ciphertext"], enc.record_aad(r["borrower_id"], r["conversation_id"], r["vault_id"], r["pii_type"], r["key_id"])))
                              for r in c.repo.records_for(tx, b, with_cipher=True) if r["key_id"] == old["key_id"]]
                     new_id_, new_dek = new_id("key"), c.keys.new_dek()
-                    kv, wnonce, wrapped = c.keys.wrap(new_dek, b, new_id_)
+                    kv, wnonce, wrapped = c.keys.wrap(new_dek, b, new_id_, c.persisted_versions(tx)[0])
                     c.repo.retire_rotated_key(tx, old["key_id"], c.clock())    # one ACTIVE key per borrower: the old one must stop being active first
                     c.repo.insert_key(tx, new_id_, b, wrapped, wnonce, kv, dek_version=target_dek, now=c.clock())
                     c.repo.delete_contexts(tx, b)                              # shared conversation context was encrypted under the old DEK: it is working state, so it is dropped (clients reload from their own memory)
@@ -140,5 +147,8 @@ class KeyLifecycle:
         c.emit(op="rotate", caller=caller.name, status="success" if not failed else "partial_failure", kind="DEK", keys=done, records=reenc)
         note = ("old DEKs are destroyed in this database; backups taken BEFORE the rotation still hold the old wrapped DEKs and the old ciphertext. "
                 "Retire those backups. Run again with the same target_dek_version to retry failed borrowers.")
+        with c.db.transaction() as tx:
+            remaining = c.repo.keys_by_kek_version(tx)
+        c.db.scrub()
         return RotateResponse(status="success" if not failed else "partial_failure", operation="DEK", deks_rotated=done, records_reencrypted=reenc, borrowers_failed=failed,
-                              target_dek_version=target_dek, current_key_version=c.keys.current_kek_version, note=note)
+                              target_dek_version=target_dek, current_key_version=c.keys.current_kek_version, keys_by_kek_version=remaining, note=note)
