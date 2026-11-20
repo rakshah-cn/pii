@@ -15,7 +15,7 @@ from .name_memory import NameMemory
 
 # words that make the next few turns likely to contain an identifier ('armed' state)
 CUES = ["number", "aadhaar", "aadhar", "pan ", "pan.", "account", "loan", "mobile", "phone", "contact",
-        "digits", "nambar", "sankhya", "नंबर", "नम्बर", "संख्या", "ನಂಬರ್", "ಸಂಖ್ಯೆ", "எண்", "நம்பர்",
+        "pan?", "pan,", "pan:", "digits", "nambar", "sankhya", "नंबर", "नम्बर", "संख्या", "ನಂಬರ್", "ಸಂಖ್ಯೆ", "எண்", "நம்பர்",
         "go on", "continue", "the rest", "kyc", "verification"]
 ARM_ON_CUE, ARM_ON_FRAGMENT = 6, 3
 
@@ -63,7 +63,7 @@ class Detector:
                 spans = []
                 if self.use_rules:
                     low = text.casefold()
-                    if any(c in low for c in CUES):
+                    if any(c in low + " " for c in CUES):            # (+ ' ': a cue word at the very end of the turn, 'your PAN', counts)
                         armed = max(armed, ARM_ON_CUE)
                     excl = rules.excluded_ranges(text)
                     sp = rules.find(text, excl) + spoken_engine.find(text, armed > 0, excl)

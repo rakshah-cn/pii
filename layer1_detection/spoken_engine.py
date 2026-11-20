@@ -139,7 +139,7 @@ def _classify(core, armed=False):
         return "T", 1
     if c in _TEENS:
         return "W", 2
-    if len(core) == 1 and core.isalpha() and core.isupper():
+    if len(core) == 1 and core.isalpha() and (core.isupper() or armed):          # a lower-case letter is a spelled letter only in an armed turn (a PAN / loan / number was asked for): 'a' and 'i' are also words
         return "L", 1
     if c in _FILL:
         return "F", 0
@@ -165,6 +165,9 @@ def _tokens(text, excl, armed=False):
         if kind and overlaps(s, e, excl):
             kind = None
         toks.append(dict(i=len(toks), s=s, e=e, kind=kind, units=units, core=core))
+    for k, t in enumerate(toks):                        # a lower-case 'a' / 'i' is a letter of a spelled id only next to another letter or a digit ('c b i s i 6'), never on its own ('i have a pan')
+        if t["kind"] == "L" and t["core"] in ("a", "i") and not any(0 <= j < len(toks) and toks[j]["kind"] in ("L", "D") for j in (k - 1, k + 1)):
+            t["kind"], t["units"] = None, 0
     return toks
 
 
