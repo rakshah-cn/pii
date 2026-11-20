@@ -27,12 +27,13 @@ class ConsentGate:
             decide = layer4_decide
         self._decide, self.store = decide, store
 
-    def check(self, borrower_id, purpose, consent_id=None) -> ConsentDecision:
+    def check(self, borrower_id, purpose, consent_id=None, explicit_consent=False) -> ConsentDecision:
+        # explicit_consent is NEVER inferred from the mere presence of a consent_id: the caller must pass True when it claims explicit consent
         if not isinstance(purpose, str) or not purpose.strip():
             return ConsentDecision(False, None, "missing_purpose")
         canon = ALIASES.get(purpose.strip().casefold(), purpose.strip().casefold())
         try:
-            ok, reason = self._decide(self.store, {"purpose": canon, "consent_id": consent_id, "explicit_consent": bool(consent_id)})
+            ok, reason = self._decide(self.store, {"purpose": canon, "consent_id": consent_id, "explicit_consent": explicit_consent is True})
         except Exception:
             return ConsentDecision(False, None, "consent_unavailable", unavailable=True)
         return ConsentDecision(bool(ok), canon if ok else None, "ok" if ok else str(reason).split(":")[0][:48])

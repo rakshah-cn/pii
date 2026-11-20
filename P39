@@ -1,0 +1,376 @@
+{
+ "P01 list marker 'Section A. <name>'": {
+  "pieces": [
+   "A. Ramesh Kumar"
+  ],
+  "keep": [
+   "A."
+  ]
+ },
+ "P02 'option A. <name>'": {
+  "pieces": [
+   "A. Suresh"
+  ],
+  "keep": [
+   "A."
+  ]
+ },
+ "P03 'Plan B. Then <name>' (no adjacency)": {
+  "pieces": [
+   "Ramesh"
+  ],
+  "keep": [
+   "B.",
+   "Then"
+  ]
+ },
+ "P04 'Vitamin C. <name>'": {
+  "pieces": [
+   "C. Kumar"
+  ],
+  "keep": [
+   "C."
+  ]
+ },
+ "P05 'P.S. <name>'": {
+  "pieces": [
+   "P.S. Ramesh"
+  ],
+  "keep": [
+   "P.S."
+  ]
+ },
+ "P06 'Mr. A. Kumar' (correct)": {
+  "pieces": [
+   "A. Kumar"
+  ],
+  "keep": [
+   "Mr."
+  ]
+ },
+ "P07 'Dr. R. K. Narayan' (correct)": {
+  "pieces": [
+   "R. K. Narayan"
+  ],
+  "keep": [
+   "Dr."
+  ]
+ },
+ "P08 'Q. 3 <name>'": {
+  "pieces": [
+   "Ramesh"
+  ],
+  "keep": [
+   "Q."
+  ]
+ },
+ "P09 list 'A. Ramesh B. Suresh C. Mahesh'": {
+  "pieces": [
+   "A. Ramesh B. Suresh C. Mahesh"
+  ],
+  "keep": []
+ },
+ "P10 name+initial then 'Sorry'": {
+  "pieces": [
+   "Ravi K. Sorry"
+  ],
+  "keep": [
+   "Sorry"
+  ]
+ },
+ "P11 name+initial then 'Kindly'": {
+  "pieces": [
+   "Ravi K. Kindly"
+  ],
+  "keep": [
+   "Kindly"
+  ]
+ },
+ "P12 name+initial then ORG 'HDFC Bank'": {
+  "pieces": [
+   "Ravi K. HDFC"
+  ],
+  "keep": [
+   "HDFC"
+  ]
+ },
+ "P13 name+initial then ORG 'Bajaj Finserv'": {
+  "pieces": [
+   "Ravi K. Bajaj"
+  ],
+  "keep": [
+   "Bajaj"
+  ]
+ },
+ "P14 name+initial then 'Monday' (DATE word)": {
+  "pieces": [
+   "Ravi K. Monday"
+  ],
+  "keep": [
+   "Monday"
+  ]
+ },
+ "P15 name+initial then 'March 15' (DATE)": {
+  "pieces": [
+   "Ravi K. March"
+  ],
+  "keep": [
+   "March"
+  ]
+ },
+ "P16 name+initial then 'Rupees 5000' (AMOUNT)": {
+  "pieces": [
+   "Ravi K. Rupees",
+   "<SPOKEN_NUMBER:5000>"
+  ],
+  "keep": [
+   "Rupees"
+  ]
+ },
+ "P17 name+initial then 'INR 5000' (AMOUNT)": {
+  "pieces": [
+   "Ravi K. INR"
+  ],
+  "keep": [
+   "INR"
+  ]
+ },
+ "P18 name+initial then 'I' (control)": {
+  "pieces": [
+   "Ravi K."
+  ],
+  "keep": [
+   "I"
+  ]
+ },
+ "P19 lower-case next (control)": {
+  "pieces": [
+   "Ravi K."
+  ],
+  "keep": [
+   "is"
+  ]
+ },
+ "P20 'K.?' (control)": {
+  "pieces": [
+   "Ravi K."
+  ],
+  "keep": [
+   "Yes"
+  ]
+ },
+ "P21 'K.Kumar' glued (control)": {
+  "pieces": [
+   "Ravi"
+  ],
+  "keep": []
+ },
+ "P22 Hinglish 'Ravi K. Mujhe'": {
+  "pieces": [
+   "Ravi K. Mujhe"
+  ],
+  "keep": [
+   "Mujhe"
+  ]
+ },
+ "P23 Hinglish 'Suresh P. Aaj'": {
+  "pieces": [
+   "Suresh P. Aaj"
+  ],
+  "keep": [
+   "Aaj"
+  ]
+ },
+ "P24 Marathi (roman) 'Suresh P. Aaj'": {
+  "pieces": [
+   "Suresh P. Aaj"
+  ],
+  "keep": [
+   "Aaj"
+  ]
+ },
+ "P25 Tamil (roman) 'Kumar S. Naalaikku'": {
+  "pieces": [
+   "Kumar S. Naalaikku"
+  ],
+  "keep": [
+   "Naalaikku"
+  ]
+ },
+ "P26 Kannada (roman) 'Ravi K. Naale'": {
+  "pieces": [
+   "Ravi K. Naale"
+  ],
+  "keep": [
+   "Naale"
+  ]
+ },
+ "P27 Kannada script after list marker": {
+  "pieces": [
+   "A. ರಮೇಶ್"
+  ],
+  "keep": [
+   "A."
+  ]
+ },
+ "P28 Tamil script after list marker": {
+  "pieces": [
+   "A. ராமேஷ்"
+  ],
+  "keep": [
+   "A."
+  ]
+ },
+ "P29 Marathi script with Latin initial (correct)": {
+  "pieces": [
+   "A. पाटील"
+  ],
+  "keep": []
+ },
+ "P30 Kannada-script initial 'ಎ.' (not handled)": {
+  "pieces": [
+   "ಕುಮಾರ್"
+  ],
+  "keep": []
+ },
+ "P31 Tamil-script initial 'எஸ்.' (not handled)": {
+  "pieces": [
+   "ராஜன்"
+  ],
+  "keep": []
+ },
+ "P32 Devanagari initial 'एस.' (not handled)": {
+  "pieces": [
+   "नाडर"
+  ],
+  "keep": []
+ },
+ "P33 name+initial then 'KYC'": {
+  "pieces": [
+   "Ravi K. KYC"
+  ],
+  "keep": [
+   "KYC"
+  ]
+ },
+ "P34 name+initial then 'OTP'": {
+  "pieces": [
+   "Ravi K. OTP"
+  ],
+  "keep": [
+   "OTP"
+  ]
+ },
+ "P35 'K. Ravi Kumar from Axis Bank' (correct)": {
+  "pieces": [
+   "K. Ravi Kumar"
+  ],
+  "keep": [
+   "Axis"
+  ]
+ },
+ "P36 'Category A. <name>'": {
+  "pieces": [
+   "A. Ramesh Kumar"
+  ],
+  "keep": [
+   "A."
+  ]
+ },
+ "P37 'Part I. Kumar'": {
+  "pieces": [
+   "I. Kumar"
+  ],
+  "keep": [
+   "I."
+  ]
+ },
+ "P38 name+initial then 'Capital' ORG": {
+  "pieces": [
+   "Priya S. Sunrise"
+  ],
+  "keep": [
+   "Sunrise"
+  ]
+ },
+ "P39 email glued to name+initial": {
+  "pieces": [
+   "<EMAIL:Ravi K. Sharma@gmail.com>"
+  ],
+  "keep": [
+   "gmail.com"
+  ]
+ },
+ "P40 spoken-letters after name 'R. A. M. E. S. H.' (intended)": {
+  "pieces": [
+   "Ramesh",
+   "<SPOKEN_NUMBER:R. A. M. E. S. H>"
+  ],
+  "keep": []
+ },
+ "P41 sentence-final initial then sentence 'Wait'": {
+  "pieces": [
+   "Anil K. Wait"
+  ],
+  "keep": [
+   "Wait"
+  ]
+ },
+ "P42 English 'A.' article-like then name": {
+  "pieces": [
+   "A. Ramesh"
+  ],
+  "keep": [
+   "A."
+  ]
+ },
+ "P43 model tags single letter in 'Option A.'": {
+  "pieces": [
+   "A."
+  ],
+  "keep": [
+   "Then",
+   "Option"
+  ]
+ },
+ "P44 model tags 'Q' of 'Q. Payment' then capital word": {
+  "pieces": [
+   "Q. Payment"
+  ],
+  "keep": [
+   "Payment"
+  ]
+ },
+ "M1 memory: 'S. Nadar' later (correct)": {
+  "pieces": [
+   "Ramesh Nadar",
+   "S. Nadar"
+  ],
+  "keep": []
+ },
+ "M2 memory: 'Option B. Thorat' (list marker)": {
+  "pieces": [
+   "Meena Thorat",
+   "B. Thorat"
+  ],
+  "keep": [
+   "B."
+  ]
+ },
+ "M3 memory: overlapping memory spans 'Ravi K. Sharma'": {
+  "pieces": [
+   "Ravi Sharma",
+   "Ravi K. Sharma"
+  ],
+  "keep": []
+ },
+ "M4 memory: initial+surname word after memory name": {
+  "pieces": [
+   "Anil Kumar",
+   "Anil K. Sorry"
+  ],
+  "keep": [
+   "Sorry"
+  ]
+ }
+}

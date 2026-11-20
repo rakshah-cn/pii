@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice call</title>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#16202e;--mute:#64748b;--line:#e2e8f0;--brand:#2457f5;--ok:#0f9d58;--warn:#b45309;--bad:#c62828;--tok:#e8efff;--tokink:#1d3fbf}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1520;--card:#18212f;--ink:#e6ebf3;--mute:#93a1b5;--line:#27344a;--brand:#6b8cff;--ok:#3ddc84;--warn:#f0b25a;--bad:#ff7a7a;--tok:#22305a;--tokink:#b6c6ff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:14px 24px;background:var(--card);border-bottom:1px solid var(--line)}
+header h1{font-size:16px;margin:0;font-weight:650}header .sp{flex:1}header a{color:var(--brand);text-decoration:none;font-size:13px}
+.pill{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--tok);color:var(--tokink)}
+main{max-width:1180px;margin:0 auto;padding:20px 24px;display:grid;grid-template-columns:300px 1fr 320px;gap:18px;align-items:start}
+@media (max-width:1000px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 0 12px;font-weight:650}
+label{display:block;font-size:12px;color:var(--mute);margin:10px 0 4px}
+select,input[type=text]{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+button{font:inherit;border:0;border-radius:9px;padding:10px 14px;cursor:pointer;background:var(--brand);color:#fff;font-weight:600}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}button:disabled{opacity:.45;cursor:not-allowed}
+button.rec{background:var(--bad)}.row{display:flex;gap:8px;margin-top:12px}.row>*{flex:1}
+.mic{width:100%;padding:16px;font-size:16px;margin-top:12px}
+.status{font-size:13px;color:var(--mute);margin-top:10px;min-height:20px}
+#thread{display:flex;flex-direction:column;gap:12px;min-height:260px}
+.empty{color:var(--mute);text-align:center;padding:60px 10px}
+.turn{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.cols{display:grid;grid-template-columns:1fr 1fr}.col{padding:12px 14px}.col+.col{border-left:1px solid var(--line);background:var(--bg)}
+.cap{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.tok{background:var(--tok);color:var(--tokink);border-radius:5px;padding:0 5px;font:600 13px ui-monospace,Menlo,monospace}
+.bot{padding:12px 14px;border-top:1px solid var(--line)}.bot .who{font-weight:650;font-size:13px}
+.meta{padding:6px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--mute);display:flex;gap:14px;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.chip{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--tok);color:var(--tokink)}.chip.u{background:#fff1d6;color:var(--warn)}
+.blocked{color:var(--bad)}
+.disp{font-size:13px}.badge{display:inline-block;font-weight:700;padding:5px 11px;border-radius:8px;background:var(--tok);color:var(--tokink);margin-bottom:8px}
+.badge.yes{background:#dff5e8;color:var(--ok)}.badge.no{background:#fde4e4;color:var(--bad)}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 12px}dt{color:var(--mute)}dd{margin:0}
+blockquote{margin:6px 0 0;padding-left:10px;border-left:3px solid var(--line);color:var(--mute)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Voice call</h1><span class="pill" id="llm">…</span><span class="sp"></span>
+  <a href="/" target="_blank">Open the console</a>
+</header>
+<main>
+  <section class="card">
+    <h2>Call</h2>
+    <label for="who">Borrower</label>
+    <select id="who"></select>
+    <div class="row"><button id="start">Start call</button><button id="end" class="ghost" disabled>End call</button></div>
+    <button id="mic" class="mic" disabled>Start talking</button>
+    <div class="status" id="status"></div>
+    <label for="typed">Or type instead</label>
+    <input type="text" id="typed" placeholder="type what the customer says" disabled>
+    <div class="row"><button id="send" class="ghost" disabled>Send text</button></div>
+  </section>
+  <section class="card">
+    <h2>Conversation</h2>
+    <div id="thread"><div class="empty">Start a call, then speak.</div></div>
+  </section>
+  <section class="card">
+    <h2>Disposition</h2>
+    <div class="disp" id="disp"><span style="color:var(--mute)">Shown when the call ends.</span></div>
+  </section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const TOK = /(<[A-Z_]+_\d+>)/g;
+let call = null, rec = null, chunks = [], stream = null, timer = null, busy = false;
+
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+function withTokens(parent, text){ String(text || '').split(TOK).forEach(p => parent.appendChild(TOK.test(p) ? (TOK.lastIndex = 0, el('span', 'tok', p)) : document.createTextNode(p))); }
+function setStatus(t, bad){ const s = $('#status'); s.textContent = t || ''; s.style.color = bad ? 'var(--bad)' : ''; }
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  if (!r.ok){ let d = ''; try { d = (await r.json()).detail; } catch(e){} throw new Error(r.status + (d ? ' ' + d : '')); }
+  return r.json();
+}
+function play(b64){ if (!b64) return; try { new Audio('data:audio/wav;base64,' + b64).play().catch(()=>{}); } catch(e){} }
+function scroll(){ const t = $('#thread'); t.lastElementChild && t.lastElementChild.scrollIntoView({block:'nearest'}); }
+function clearEmpty(){ const e = $('#thread .empty'); if (e) e.remove(); }
+
+function addAgent(text, audioNote){
+  clearEmpty();
+  const t = el('div', 'turn'), b = el('div', 'bot'); b.appendChild(el('div', 'who', 'Agent (bot)')); b.appendChild(el('div', '', text)); t.appendChild(b);
+  if (audioNote) t.appendChild(el('div', 'meta', audioNote));
+  $('#thread').appendChild(t); scroll();
+}
+function addTurn(heardRaw, r){
+  clearEmpty();
+  const t = el('div', 'turn'), cols = el('div', 'cols');
+  const c1 = el('div', 'col'); c1.appendChild(el('div', 'cap', 'Customer said (this machine only)')); c1.appendChild(el('div', '', heardRaw || '—'));
+  const c2 = el('div', 'col'); c2.appendChild(el('div', 'cap', 'What the AI received'));
+  if (r.customer_masked){ const d = el('div'); withTokens(d, r.customer_masked); c2.appendChild(d); }
+  else c2.appendChild(el('div', 'blocked', 'Blocked: nothing was sent to the AI (' + (r.reason || r.status) + ')'));
+  if (r.found && r.found.length){ const ch = el('div', 'chips'); r.found.forEach(f => ch.appendChild(el('span', 'chip' + (f.uncertain ? ' u' : ''), f.label + (f.token ? ' → ' + f.token : '')))); c2.appendChild(ch); }
+  cols.appendChild(c1); cols.appendChild(c2); t.appendChild(cols);
+  const b = el('div', 'bot'); b.appendChild(el('div', 'who', 'Agent (bot)')); b.appendChild(el('div', '', r.bot_say || '')); t.appendChild(b);
+  const m = el('div', 'meta'), ms = (k, l) => { if (r[k] !== undefined && r[k] !== null) m.appendChild(el('span', '', l + ' ' + Math.round(r[k]) + ' ms')); };
+  ms('stt_ms', 'speech→text'); ms('pre_llm_ms', 'mask + audit'); ms('gateway_ms', 'AI round trip'); ms('tts_ms', 'text→speech');
+  if (r.tts_error) m.appendChild(el('span', 'blocked', 'speech failed: ' + r.tts_error));
+  if (m.childNodes.length) t.appendChild(m);
+  $('#thread').appendChild(t); scroll();
+}
+
+function showDisposition(d){
+  const box = $('#disp'); box.textContent = '';
+  if (!d.disposition){ box.appendChild(el('div', 'blocked', 'No disposition: ' + (d.error || 'unknown'))); return; }
+  const x = d.disposition, b = el('div', 'badge ' + x.will_pay, x.disposition.replace(/_/g, ' ')); box.appendChild(b);
+  const dl = el('dl');
+  [['Will pay', x.will_pay], ['Amount', x.promised_amount == null ? '—' : 'Rs ' + Number(x.promised_amount).toLocaleString('en-IN')], ['By', x.promised_date || '—'], ['Why', x.reason]]
+    .forEach(([k, v]) => { dl.appendChild(el('dt', '', k)); dl.appendChild(el('dd', '', v)); });
+  box.appendChild(dl);
+  (x.evidence || []).forEach(q => { const bq = el('blockquote'); withTokens(bq, q); box.appendChild(bq); });
+  box.appendChild(el('div', 'cap', '')).style.marginTop = '10px';
+  box.appendChild(el('div', '', d.transcript_trimmed ? 'Transcript was trimmed to fit.' : '')).style.color = 'var(--mute)';
+}
+
+function setCall(on){
+  $('#start').disabled = on; $('#who').disabled = on; $('#end').disabled = !on;
+  $('#mic').disabled = !on; $('#typed').disabled = !on; $('#send').disabled = !on;
+}
+
+async function startCall(){
+  try {
+    setStatus('Starting…');
+    const r = await api('/voice/call/start', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({borrower_id: $('#who').value, audio: true})});
+    call = r; setCall(true); $('#disp').innerHTML = '<span style="color:var(--mute)">Shown when the call ends.</span>';
+    $('#thread').textContent = '';
+    addAgent(r.greeting, r.tts_error ? 'speech failed: ' + r.tts_error + ' (text shown instead)' : null); play(r.audio_b64);
+    setStatus('Call started. Press “Start talking”.');
+  } catch(e){ setStatus('Could not start: ' + e.message, true); }
+}
+
+async function toggleMic(){
+  if (busy) return;
+  if (rec && rec.state === 'recording'){ rec.stop(); return; }
+  try {
+    stream = stream || await navigator.mediaDevices.getUserMedia({audio: true});
+  } catch(e){ setStatus('Microphone not available: ' + e.message + ' (use the text box instead)', true); return; }
+  chunks = [];
+  const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+  rec = mime ? new MediaRecorder(stream, {mimeType: mime}) : new MediaRecorder(stream);
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  rec.onstop = async () => {
+    clearTimeout(timer); $('#mic').textContent = 'Start talking'; $('#mic').classList.remove('rec');
+    const blob = new Blob(chunks, {type: rec.mimeType || 'audio/webm'});
+    if (blob.size < 1500){ setStatus('Too short. Try again.'); return; }
+    await sendAudio(blob);
+  };
+  rec.start(); $('#mic').textContent = 'Stop and send'; $('#mic').classList.add('rec'); setStatus('Listening… (max 25 s)');
+  timer = setTimeout(() => rec && rec.state === 'recording' && rec.stop(), 25000);
+}
+
+async function sendAudio(blob){
+  busy = true; $('#mic').disabled = true; setStatus('Transcribing and checking…');
+  try {
+    const r = await api('/voice/call/' + call.call_id + '/audio', {method: 'POST', headers: {'content-type': blob.type.split(';')[0]}, body: blob});
+    if (r.status === 'no_speech'){ setStatus('No speech heard. Try again.'); }
+    else { addTurn(r.heard, r); play(r.bot_audio_b64); setStatus('Press “Start talking” to reply.');
+      if (r.goodbye){ busy = false; setStatus('Conversation complete — generating the disposition…'); await new Promise(x => setTimeout(x, 2500)); return endCall(); } }
+  } catch(e){ setStatus('Failed: ' + e.message, true); }
+  busy = false; $('#mic').disabled = !call;
+}
+
+async function sendText(){
+  const v = $('#typed').value.trim(); if (!v || busy) return;
+  busy = true; setStatus('Checking…');
+  try {
+    const r = await api('/voice/call/' + call.call_id + '/say', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({text: v, audio: true})});
+    addTurn(v, r); play(r.bot_audio_b64); $('#typed').value = ''; setStatus('');
+    if (r.goodbye){ busy = false; setStatus('Conversation complete — generating the disposition…'); await new Promise(x => setTimeout(x, 2500)); return endCall(); }
+  } catch(e){ setStatus('Failed: ' + e.message, true); }
+  busy = false;
+}
+
+async function endCall(){
+  if (rec && rec.state === 'recording'){ rec.onstop = null; rec.stop(); }
+  setStatus('Working out the disposition…'); $('#end').disabled = true;
+  try {
+    const d = await api('/voice/call/' + call.call_id + '/end', {method: 'POST'});
+    showDisposition(d); setStatus('Call ended.');
+  } catch(e){ setStatus('Could not end: ' + e.message, true); }
+  call = null; setCall(false);
+}
+
+async function boot(){
+  try {
+    const [st, list] = await Promise.all([api('/voice/status'), api('/voice/borrowers')]);
+    $('#llm').textContent = (st.llm || 'no model') + (st.speech_to_text ? ' · speech on' : ' · speech OFF');
+    list.forEach(b => { const o = el('option', '', b.name + ' — ' + b.language); o.value = b.id; $('#who').appendChild(o); });
+    if (!st.speech_to_text) setStatus('Speech is not configured (no SARVAM_API_KEY): the text box still works.', true);
+  } catch(e){ setStatus('Could not reach the server: ' + e.message, true); }
+}
+$('#start').onclick = startCall; $('#end').onclick = endCall; $('#mic').onclick = toggleMic; $('#send').onclick = sendText;
+$('#typed').addEventListener('keydown', e => e.key === 'Enter' && sendText());
+boot();
+</script>
+</body>
+</html>

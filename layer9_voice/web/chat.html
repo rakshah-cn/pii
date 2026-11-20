@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat</title>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#16202e;--mute:#64748b;--line:#e2e8f0;--brand:#2457f5;--me:#2457f5;--meink:#fff;--bot:#eef1f6;--ok:#0f9d58;--bad:#c62828;--warn:#b45309;--tok:#e8efff;--tokink:#1d3fbf}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1520;--card:#18212f;--ink:#e6ebf3;--mute:#93a1b5;--line:#27344a;--brand:#6b8cff;--me:#3452c9;--bot:#212d40;--ok:#3ddc84;--bad:#ff7a7a;--warn:#f0b25a;--tok:#22305a;--tokink:#b6c6ff}}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;padding:14px 24px;background:var(--card);border-bottom:1px solid var(--line)}
+header h1{font-size:16px;margin:0;font-weight:650}.sp{flex:1}header a{color:var(--brand);text-decoration:none;font-size:13px}
+.pill{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--tok);color:var(--tokink)}
+main{flex:1;min-height:0;max-width:1100px;width:100%;margin:0 auto;padding:18px 24px;display:grid;grid-template-columns:1fr 320px;gap:18px}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 0 12px;font-weight:650}
+.chat{display:flex;flex-direction:column;min-height:0;padding:0;overflow:hidden}
+#thread{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.empty{color:var(--mute);text-align:center;margin:auto}
+.msg{max-width:78%;display:flex;flex-direction:column;gap:4px}
+.msg.me{align-self:flex-end;align-items:flex-end}.msg.bot{align-self:flex-start}
+.bubble{padding:9px 13px;border-radius:14px;white-space:pre-wrap;word-break:break-word}
+.me .bubble{background:var(--me);color:var(--meink);border-bottom-right-radius:4px}.bot .bubble{background:var(--bot);border-bottom-left-radius:4px}
+.ai{font-size:12px;color:var(--mute);border:1px dashed var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
+.ai b{font-weight:650;color:var(--ink)}.tok{background:var(--tok);color:var(--tokink);border-radius:5px;padding:0 5px;font:600 12px ui-monospace,Menlo,monospace}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}.chip{font-size:11px;padding:1px 7px;border-radius:99px;background:var(--tok);color:var(--tokink)}.chip.u{background:#fff1d6;color:var(--warn)}
+.blocked{color:var(--bad)}.t{font-size:11px;color:var(--mute)}
+.typing{align-self:flex-start;color:var(--mute);font-size:13px}
+form{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:var(--card)}
+input[type=text],select{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:inherit;width:100%}
+form input{flex:1}
+button{font:inherit;border:0;border-radius:9px;padding:10px 16px;cursor:pointer;background:var(--brand);color:#fff;font-weight:600}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}button:disabled{opacity:.45;cursor:not-allowed}
+label{display:block;font-size:12px;color:var(--mute);margin:10px 0 4px}.row{display:flex;gap:8px;margin-top:12px}.row>*{flex:1}
+.status{font-size:13px;color:var(--mute);margin-top:10px;min-height:20px}
+.badge{display:inline-block;font-weight:700;padding:5px 11px;border-radius:8px;background:var(--tok);color:var(--tokink);margin-bottom:8px}
+.badge.yes{background:#dff5e8;color:var(--ok)}.badge.no{background:#fde4e4;color:var(--bad)}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:13px}dt{color:var(--mute)}dd{margin:0}
+blockquote{margin:6px 0 0;padding-left:10px;border-left:3px solid var(--line);color:var(--mute);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Chat</h1><span class="pill" id="llm">…</span><span class="sp"></span>
+  <a href="/voice/page">Voice call page</a><a href="/" target="_blank">Open the console</a>
+</header>
+<main>
+  <section class="card chat">
+    <div id="thread"><div class="empty">Choose a borrower and start the chat.</div></div>
+    <form id="f"><input type="text" id="typed" placeholder="Type a message and press Enter" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
+  </section>
+  <aside>
+    <section class="card">
+      <h2>Chat</h2>
+      <label for="who">Borrower</label><select id="who"></select>
+      <div class="row"><button id="start">Start chat</button><button id="end" class="ghost" disabled>End chat</button></div>
+      <div class="status" id="status"></div>
+    </section>
+    <section class="card" style="margin-top:18px">
+      <h2>Disposition</h2>
+      <div id="disp"><span style="color:var(--mute)">Shown when the chat ends.</span></div>
+    </section>
+  </aside>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const TOK = /(<[A-Z_]+_\d+>)/g, TOK1 = /^<[A-Z_]+_\d+>$/;
+let chat = null, busy = false;
+const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x !== undefined) e.textContent = x; return e; };
+function withTokens(p, text){ String(text || '').split(TOK).forEach(s => p.appendChild(TOK1.test(s) ? el('span', 'tok', s) : document.createTextNode(s))); }
+function setStatus(t, bad){ const s = $('#status'); s.textContent = t || ''; s.style.color = bad ? 'var(--bad)' : ''; }
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  if (!r.ok){ let d = ''; try { d = (await r.json()).detail; } catch(e){} throw new Error(r.status + (d ? ' ' + d : '')); }
+  return r.json();
+}
+const th = () => $('#thread');
+function addBot(text){ const m = el('div', 'msg bot'); m.appendChild(el('div', 'bubble', text)); th().appendChild(m); m.scrollIntoView({block: 'end'}); return m; }
+function addMe(text, r){
+  const m = el('div', 'msg me'); m.appendChild(el('div', 'bubble', text));
+  const ai = el('div', 'ai'); ai.appendChild(el('b', '', 'What the AI received: '));
+  if (r.customer_masked){ withTokens(ai, r.customer_masked); }
+  else { ai.appendChild(el('span', 'blocked', 'nothing — blocked (' + (r.reason || r.status) + ')')); }
+  if (r.found && r.found.length){ const ch = el('div', 'chips'); r.found.forEach(f => ch.appendChild(el('span', 'chip' + (f.uncertain ? ' u' : ''), f.label + (f.token ? ' → ' + f.token : '')))); ai.appendChild(ch); }
+  m.appendChild(ai);
+  if (r.gateway_ms != null) m.appendChild(el('div', 't', 'checked in ' + Math.round(r.pre_llm_ms || 0) + ' ms · reply in ' + Math.round(r.gateway_ms) + ' ms'));
+  th().appendChild(m); return m;
+}
+function setOn(on){ $('#start').disabled = on; $('#who').disabled = on; $('#end').disabled = !on; $('#typed').disabled = !on; $('#send').disabled = !on; if (on) $('#typed').focus(); }
+
+async function start(){
+  try {
+    setStatus('Starting…');
+    chat = await api('/voice/call/start', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({borrower_id: $('#who').value, channel: 'chat'})});
+    th().textContent = ''; $('#disp').innerHTML = '<span style="color:var(--mute)">Shown when the chat ends.</span>';
+    addBot(chat.greeting); setOn(true); setStatus('');
+  } catch(e){ setStatus('Could not start: ' + e.message, true); }
+}
+async function send(ev){
+  ev && ev.preventDefault();
+  const v = $('#typed').value.trim(); if (!v || busy || !chat) return;
+  busy = true; $('#typed').value = ''; $('#send').disabled = true;
+  const wait = el('div', 'typing', 'checking and replying…'); th().appendChild(wait); wait.scrollIntoView({block: 'end'});
+  try {
+    const r = await api('/voice/call/' + chat.call_id + '/say', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({text: v})});
+    wait.remove(); const me = addMe(v, r); addBot(r.bot_say); me.scrollIntoView({block: 'nearest'});
+    if (r.goodbye){ busy = false; setStatus('Conversation complete — generating the disposition…'); await new Promise(x => setTimeout(x, 500)); return end(); }
+  } catch(e){ wait.remove(); setStatus('Failed: ' + e.message, true); }
+  busy = false; $('#send').disabled = !chat; $('#typed').focus();
+}
+function showDisposition(d){
+  const box = $('#disp'); box.textContent = '';
+  if (!d.disposition){ box.appendChild(el('div', 'blocked', 'No disposition: ' + (d.error || 'unknown'))); return; }
+  const x = d.disposition; box.appendChild(el('div', 'badge ' + x.will_pay, x.disposition.replace(/_/g, ' ')));
+  const dl = el('dl');
+  [['Will pay', x.will_pay], ['Amount', x.promised_amount == null ? '—' : 'Rs ' + Number(x.promised_amount).toLocaleString('en-IN')], ['By', x.promised_date || '—'], ['Why', x.reason]]
+    .forEach(([k, v]) => { dl.appendChild(el('dt', '', k)); dl.appendChild(el('dd', '', v)); });
+  box.appendChild(dl);
+  (x.evidence || []).forEach(q => { const b = el('blockquote'); withTokens(b, q); box.appendChild(b); });
+}
+async function end(){
+  setStatus('Working out the disposition…'); $('#end').disabled = true; $('#send').disabled = true; $('#typed').disabled = true;
+  try { showDisposition(await api('/voice/call/' + chat.call_id + '/end', {method: 'POST'})); setStatus('Chat ended.'); }
+  catch(e){ setStatus('Could not end: ' + e.message, true); }
+  chat = null; setOn(false);
+}
+async function boot(){
+  try {
+    const [st, list] = await Promise.all([api('/voice/status'), api('/voice/borrowers')]);
+    $('#llm').textContent = st.llm || 'no model';
+    list.forEach(b => { const o = el('option', '', b.name + ' — ' + b.language); o.value = b.id; $('#who').appendChild(o); });
+  } catch(e){ setStatus('Could not reach the server: ' + e.message, true); }
+}
+$('#start').onclick = start; $('#end').onclick = end; $('#f').onsubmit = send;
+boot();
+</script>
+</body>
+</html>

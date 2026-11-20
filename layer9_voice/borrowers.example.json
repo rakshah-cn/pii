@@ -1,0 +1,5 @@
+[
+  {"id": "demo-1", "name": "Demo Borrower One", "phone": "+910000000001", "language": "English", "product": "Personal loan", "outstanding": 4200, "dpd": 12, "loan_last4": "4821"},
+  {"id": "demo-2", "name": "Demo Borrower Two", "phone": "+910000000002", "language": "Hindi", "product": "Two-wheeler loan", "outstanding": 21450, "dpd": 32, "loan_last4": "7730"},
+  {"id": "demo-3", "name": "Demo Borrower Three", "phone": "+910000000003", "language": "Marathi", "product": "Business loan", "outstanding": 86000, "dpd": 58, "loan_last4": "1904"}
+]

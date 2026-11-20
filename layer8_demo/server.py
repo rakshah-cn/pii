@@ -8,6 +8,8 @@ the same message as every layer saw it. Honest scope (the UI says the same):
 """
 import collections
 import contextvars
+import hashlib
+import secrets
 import json
 import os
 import random
@@ -18,6 +20,7 @@ import sys
 import threading
 import time
 import uuid
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -81,6 +84,7 @@ class RecordingDetector:
 
 DET = {"det": None}
 LLM = {"live": False, "calls": 0, "last_error": None}
+METRICS = {"lat": collections.deque(maxlen=300), "t": collections.deque(maxlen=300), "messages": 0}   # real per-message timings, for the console's gauges (nothing here holds text)
 
 
 def _llm(masked_text):
@@ -103,7 +107,7 @@ class Workspace:
         self.root = os.path.join(UI_ROOT, self.id)
         os.makedirs(os.path.join(self.root, "debug_dump"), exist_ok=True)
         self.vault, self.vault_kind = get_vault()
-        self.audit = AuditLog(os.path.join(self.root, "audit_log.jsonl"))
+        self.audit = EnrichedAuditLog(os.path.join(self.root, "audit_log.jsonl"))
         self.events = Events(sink=Layer7Sink(self.audit))
         self.gw = Gateway(detector=DET["det"], vault=self.vault, events=self.events, llm=_llm)
         self.reg = LineageRegistry()
@@ -112,11 +116,11 @@ class Workspace:
         self.evals = JsonlStore(os.path.join(self.root, "eval_sets.jsonl"), "eval_sets", "eval_sets")
         self.adapters = {"logs": self.logs, "vector_store": self.vecs, "eval_sets": self.evals}
         self.borrowers = collections.OrderedDict()
-        self.requests = []                                                     # privacy (erasure) requests, all borrowers
+        self.privacy = []                                                      # privacy requests (maker-checker workflow), all borrowers
         self.next_case, self.last = 1041, None
 
-    def add(self, name):
-        s = Session(self, name)
+    def add(self, name, profile=None):
+        s = Session(self, name, profile)
         self.borrowers[s.sid] = s
         self.last = s
         return s
@@ -128,8 +132,9 @@ class Workspace:
 
 class Session:
     """One borrower case. Shared things (vault, audit, registry, stores, gateway, root) are read from the workspace."""
-    def __init__(self, ws, name):
+    def __init__(self, ws, name, profile=None):
         self.ws = ws
+        self.profile = profile or {}
         self.sid = "C" + uuid.uuid4().hex[:6]
         self.case = ws.next_case
         ws.next_case += 1
@@ -155,21 +160,100 @@ WS = {"ws": None}
 CASE = contextvars.ContextVar("case", default=None)
 
 
+REQ = contextvars.ContextVar("req", default=None)
+USERS = {
+    "asha": {"name": "Asha Rao", "role": "agent", "title": "Collections agent", "type": "user"},
+    "rohit": {"name": "Rohit Mehta", "role": "privacy_officer", "title": "Privacy officer", "type": "user"},
+    "meera": {"name": "Meera Iyer", "role": "dpo", "title": "Data protection officer", "type": "user"},
+    "vikram": {"name": "Vikram Shah", "role": "auditor", "title": "Internal auditor", "type": "user"},
+    "erasure-agent": {"name": "Erasure agent", "role": "service", "title": "Layer 6 service", "type": "service"},
+}
+AUDIT_READ = ("auditor", "privacy_officer", "dpo")
+
+
 class CaseMiddleware:
-    """Pure ASGI: reads the X-Case header (which borrower case a request is about) into a context variable that sess() uses."""
+    """Pure ASGI. Builds the request context every audit record is stamped with: user, source IP (x-forwarded-for first, as the KB's login table does), user agent, session id, W3C trace id."""
     def __init__(self, app):
         self.app = app
 
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http":
-            v = dict(scope["headers"]).get(b"x-case")
-            tok = CASE.set(v.decode() if v else None)
+            h = {k.decode().lower(): v.decode("latin-1") for k, v in scope["headers"]}
+            ip = (h.get("x-forwarded-for") or "").split(",")[0].strip() or (scope.get("client") or ("", 0))[0]
+            parts = h.get("traceparent", "").split("-")
+            trace = parts[1] if len(parts) == 4 and len(parts[1]) == 32 else secrets.token_hex(16)
+            ctx = {"user": h.get("x-user") or "asha", "ip": ip, "ua": h.get("user-agent", "")[:120], "session": h.get("x-session", ""), "trace_id": trace, "path": scope.get("path"), "method": scope.get("method")}
+            t1, t2 = CASE.set(h.get("x-case")), REQ.set(ctx)
             try:
                 await self.app(scope, receive, send)
             finally:
-                CASE.reset(tok)
+                CASE.reset(t1)
+                REQ.reset(t2)
         else:
             await self.app(scope, receive, send)
+
+
+# event name -> (action, category, service, outcome)
+ACTIONS = {
+    "L3_STARTED": ("gateway.request.received", "gateway", "layer3_gateway", "success"), "L1_DETECT_COMPLETE": ("detection.run", "gateway", "layer1_detection", "success"),
+    "L2_TOKENISE_COMPLETE": ("vault.tokenise", "gateway", "layer2_vault", "success"), "L3_AUDIT_PASSED": ("gateway.audit.passed", "gateway", "layer3_gateway", "success"),
+    "L3_AUDIT_FAILED": ("gateway.audit.failed", "gateway", "layer3_gateway", "failure"), "LLM_RESPONDED": ("llm.respond", "gateway", "layer3_gateway", "success"),
+    "LEAK_PREVENTED": ("gateway.leak.prevented", "gateway", "layer3_gateway", "blocked"), "L3_BLOCKED": ("gateway.request.blocked", "gateway", "layer3_gateway", "blocked"),
+    "CONSENT_DENIED": ("consent.decision", "consent", "layer4_consent", "denied"), "write_allowed": ("store.write", "consent", "layer4_consent", "success"),
+    "write_rejected": ("store.write", "consent", "layer4_consent", "denied"), "write_failed": ("store.write", "consent", "layer4_consent", "failure"),
+    "erasure": ("erasure.execute", "erasure", "layer6_erasure", "success"),
+    "PRIVACY_REQUEST_INITIATED": ("privacy.request.initiate", "privacy", "layer8_app", "success"), "PRIVACY_REQUEST_RECOMMENDED": ("privacy.request.recommend", "privacy", "layer8_app", "success"),
+    "PRIVACY_REQUEST_APPROVED": ("privacy.request.approve", "privacy", "layer8_app", "success"), "PRIVACY_REQUEST_REJECTED": ("privacy.request.reject", "privacy", "layer8_app", "success"),
+    "MAKER_CHECKER_VIOLATION": ("privacy.request.approve", "privacy", "layer8_app", "denied"), "ACCESS_DENIED": ("access.check", "access", "layer8_app", "denied"),
+    "AUDIT_VIEW": ("audit.record.view", "audit_access", "layer7_audit", "success"), "AUDIT_VERIFY": ("audit.chain.verify", "audit_access", "layer7_audit", "success"),
+    "AUDIT_EXPORT": ("audit.export", "audit_access", "layer7_audit", "success"), "AUDIT_TAMPER_TEST": ("audit.tamper_test", "audit_access", "layer7_audit", "success"),
+}
+
+
+class EnrichedAuditLog(AuditLog):
+    """Layer 7's hash chain, with the envelope a production audit record needs (see the KB's audit gaps): who (actor, role), from where (IP, session), when (explicit UTC),
+    what (action, resource), outcome, and a W3C trace id so one request can be followed across services. The envelope is inside the hashed body."""
+    def append(self, record):
+        ctx = REQ.get()
+        rec = dict(record)
+        kind = rec.get("event") or rec.get("kind") or rec.get("type") or ""
+        action, cat, svc, outcome = ACTIONS.get(kind, (kind.lower(), "system", "layer7_audit", "success"))
+        if kind == "erasure" and rec.get("status") != "ERASED_VERIFIED":
+            outcome = "failure"
+        if "outcome" in rec:                                                              # the gateway's own field: keep it, but never let it shadow the audit outcome
+            rec["gateway_outcome"] = rec.pop("outcome")
+        u = USERS.get(ctx["user"]) if ctx else None
+        rec.setdefault("actor", {"type": u["type"], "id": ctx["user"], "name": u["name"], "role": u["role"]} if u else {"type": "service", "id": "seed-loader", "name": "Seed loader", "role": "system"})
+        rec.setdefault("schema", "audit.v2")
+        rec.setdefault("action", action)
+        rec.setdefault("category", cat)
+        rec.setdefault("service", svc)
+        rec.setdefault("outcome", outcome)
+        rec.setdefault("env", "demo")
+        rec.setdefault("span_id", secrets.token_hex(8))
+        if ctx:
+            rec.setdefault("source", {"ip": ctx["ip"], "user_agent": ctx["ua"], "session_id": ctx["session"], "channel": "web"})
+            rec.setdefault("trace_id", ctx["trace_id"])
+        rec["ts_utc"] = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+        return super().append(rec)
+
+
+def cur_user():
+    ctx = REQ.get() or {}
+    uid = ctx.get("user") or "asha"
+    return uid, USERS.get(uid)
+
+
+def require(*roles):
+    """Server-side role check. A refusal is itself written to the audit trail."""
+    uid, u = cur_user()
+    if not u or u["role"] not in roles:
+        try:
+            WS["ws"].audit.append({"event": "ACCESS_DENIED", "request_id": (REQ.get() or {}).get("trace_id", "")[:16], "resource": {"type": "endpoint", "id": (REQ.get() or {}).get("path")}, "required_roles": list(roles), "role": u["role"] if u else None})
+        except Exception:                                                              # noqa: BLE001
+            pass
+        raise HTTPException(403, f"{u['title'] if u else 'This user'} cannot do this (requires: {', '.join(roles)})")
+    return uid, u
 
 
 def sess():
@@ -192,10 +276,18 @@ SEEDS = [
 ]
 
 
+SEED_PROFILES = [
+    {"product": "Personal loan", "loan_ref": "\u2022\u20224821", "dpd": 32, "outstanding": 48200, "language": "English", "channel": "Call", "assignee": "Asha Rao"},
+    {"product": "Two-wheeler loan", "loan_ref": "\u2022\u20227730", "dpd": 12, "outstanding": 21450, "language": "Tamil", "channel": "Call", "assignee": "Asha Rao"},
+    {"product": "Business loan", "loan_ref": "\u2022\u20221904", "dpd": 58, "outstanding": 186000, "language": "Marathi", "channel": "Call", "assignee": "Asha Rao"},
+    {"product": "Gold loan", "loan_ref": "\u2022\u20226657", "dpd": 5, "outstanding": 9800, "language": "English", "channel": "WhatsApp", "assignee": "Asha Rao"},
+]
+
+
 def seed_workspace():
     ws = WS["ws"]
-    for name, turns in SEEDS:
-        s = ws.add(name)
+    for (name, turns), prof in zip(SEEDS, SEED_PROFILES):
+        s = ws.add(name, prof)
         for who, text in turns:
             _message(s, Msg(text=text, speaker=who))
     ws.last = next(iter(ws.borrowers.values()))
@@ -306,7 +398,7 @@ def status():
     s = sess()
     return {"session": s.sid, "vault": s.vault_kind, "detector": "rules + spoken engine + Chitragupta (XLM-R, int8 ONNX)", "llm_live": LLM["live"], "llm_model": BEDROCK_MODEL,
             "stores": "MOCK (JSONL files; real layout not provided)", "turns": s.n, "chain_len": len(_records(s)), "planted": s.planted, "erased": s.erased,
-            "borrower_name": s.name, "conversation": s.CID, "borrower": s.B, "borrower_hash": s.audit.hash_borrower(s.B)[:16], "case": s.case, "cases": len(WS["ws"].borrowers)}
+            "borrower_name": s.name, "conversation": s.CID, "borrower": s.B, "borrower_hash": s.audit.hash_borrower(s.B)[:16], "case": s.case, "cases": len(WS["ws"].borrowers), "user": {"id": cur_user()[0], **(cur_user()[1] or {})}, "users": [{"id": k, **v} for k, v in USERS.items() if v["type"] == "user"]}
 
 
 @app.get("/api/content")
@@ -326,6 +418,9 @@ def llm_toggle(b: LlmToggle):
 
 class NewSession(BaseModel):
     name: str = "Borrower"
+    product: str = "Personal loan"
+    loan_last4: str = ""
+    language: str = "English"
 
 
 def case_summary(s):
@@ -333,7 +428,8 @@ def case_summary(s):
     ok = [h for h in s.history if h.get("status") not in ("blocked", "erased")]
     return {"sid": s.sid, "case": s.case, "hash": s.audit.hash_borrower(s.B)[:16], "messages": s.n, "state": "ERASED" if s.erased else "ACTIVE",
             "last_ts": last["ts"] if last else None, "preview": (ok[-1]["l3"].get("llm_saw") if ok and not s.erased else None), "planted": s.planted,
-            "key_present": s.vault.has_key(s.B), "values": len(s.vault.entries_for_borrower(s.B)), "conversation": s.CID, "borrower": s.B}
+            "key_present": s.vault.has_key(s.B), "values": len(s.vault.entries_for_borrower(s.B)), "conversation": s.CID, "borrower": s.B,
+            "profile": s.profile, "initials": "".join(w[0] for w in s.name.split()[:2]).upper()}
 
 
 @app.get("/api/cases")
@@ -341,18 +437,56 @@ def cases():
     return [case_summary(x) for x in WS["ws"].borrowers.values()]
 
 
+def consent_by_purpose(s):
+    by = {}
+    h = s.audit.hash_borrower(s.B)
+    for r in s.audit.records():
+        if (r.get("borrower_hash") or "")[:16] == h[:16] and (r.get("kind") in ("write_allowed", "write_rejected") or r.get("event") == "CONSENT_DENIED"):
+            d = by.setdefault(r.get("purpose") or "service", {"allowed": 0, "refused": 0})
+            d["allowed" if r.get("kind") == "write_allowed" else "refused"] += 1
+    return by
+
+
+def redact(h):
+    """Only the agent role sees the conversation; every other role gets the protected form (tokens), never the typed text."""
+    if h.get("status") == "erased":
+        return h
+    h = json.loads(json.dumps(h))
+    h["text"] = ""
+    for sp in h["l1"]["spans"]:
+        sp["text"] = ""
+    l3 = h["l3"]
+    l3["reply_borrower"] = ""
+    if l3.get("escaped"):
+        l3["escaped"] = [{"label": e["label"], "text": "[withheld]"} for e in l3["escaped"]]
+    return h
+
+
 @app.get("/api/case/{sid}")
 def case_detail(sid: str):
     s = WS["ws"].borrowers.get(sid)
     if not s:
         raise HTTPException(404, "no such case")
-    return {"summary": case_summary(s), "history": s.history}
+    uid, u = cur_user()
+    hist = s.history if u and u["role"] == "agent" else [redact(h) for h in s.history]
+    return {"summary": case_summary(s), "history": hist, "consent": consent_by_purpose(s), "redacted": not (u and u["role"] == "agent")}
+
+
+@app.get("/api/stats")
+def stats():
+    ws = WS["ws"]
+    recs = ws.audit.records()
+    ok, bad, why = ws.audit.verify_chain()
+    k = lambda x: sum(1 for r in recs if (r.get("event") or r.get("kind") or r.get("type")) == x)
+    return {"records": len(recs), "chain_ok": ok, "writes_allowed": k("write_allowed"), "writes_refused": k("write_rejected") + k("CONSENT_DENIED"), "messages": len({r.get("request_id") for r in recs if r.get("event") == "L3_STARTED"}),
+            "blocked": k("L3_BLOCKED"), "leaks_prevented": k("LEAK_PREVENTED"), "denied_access": k("ACCESS_DENIED"), "requests": len(ws.privacy), "head": ws.audit.head()}
 
 
 @app.post("/api/session/new")
 def session_new(b: NewSession):
     with LOCK:
-        s = new_session(b.name.strip() or "Borrower")
+        last4 = (b.loan_last4 or "".join(random.choice("0123456789") for _ in range(4)))[:4]
+        s = WS["ws"].add(b.name.strip() or "Borrower", {"product": b.product, "loan_ref": "\u2022\u2022" + last4, "dpd": 0, "outstanding": 0, "language": b.language, "channel": "Call", "assignee": cur_user()[1]["name"] if cur_user()[1] else "Unassigned"})
     return case_summary(s)
 
 
@@ -368,6 +502,7 @@ class Msg(BaseModel):
 
 @app.post("/api/message")
 def message(m: Msg):
+    require("agent")
     return _message(sess(), m)
 
 
@@ -444,6 +579,10 @@ def _message(s, m):
             l3.update(llm_saw=masked, reply_logged=out.get("reply_masked"), reply_borrower=out.get("reply"), log_entry=out.get("log_entry"))
         if ok and masked:
             s.turns.append({"speaker": m.speaker, "masked": masked})
+        if ok:
+            METRICS["lat"].append(float(out.get("pre_llm_ms") or total_ms))
+            METRICS["t"].append(time.time())
+            METRICS["messages"] += 1
         entries, keys = vault_rows(s)
         l2 = {"tokens_this_message": sorted(set(toks)), "entries": entries, "keys": keys, "vault": s.vault_kind}
         res = {"turn": s.n, "speaker": m.speaker, "text": m.text, "status": out.get("status"), "reason": out.get("reason"),
@@ -503,6 +642,7 @@ class TryWrite(BaseModel):
 
 @app.post("/api/consent/try")
 def consent_try(b: TryWrite):
+    require("privacy_officer", "dpo")
     """A real guarded_write against the session's mock store, with the real Layer 7 audit event. Reason comes from the event it wrote."""
     s = sess()
     with LOCK:
@@ -530,7 +670,10 @@ def consent_try(b: TryWrite):
 @app.get("/api/lineage")
 def lineage():
     s = sess()
-    return {"graph": lineage_graph(s), "stores": store_snapshot(s), "planted": s.planted}
+    t = time.perf_counter()
+    g = lineage_graph(s)
+    ms = (time.perf_counter() - t) * 1000
+    return {"graph": g, "stores": store_snapshot(s), "planted": s.planted, "lookup_ms": round(ms, 2)}
 
 
 @app.post("/api/plant")
@@ -565,17 +708,139 @@ def plant():
 
 
 # ---------------------------------------------------------------- API: layer 6 (erasure)
+def req_summary(r):
+    res = r.get("result")
+    return {"request_id": r["request_id"], "case": r["case"], "sid": r["sid"], "type": r["type"], "state": r["state"], "reason": r["reason"], "created": r["created"], "updated": r["updated"],
+            "initiator": r["initiator"], "history": r["history"], "status": res["status"] if res else None, "clean": res["clean"] if res else None, "secs": res["secs"] if res else None,
+            "found": sum(res["stores_before"].values()) if res else None, "audit_seq": res["audit_seq"] if res else None, "ts": r["created"], "borrower_hash": r["borrower_hash"]}
+
+
 @app.get("/api/erasure")
 def erasure_view():
     s = sess()
-    return {"requests": s.ws.requests, "borrower": {"id": s.B, "case": s.case, "sid": s.sid, "hash": s.audit.hash_borrower(s.B)[:16], "conversation": s.CID, "messages": s.n, "state": "ERASED" if s.erased else "ACTIVE"},
-            "stores": store_snapshot(s), "vault_entries": len(s.vault.entries_for_borrower(s.B)), "key_present": s.vault.has_key(s.B), "planted": s.planted_items,
-            "methods": ["registry", "conversation_sweep", "raw_value_sweep(sealed)", "independent_collapsed_scan(sealed)", "derivative_sweep", "vector_probe", "file_grep", "unmapped_store_discovery"]}
+    return {"requests": [req_summary(r) for r in s.ws.privacy], "borrower": {"id": s.B, "case": s.case, "sid": s.sid, "hash": s.audit.hash_borrower(s.B)[:16], "conversation": s.CID, "messages": s.n, "state": "ERASED" if s.erased else "ACTIVE"},
+            "stores": store_snapshot(s), "vault_entries": len(s.vault.entries_for_borrower(s.B)), "key_present": s.vault.has_key(s.B), "planted": s.planted_items}
 
 
-@app.post("/api/erase")
-def erase_borrower():
-    s = sess()
+REASONS = ("borrower_request", "consent_withdrawn", "retention_expired")
+
+
+class NewReq(BaseModel):
+    sid: str
+    reason: str = "borrower_request"
+    note: str = ""
+
+
+class Decision(BaseModel):
+    note: str = ""
+
+
+def _actor():
+    uid, u = cur_user()
+    return {"id": uid, "name": u["name"], "role": u["role"]}
+
+
+def _step(r, s, step, event, note=""):
+    ev = s.audit.append({"event": event, "request_id": r["request_id"], "borrower_hash": s.audit.hash_borrower(s.B), "resource": {"type": "privacy_request", "id": r["request_id"]},
+                         "transition": f"{r['state']}", "reason": r["reason"], "has_note": bool(note)})
+    r["history"].append({"step": step, "actor": _actor(), "ts": time.time(), "audit_seq": ev["seq"], "note": note})
+    r["updated"] = time.time()
+
+
+def _get_req(rid):
+    r = next((x for x in WS["ws"].privacy if x["request_id"] == rid), None)
+    if not r:
+        raise HTTPException(404, "no such request")
+    return r
+
+
+@app.get("/api/privacy/requests")
+def privacy_list():
+    return [req_summary(r) for r in WS["ws"].privacy]
+
+
+@app.get("/api/privacy/requests/{rid}")
+def privacy_get(rid: str):
+    r = _get_req(rid)
+    return {**req_summary(r), "result": r.get("result"), "note": r.get("note")}
+
+
+@app.post("/api/privacy/requests")
+def privacy_create(b: NewReq):
+    require("agent", "privacy_officer")
+    ws = WS["ws"]
+    s = ws.borrowers.get(b.sid)
+    if not s:
+        raise HTTPException(404, "no such case")
+    if s.erased:
+        raise HTTPException(409, "this borrower has already been erased")
+    if b.reason not in REASONS:
+        raise HTTPException(400, "unknown reason")
+    if any(x["sid"] == b.sid and x["state"] in ("INITIATED", "RECOMMENDED", "APPROVED") for x in ws.privacy):
+        raise HTTPException(409, "an open request already exists for this borrower")
+    with LOCK:
+        r = {"request_id": f"PR-{s.case}-{uuid.uuid4().hex[:4]}", "case": s.case, "sid": s.sid, "type": "erasure", "state": "INITIATED", "reason": b.reason, "note": b.note, "created": time.time(), "updated": time.time(),
+             "initiator": _actor(), "history": [], "result": None, "borrower_hash": s.audit.hash_borrower(s.B)}
+        ws.privacy.append(r)
+        _step(r, s, "initiated", "PRIVACY_REQUEST_INITIATED", b.note)
+    return req_summary(r)
+
+
+@app.post("/api/privacy/requests/{rid}/recommend")
+def privacy_recommend(rid: str, b: Decision):
+    require("privacy_officer")
+    r = _get_req(rid)
+    s = WS["ws"].borrowers[r["sid"]]
+    if r["state"] != "INITIATED":
+        raise HTTPException(409, f"request is {r['state']}, not INITIATED")
+    uid = cur_user()[0]
+    if uid == r["initiator"]["id"]:
+        s.audit.append({"event": "MAKER_CHECKER_VIOLATION", "request_id": rid, "borrower_hash": s.audit.hash_borrower(s.B), "resource": {"type": "privacy_request", "id": rid}, "attempted": "recommend"})
+        raise HTTPException(409, "maker-checker: the person who initiated a request cannot recommend it")
+    with LOCK:
+        _step(r, s, "recommended", "PRIVACY_REQUEST_RECOMMENDED", b.note)
+        r["state"] = "RECOMMENDED"
+    return req_summary(r)
+
+
+@app.post("/api/privacy/requests/{rid}/reject")
+def privacy_reject(rid: str, b: Decision):
+    require("privacy_officer", "dpo")
+    r = _get_req(rid)
+    s = WS["ws"].borrowers[r["sid"]]
+    if r["state"] not in ("INITIATED", "RECOMMENDED"):
+        raise HTTPException(409, f"request is {r['state']}")
+    if not b.note.strip():
+        raise HTTPException(400, "a rejection needs a reason")
+    with LOCK:
+        _step(r, s, "rejected", "PRIVACY_REQUEST_REJECTED", b.note)
+        r["state"] = "REJECTED"
+    return req_summary(r)
+
+
+@app.post("/api/privacy/requests/{rid}/approve")
+def privacy_approve(rid: str, b: Decision):
+    """Final approval by the data protection officer. Only then does the erasure agent run."""
+    require("dpo")
+    r = _get_req(rid)
+    s = WS["ws"].borrowers[r["sid"]]
+    if r["state"] != "RECOMMENDED":
+        raise HTTPException(409, f"request is {r['state']}, it must be RECOMMENDED first")
+    uid = cur_user()[0]
+    prior = {h["actor"]["id"] for h in r["history"]}
+    if uid in prior:
+        s.audit.append({"event": "MAKER_CHECKER_VIOLATION", "request_id": rid, "borrower_hash": s.audit.hash_borrower(s.B), "resource": {"type": "privacy_request", "id": rid}, "attempted": "approve"})
+        raise HTTPException(409, "maker-checker: the approver must differ from the initiator and the recommender")
+    with LOCK:
+        _step(r, s, "approved", "PRIVACY_REQUEST_APPROVED", b.note)
+        r["state"] = "APPROVED"
+        r["result"] = _execute_erasure(s, rid)
+        r["state"] = "EXECUTED"
+        r["updated"] = time.time()
+    return req_summary(r)
+
+
+def _execute_erasure(s, request_id):
     with LOCK:
         if s.erased:
             raise HTTPException(409, "already erased")
@@ -588,7 +853,11 @@ def erase_borrower():
         vault_before = len(s.vault.entries_for_borrower(s.B))
         t0 = time.perf_counter()
         app_ = build_agent(s.root, s.vault, s.reg, s.audit, registry_path=s.reg_path())
-        out = erase(app_, {"request_id": f"ER-{s.case}-{uuid.uuid4().hex[:4]}", "borrower_id": s.B})
+        tok = REQ.set({**(REQ.get() or {}), "user": "erasure-agent"})
+        try:
+            out = erase(app_, {"request_id": request_id, "borrower_id": s.B})
+        finally:
+            REQ.reset(tok)
         secs = time.perf_counter() - t0
         ok, bad, why = s.audit.verify_chain()
         s.ws.reload_stores()
@@ -609,10 +878,6 @@ def erase_borrower():
         rec = out["record"]
         s.last_erasure = rec
         clean = raw_after == 0 and not s.vault.entries_for_borrower(s.B)
-        s.ws.requests.append({"case": s.case, "sid": s.sid, "request_id": rec["request_id"], "status": out["status"], "secs": round(secs, 2), "ts": rec["ts"], "audit_seq": rec["seq"], "hash": rec["hash"],
-                              "borrower_hash": rec["borrower_hash"], "stores": len(rec["stores"]), "found": sum(x["found"] for x in rec["stores"]), "clean": clean})
-        s.requests.append({"request_id": rec["request_id"], "status": out["status"], "secs": round(secs, 2), "ts": rec["ts"], "audit_seq": rec["seq"], "hash": rec["hash"],
-                           "borrower_hash": rec["borrower_hash"], "stores": len(rec["stores"]), "found": sum(x["found"] for x in rec["stores"]), "clean": clean})
         return {"request_id": rec["request_id"], "audit_seq": rec["seq"], "ts": rec["ts"], "full_hash": rec["hash"], "full_borrower_hash": rec["borrower_hash"], "status": out["status"], "trace": out["trace"], "secs": round(secs, 2), "stores_before": before_stores, "stores_after": after_stores,
                 "raw_before": raw_before, "raw_after": raw_after, "vault_before": vault_before, "vault_after": len(s.vault.entries_for_borrower(s.B)),
                 "key_present": s.vault.has_key(s.B), "probe": probe_result, "clean": clean, "record": {k: rec[k] for k in ("seq", "request_id", "status", "passes", "stores", "vault", "methods", "methods_run",
@@ -624,6 +889,7 @@ def erase_borrower():
 # ---------------------------------------------------------------- API: layer 7 (audit)
 @app.get("/api/audit/full")
 def audit_full():
+    require(*AUDIT_READ)
     """Every record with ALL its fields, plus a per-record check recomputed here: hash matches its body, prev_hash matches the record before, seq is in order."""
     import hashlib
     from layer7_audit.chain import GENESIS, _canon
@@ -642,10 +908,33 @@ def audit_full():
 
 @app.get("/api/audit/export")
 def audit_export():
+    require(*AUDIT_READ)
     from fastapi.responses import Response
-    s = sess()
-    data = open(s.audit.path, "rb").read()
-    return Response(content=data, media_type="application/x-ndjson", headers={"Content-Disposition": f'attachment; filename="audit_{s.sid}.jsonl"'})
+    ws = WS["ws"]
+    data = open(ws.audit.path, "rb").read()
+    digest = hashlib.sha256(data).hexdigest()
+    n = data.count(b"\n")
+    ok, _, _ = ws.audit.verify_chain()
+    ws.audit.append({"event": "AUDIT_EXPORT", "request_id": (REQ.get() or {}).get("trace_id", "")[:16], "resource": {"type": "audit_log", "id": f"{n} records"}, "sha256": digest, "records": n, "chain_ok": ok})
+    return Response(content=data, media_type="application/x-ndjson", headers={"Content-Disposition": f'attachment; filename="audit_{ws.id}.jsonl"', "X-Audit-SHA256": digest, "X-Audit-Records": str(n), "X-Audit-Chain-Ok": str(ok).lower(),
+                                                                              "Access-Control-Expose-Headers": "X-Audit-SHA256, X-Audit-Records, X-Audit-Chain-Ok, Content-Disposition"})
+
+
+class AuditAccess(BaseModel):
+    action: str
+    ref: str = ""
+    result: str = ""
+
+
+@app.post("/api/audit/access")
+def audit_access(b: AuditAccess):
+    """Reading the audit log is itself audited."""
+    require(*AUDIT_READ)
+    ev = {"AUDIT_VIEW": "AUDIT_VIEW", "AUDIT_VERIFY": "AUDIT_VERIFY"}.get(b.action)
+    if not ev:
+        raise HTTPException(400, "unknown action")
+    r = WS["ws"].audit.append({"event": ev, "request_id": (REQ.get() or {}).get("trace_id", "")[:16], "resource": {"type": "audit_record" if ev == "AUDIT_VIEW" else "audit_log", "id": b.ref[:64]}, "result": b.result[:40]})
+    return {"seq": r["seq"]}
 
 
 class DetectReq(BaseModel):
@@ -678,6 +967,7 @@ def vault_view():
 
 @app.get("/api/audit")
 def audit_view(limit: int = 80):
+    require(*AUDIT_READ)
     s = sess()
     recs = _records(s)
     ok, bad, why = s.audit.verify_chain()
@@ -686,6 +976,7 @@ def audit_view(limit: int = 80):
 
 @app.post("/api/audit/tamper")
 def audit_tamper():
+    require(*AUDIT_READ)
     """Edit one number inside a COPY of the log and verify the copy. The real log is never touched."""
     s = sess()
     with LOCK:
@@ -786,9 +1077,156 @@ def run_tests(layer: str):
             "skipped": sum(r.get("skipped", 0) for r in res)}
 
 
+@app.get("/api/architecture.jpg")
+def architecture_image():
+    return FileResponse(os.path.join(ROOT, "docs", "te03_architecture.jpg"), media_type="image/jpeg")
+
+
+# ---------------------------------------------------------------- console (dpdp-privacy-console.html): read-only summaries over the same real layers
+CONSOLE_HTML = os.path.join(ROOT, "dpdp-privacy-console.html")
+FEED_KINDS = ("write_allowed", "write_rejected", "write_failed", "CONSENT_DENIED", "L3_BLOCKED", "LEAK_PREVENTED")
+
+
+def _kind(r):
+    return r.get("event") or r.get("kind") or r.get("type") or ""
+
+
+@app.get("/console")
+def console_page():
+    return FileResponse(CONSOLE_HTML, headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/console/overview")
+def console_overview():
+    """Health + gauges for the top bar and the gateway view. Every number is measured here, now, from the running layers (no text, no raw values)."""
+    ws = WS["ws"]
+    gw = ws.gw
+    recs = ws.audit.records()
+    ok, bad, why = ws.audit.verify_chain()
+    lat = sorted(METRICS["lat"])
+    n = len(lat)
+    now_wall = time.time()
+    per_min = sum(1 for t in METRICS["t"] if now_wall - t <= 60)
+    now = gw.clock()
+    idle = {c: now - t for c, t in list(gw.last_seen.items())}
+    ttl = gw.history_ttl
+    stale = sum(1 for v in idle.values() if v > ttl + 65)                      # the sweeper runs every 60 s: more than that late = the TTL is not working
+    tag = {"purpose": "service"}
+    t = time.perf_counter()
+    for _ in range(2000):
+        policy.decide("logs", tag)
+    decide_us = (time.perf_counter() - t) / 2000 * 1e6
+    entities = sum(int(r.get("values", 0) or 0) for r in recs if r.get("event") == "L2_TOKENISE_COMPLETE")
+    k = lambda x: sum(1 for r in recs if _kind(r) == x)
+    live = [x for x in ws.borrowers.values() if not x.erased]
+    done = [r for r in ws.privacy if r.get("result")]
+    layers = [
+        {"id": "L0", "name": "Test data", "ok": os.path.exists(os.path.join(ROOT, "data", "corpus_dev.jsonl")), "detail": "labelled synthetic corpus present"},
+        {"id": "L1", "name": "Detection", "ok": DET["det"] is not None, "detail": f"last call {DET['det'].last_ms:.0f} ms" if DET["det"] else "not loaded"},
+        {"id": "L2", "name": "Vault", "ok": ws.vault is not None, "detail": f"backend: {ws.vault_kind}"},
+        {"id": "L3", "name": "Gateway", "ok": stale == 0, "detail": f"{len(idle)} conversations in memory, idle TTL {int(ttl)} s"},
+        {"id": "L4", "name": "Consent", "ok": bool(policy.POLICY), "detail": f"{len(policy.POLICY)} stores, default deny"},
+        {"id": "L5", "name": "Lineage", "ok": ws.reg is not None, "detail": f"{len(ws.reg.borrower_refs)} borrowers indexed"},
+        {"id": "L6", "name": "Erasure", "ok": True, "detail": f"{len(done)} executed"},
+        {"id": "L7", "name": "Audit", "ok": ok, "detail": f"{len(recs)} records, chain {'intact' if ok else 'BROKEN at #' + str(bad)}"},
+    ]
+    return {"layers": layers, "healthy": all(x["ok"] for x in layers),
+            "latency": {"n": n, "last": round(lat and METRICS["lat"][-1] or 0, 1), "p50": round(lat[n // 2], 1) if n else None, "p95": round(lat[min(n - 1, int(n * .95))], 1) if n else None,
+                        "max": round(lat[-1], 1) if n else None, "budget_ms": 50, "over_budget": sum(1 for v in lat if v > 50)},
+            "throughput": {"per_min": per_min, "messages_total": METRICS["messages"]},
+            "memory": {"ttl_s": int(ttl), "conversations": len(idle), "stale": stale, "freshest_remaining_s": int(max(0, ttl - min(idle.values()))) if idle else int(ttl),
+                       "oldest_idle_s": int(max(idle.values())) if idle else 0},
+            "entities_tokenised": entities, "vault": ws.vault_kind,
+            "consent": {"stores": len(policy.POLICY), "decide_us": round(decide_us, 1), "allowed": k("write_allowed"), "refused": k("write_rejected") + k("CONSENT_DENIED"),
+                        "unverified": sum(1 for r in recs if r.get("kind") == "write_allowed" and r.get("consent_verified") is False)},
+            "chain": {"ok": ok, "length": len(recs), "head": ws.audit.head(), "bad_seq": bad, "erasures_sealed": sum(1 for r in recs if r.get("type") == "erasure" and r.get("status") == "ERASED_VERIFIED")},
+            "cases": {"total": len(ws.borrowers), "active": len(live)}, "llm_live": LLM["live"], "server_ts": now_wall}
+
+
+@app.get("/api/console/feed")
+def console_feed(after: int = -1, limit: int = 60):
+    """The consent firewall's decisions as the audit chain recorded them (ids and reasons only)."""
+    require(*AUDIT_READ)
+    recs = _records(sess())
+    out = []
+    for r in recs:
+        kind = _kind(r)
+        if r.get("seq", -1) > after and kind in FEED_KINDS:
+            out.append({"seq": r.get("seq"), "ts": r.get("ts_utc") or "", "kind": kind, "store": r.get("store"), "purpose": r.get("purpose"), "reason": r.get("reason"),
+                        "record": r.get("record_id"), "borrower": (r.get("borrower_hash") or "")[:8], "consent_id": r.get("consent_id"), "verified": r.get("consent_verified"),
+                        "actor": (r.get("actor") or {}).get("name")})
+    return {"events": out[-limit:], "head_seq": recs[-1]["seq"] if recs else -1}
+
+
+@app.get("/api/console/ablation")
+def console_ablation():
+    """The erasure ablation table, parsed from layer6_erasure/LAYER6_CONTEXT.md section 5 (a recorded run on the public set; not re-run here)."""
+    path = os.path.join(ROOT, "layer6_erasure", "LAYER6_CONTEXT.md")
+    rows = []
+    try:
+        txt = open(path, encoding="utf-8").read().split("## 5.", 1)[1].split("## 6.", 1)[0]
+        for a, b, c in re.findall(r"^\|\s*([^|]+?)\s*\|\s*(\d+)\s*\|\s*([^|]*?)\s*\|", txt, re.M):
+            if a.strip().lower().startswith(("method", "---")):
+                continue
+            rows.append({"config": a.strip(), "silent": int(b), "missed": c.strip()})
+    except Exception:                                                           # noqa: BLE001
+        pass
+    return {"rows": rows, "source": "layer6_erasure/LAYER6_CONTEXT.md section 5", "set": "public set: 10 requests, 187 seeded copies, mock stores", "recorded": "19 Nov (not re-run live)"}
+
+
+@app.get("/api/console/detection")
+def console_detection():
+    """Layer 1 scores parsed from LAYER1_REPORT.md: the fresh held-out split scored ONCE for the improved detector (old vs new), if the report has it."""
+    path = os.path.join(ROOT, "layer1_detection", "LAYER1_REPORT.md")
+    try:
+        txt = open(path, encoding="utf-8").read()
+        sec = txt.split("### Fresh held-out split", 1)[1].split("\n### ", 1)[0]
+        rows = {k.split()[0].lower(): [float(a), float(b), float(c), int(d), int(e), float(f)] for k, a, b, c, d, e, f in re.findall(
+            r"^\| (old detector|NEW detector) \| \**([\d.]+)%\** \| \**([\d.]+)%\** \| ([\d.]+)% \| (\d+) of (\d+) \(([\d.]+)%\)", sec, re.M)}
+        calls, spans = re.search(r"([\d,]+) calls, ([\d,]+) gold spans", sec).groups()
+        tline, lline = re.search(r"By type, fully masked old -> new: (.*?)\. By language variant, new: (.*?) \(old weakest", sec, re.S).groups()
+        types = []
+        for tok in re.split(r",\s*", tline.replace("UPI / DOB / EMAIL 100", "UPI 100, DOB 100, EMAIL 100")):
+            m = re.match(r"([A-Z]+) ([\d.]+) -> ([\d.]+)", tok.strip())
+            if m:
+                types.append({"name": m.group(1), "old": float(m.group(2)), "new": float(m.group(3))})
+                continue
+            m = re.match(r"([A-Z]+) ([\d.]+)", tok.strip())
+            if m:
+                types.append({"name": m.group(1), "old": float(m.group(2)), "new": float(m.group(2))})
+        langs = [{"name": a, "new": float(b)} for a, b in re.findall(r"(\w+) ([\d.]+)", lline)]
+        amt = re.search(r"amounts (\d+) -> (\d+) of ([\d,]+)", sec)
+        commit = re.search(r"frozen at commit (\w+)", sec)
+        if "new" not in rows or "old" not in rows or not types or not langs:
+            return {"fresh": None}
+        keys = ("full", "masked50", "label", "fa_n", "fa_of", "fa_pct")
+        return {"fresh": {"calls": calls, "spans": spans, "commit": commit.group(1) if commit else None, "old": dict(zip(keys, rows["old"])), "new": dict(zip(keys, rows["new"])), "types": types, "langs": langs,
+                          "amounts": {"old": int(amt.group(1)), "new": int(amt.group(2)), "of": amt.group(3)} if amt else None, "source": "layer1_detection/LAYER1_REPORT.md"}}
+    except Exception:                                                           # noqa: BLE001
+        return {"fresh": None}
+
+
+@app.get("/api/console/sample")
+def console_sample(lang: str = "", seed: int = 0):
+    """One synthetic call (dev split only) as turns, so the console can play it through the real gateway."""
+    path, offs = _corpus_rows(lang)
+    off = random.Random(seed or time.time_ns()).choice(offs)
+    with open(path, "rb") as f:
+        f.seek(off)
+        row = json.loads(f.readline())
+    return {"id": row["id"], "lang": row["lang"], "channel": row["channel"], "scenario": row["scenario"], "turns": [{"speaker": t["speaker"], "text": t["text"]} for t in row["turns"]][:14],
+            "languages": sorted(k for k in _CORPUS_INDEX if k != "?")}
+
+
 # ---------------------------------------------------------------- static front end
 @app.get("/")
 def index():
+    return FileResponse(CONSOLE_HTML, headers={"Cache-Control": "no-store"})          # the DPDP Privacy Console is the front door
+
+
+@app.get("/app")
+def workspace_app():
+    """The earlier multi-role workspace (conversations, privacy requests, audit, story mode). Same layers, same server."""
     return FileResponse(os.path.join(WEB, "index.html"), headers={"Cache-Control": "no-store"})
 
 

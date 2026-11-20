@@ -15,21 +15,28 @@ if (location.protocol === 'file:') {   // opened by double-click: the page needs
 </script>
 <div id="app">
   <nav class="nav" id="nav" aria-label="Main">
-    <div class="ws"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></i><div><b>PII Vault</b><span>Collections workspace</span></div></div>
-    <div class="search" id="search">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input id="q" autocomplete="off" placeholder="Search" aria-label="Search references"><kbd>/</kbd>
-      <div class="sres" id="sres" hidden></div>
-    </div>
+    <div class="ws"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></i><div><b>PII Vault</b><span>Collections</span></div></div>
     <div id="navitems"></div>
-    <div class="env" id="env"></div>
+    <div class="navfoot">Demo environment · synthetic data</div>
   </nav>
-  <main id="main"></main>
+  <div class="mainwrap">
+    <header class="topbar2">
+      <div class="crumbs" id="crumbs"></div>
+      <div class="search" id="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="q" autocomplete="off" placeholder="Search cases, requests, audit records" aria-label="Search references"><kbd>/</kbd>
+        <div class="sres" id="sres" hidden></div>
+      </div>
+      <div class="tbr" id="tbr"></div>
+    </header>
+    <main id="main"></main>
+  </div>
 </div>
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-label="Details"></aside>
 <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
 <div class="toast" id="toast" role="status"></div>
 <script src="/static/app.js"></script>
+<script src="/static/story.js"></script>
 </body>
 </html>

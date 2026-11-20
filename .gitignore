@@ -24,3 +24,7 @@ __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 .claude/
+
+# voice bot: the real call list (your own number) never goes into git
+layer9_voice/borrowers.local.json
+layer9_voice/config.local.json

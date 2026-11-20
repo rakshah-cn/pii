@@ -118,3 +118,24 @@ Layer 3 gateway 31 pass, Layer 5 5 pass, Layer 6 13 pass, Layer 7 5 pass.
 Layer 8 end-to-end FAILS (NOT CLEAN). Cause is not Layer 4: the rewritten Layer 3 graph calls `vault.tokenize_batch`, which
 only the new `VaultClient` has, and `layer8_demo/end_to_end.py` `get_vault()` still returns the old `Vault`, so every turn with
 PII is blocked with `vault_error:AttributeError`. Fix is in the demo or Layer 3 wiring, not here.
+
+
+## 12. Update (20 Nov): consent registry, borrower check, legacy delegation
+
+- NEW `registry.py`: `ConsentRegistry` (in-memory stand-in for an enterprise consent system). `check_consent(consent_id, borrower_id, purpose) -> bool`:
+  True only if the consent is active, unexpired, belongs to THIS borrower and covers the purpose. `grant`, `withdraw`, optional `expires_at`.
+- `guard.guarded_write(store, record, adapter, audit_logger, registry=None) -> bool` (still a plain bool; a tuple would be truthy and let a denial through).
+  `guard.guarded_write_ex(...) -> (ok, reason)` for callers that want the reason.
+  New rejections: `borrower_mismatch` (tag vs record borrower), `consent_invalid` (registry says no or answers anything but True),
+  `consent_registry_unavailable` (registry raised: fail closed), `borrower_unknown_for_consent`, `explicit_consent_not_boolean`.
+  The registry is consulted when a write CLAIMS explicit consent or the policy REQUIRES it.
+  `registry=None` = legacy claim-only mode; `write_allowed` events then carry `consent_verified: false` (true when the registry confirmed).
+- `explicit_consent` must be the boolean True (`is True`): the string "false" used to count as consent. Fixed in `policy.decide` and the guard.
+- `WriteGuard` (write_guard.py) now DELEGATES to `guarded_write_ex`: same rules, same (written, reason) return and rejection-file format, so the Layer 6
+  mocks and Layer 8 demo are unchanged. `WriteGuard(path, registry=None, audit_logger=None)`: pass a registry to verify, an audit log to emit to Layer 7.
+- `layer3_gateway/consent.py` (Layer 3's file): `ConsentGate.check(..., explicit_consent=False)`; explicit consent is no longer inferred from the mere presence of a consent_id.
+- 22 tests in test_guard.py (was 11). Layer 3/5/6/7/8 suites still pass.
+
+Still open: the registry is a mock (no real consent system, no SQLite stand-in yet); nothing in the demo/mocks passes a registry yet, so those writes are still
+claim-only; a record with no borrower id and no explicit consent is still written; withdrawal does not trigger erasure; `lawful_basis` is not validated;
+Layer 3 does not yet call `guarded_write`.

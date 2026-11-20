@@ -38,6 +38,11 @@ def decide(store, tag):
     if rule == "explicit_consent":
         cid = tag.get("consent_id") if isinstance(tag, dict) else tag.consent_id
         ex = tag.get("explicit_consent") if isinstance(tag, dict) else tag.explicit_consent
-        if not (cid and ex):
+        if not (cid and ex is True):               # `is True`: the string "false" or 1 is NOT consent
             return False, f"explicit_consent_required:{purpose}->{store}"
     return True, "ok"
+
+
+def requires_explicit_consent(store, purpose):
+    """True if the table says this purpose needs explicit consent in this store (used to decide when the consent registry must confirm)."""
+    return POLICY.get(store, {}).get(ALIASES.get(purpose, purpose)) == "explicit_consent"

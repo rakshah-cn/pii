@@ -1,0 +1,2087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DPDP Privacy Console · CreditNirvana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<style>
+:root{
+  --bg:#050E30;--side:#081338;--card:#0C1A47;--line:#1C2B63;--line2:#16245A;--term:#030923;--termHead:#0A1238;
+  --chip:#13214F;--border2:#2A3B78;--horizon:#0060C4;--horizon-600:#0053AA;--oceanic:#1E83B3;--peri:#5577E2;
+  --em:#2EBB7F;--emT:#5FD6A2;--rose:#D64550;--roseB:#F06272;--roseT:#F5A3A9;--amber:#E0A030;--amberT:#F2C46D;
+  --text:#C5D0DE;--muted:#86A0BC;--blueT:#A6CAF0;--white:#FFFFFF;
+  --sans:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Fira Code',ui-monospace,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);letter-spacing:-0.005em;-webkit-font-smoothing:antialiased}
+button{font-family:var(--sans)}
+.mono{font-family:var(--mono);font-variant-ligatures:none}
+.app{display:grid;grid-template-columns:256px minmax(0,1fr);min-height:100vh}
+@media (max-width:900px){.app{grid-template-columns:1fr}.side{position:static!important;height:auto!important}}
+
+/* Sidebar */
+.side{position:sticky;top:0;height:100vh;background:var(--side);border-right:1px solid var(--line2);padding:24px 16px;display:flex;flex-direction:column;gap:28px}
+.brand{display:flex;align-items:center;gap:12px;padding:0 8px}
+.brand b{display:block;font-size:15px;color:#fff;letter-spacing:-0.02em}
+.brand small{font-size:12px;color:var(--muted)}
+.navlist{display:flex;flex-direction:column;gap:4px}
+.overline{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--muted)}
+.navlist .overline{padding:0 10px 8px}
+.nav{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 10px;border-radius:6px;border:none;background:transparent;color:var(--text);font-size:14px;font-weight:500;text-align:left;cursor:pointer;transition:background 180ms var(--ease),box-shadow 180ms var(--ease),color 180ms var(--ease)}
+.nav .lay{width:52px;flex-shrink:0;text-align:center;font-family:var(--mono);font-size:11px;padding:3px 0;border-radius:4px;background:var(--chip);color:var(--blueT)}
+.nav .key{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted);opacity:0;transition:opacity 180ms}
+.nav:hover{background:#0F1D4D;color:#fff;box-shadow:0 0 0 1px var(--border2),0 0 22px rgba(30,131,179,.45)}
+.nav:hover .key{opacity:1}
+.nav:focus-visible{outline:2px solid var(--peri);outline-offset:2px}
+.nav.active{background:rgba(0,96,196,.26);color:#fff;box-shadow:0 0 0 1px rgba(0,96,196,.6),0 0 24px rgba(0,96,196,.35)}
+.nav.active .lay{background:var(--horizon);color:#fff}
+.health{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:10px;background:var(--card);border:1px solid var(--line)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:999px;background:var(--em);flex-shrink:0}
+
+/* Main + top bar */
+.main{min-width:0;padding:20px 40px 48px;display:flex;flex-direction:column;gap:22px}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-radius:10px;background:var(--side);border:1px solid var(--line2);position:sticky;top:12px;z-index:5}
+.crumb{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.crumb strong{color:#fff;font-weight:500}
+.tb-right{display:flex;flex-wrap:wrap;align-items:center;gap:18px;font-size:12px;color:var(--muted)}
+.live{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;background:rgba(214,69,80,.14);border:1px solid rgba(240,98,114,.4);color:var(--roseT);font-size:11px;font-weight:600;letter-spacing:.1em}
+.live .dot{background:var(--roseB);animation:pulse 1.6s infinite}
+.tb-item{display:flex;align-items:center;gap:8px}
+.mini{display:block;width:56px;height:4px;border-radius:999px;background:var(--chip)}
+.mini i{display:block;height:4px;border-radius:999px;background:var(--em);transition:width 400ms var(--ease)}
+
+/* Shared */
+.view{display:none;flex-direction:column;gap:22px}
+.view.active{display:flex;animation:viewIn 520ms var(--ease) both}
+.vhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+.vhead .t{display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-size:12px;font-weight:500;letter-spacing:.08em;color:var(--blueT)}
+h1{margin:0;font-size:30px;line-height:1.15;font-weight:700;letter-spacing:-0.02em;color:#fff}
+.sub{margin:0;font-size:14px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:1100px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
+.kpi{display:flex;flex-direction:column;justify-content:center;gap:6px;padding:18px 20px}
+.kpi .l{font-size:12px;font-weight:500;color:var(--muted)}
+.kpi .v{font-size:30px;font-weight:700;letter-spacing:-0.02em;color:#fff;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--muted)}
+.pill{font-family:var(--mono);font-size:12px;color:var(--text);padding:6px 10px;border-radius:999px;border:1px solid var(--line)}
+.btn{min-height:40px;padding:0 16px;border-radius:6px;border:1px solid var(--border2);background:var(--card);color:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:background 180ms var(--ease)}
+.btn:hover{background:#13214F}
+.btn-primary{min-height:48px;padding:0 24px;border:none;background:var(--horizon);font-size:15px;font-weight:600;box-shadow:0 0 28px rgba(0,96,196,.5)}
+.btn-primary:hover{background:var(--horizon-600)}
+.btn-primary:active{background:#00468F}
+.btn-primary:disabled{opacity:.6;cursor:default}
+.btn:focus-visible,.chipbtn:focus-visible{outline:2px solid var(--peri);outline-offset:2px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.06em}
+.b-ok{color:var(--emT);background:rgba(46,187,127,.14)}
+.b-bad{color:var(--roseT);background:rgba(214,69,80,.2)}
+.b-lock{color:var(--amberT);background:rgba(224,160,48,.18)}
+.b-ok .dot{background:var(--em);width:6px;height:6px}.b-bad .dot{background:var(--roseB);width:6px;height:6px}.b-lock .dot{background:var(--amber);width:6px;height:6px}
+.scroll-x{overflow-x:auto}
+
+/* Terminals */
+.term{display:flex;flex-direction:column;border-radius:10px;background:var(--term);overflow:hidden}
+.term-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--termHead)}
+.term-head .name{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:#fff}
+.lights{display:flex;gap:6px}.lights i{width:9px;height:9px;border-radius:999px;display:block}
+.term-body{height:470px;overflow:hidden;display:flex;flex-direction:column}
+.tline{display:flex;flex-direction:column;gap:6px;padding:12px 18px;border-bottom:1px solid #111C48}
+.tline.cur{background:var(--side);border-bottom:1px solid var(--line);padding:14px 18px}
+.tmeta{display:flex;gap:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.ttext{font-family:var(--mono);font-size:13px;line-height:1.6;color:var(--text);min-height:21px}
+.cur .ttext{color:#fff;min-height:42px}
+.pii{background:rgba(214,69,80,.22);color:var(--roseT);border-radius:3px;padding:1px 3px}
+.tok{background:rgba(46,187,127,.16);color:var(--emT);border-radius:3px;padding:1px 3px}
+.pend{color:var(--muted)}
+.flash{animation:flash 900ms ease-out both}
+.caret{animation:blink 1s steps(1) infinite}
+
+/* Firewall */
+.bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:1100px){.bento{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pcard{display:flex;flex-direction:column;gap:12px;padding:16px 18px;border-radius:10px;background:var(--card);border:1px solid var(--line)}
+.pcard.s2{grid-column:span 2}
+.pcard.k-b{background:rgba(214,69,80,.08);border-color:#5A2A3A}
+.pcard.k-r{background:rgba(224,160,48,.07);border-color:#5A4420}
+.pcard .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pcard .row.end{align-items:flex-end}
+.pcard .num{font-size:22px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;text-align:right}
+.pcard.k-b .num{color:#F08A92}.pcard.k-r .num{color:var(--amberT)}
+.feed{font-family:var(--mono);font-size:13px;line-height:1.7;display:flex;flex-direction:column;gap:3px;padding:10px 14px;height:290px;overflow:hidden}
+.frow{display:flex;gap:12px;white-space:nowrap;padding:2px 8px;border-radius:6px}
+.frow .ts{color:var(--muted)}.frow .msg{color:var(--text);overflow:hidden;text-overflow:ellipsis}
+.frow.k-b .tag{color:#F08A92;font-weight:600}.frow.k-a .tag{color:var(--emT);font-weight:600}.frow.k-r .tag{color:var(--amberT);font-weight:600}
+.frow.new{padding:4px 8px}.frow.new .msg{color:#fff}
+.frow.new.k-b{animation:shake 560ms cubic-bezier(.36,.07,.19,.97) both,redFade 1.6s ease-out both}
+.frow.new.k-a{animation:slideIn 480ms var(--ease) both,greenFade 1.6s ease-out both}
+.frow.new.k-r{animation:slideIn 480ms var(--ease) both,amberFade 1.6s ease-out both}
+.feed[data-filter="b"] .frow:not(.k-b),.feed[data-filter="a"] .frow:not(.k-a),.feed[data-filter="r"] .frow:not(.k-r){display:none}
+.seg{display:flex;gap:6px}
+.chipbtn{min-height:32px;padding:0 12px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text);font-size:12px;font-weight:500;cursor:pointer}
+.chipbtn[aria-pressed="true"]{background:var(--horizon);border-color:var(--horizon);color:#fff}
+
+/* Lineage */
+.lookup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.idfield{display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border-radius:6px;border:1px solid var(--border2);background:var(--term);font-family:var(--mono);font-size:12px;color:var(--muted)}
+.idfield:focus-within{border-color:var(--horizon);box-shadow:0 0 0 3px rgba(0,96,196,.28)}
+.idfield input{width:92px;height:40px;border:none;background:transparent;color:#fff;font-family:var(--mono);font-size:15px;outline:none}
+.sample{height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--border2);background:transparent;color:var(--blueT);font-family:var(--mono);font-size:12px;cursor:pointer}
+.sample[aria-pressed="true"]{border-color:var(--em);background:rgba(46,187,127,.14);color:var(--emT)}
+.dag{display:grid;grid-template-columns:.85fr 40px 1fr 40px 1.1fr 40px 1fr 40px 1fr;min-width:1000px}
+.dcol{display:flex;flex-direction:column;gap:10px}
+.node{display:flex;flex-direction:column;gap:3px;padding:10px 14px;border-radius:10px;background:var(--card);border:1px solid var(--line);transition:border-color 280ms var(--ease),box-shadow 280ms var(--ease),background 280ms var(--ease)}
+.node.lit{background:rgba(46,187,127,.08);border-color:var(--em);box-shadow:0 0 0 1px rgba(46,187,127,.4),0 0 20px rgba(46,187,127,.35)}
+.node.root{background:var(--horizon);border-color:var(--horizon);color:#fff;padding:16px;gap:6px}
+.node.root.lit{box-shadow:0 0 0 1px var(--peri),0 0 28px rgba(0,96,196,.6);background:var(--horizon);border-color:var(--peri)}
+.node.store{flex-direction:row;justify-content:space-between;align-items:center}
+.node.store .tag{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.node.store .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.node.store.lit .tag{color:var(--emT)}
+.node.store.skip .nm{color:var(--muted)}
+.wire{position:relative;display:flex;align-items:center}
+.wire i{display:block;width:100%;height:2px;background:var(--line);transition:background 260ms}
+.wire.lit i{background:var(--em)}
+.wire .pulse{position:absolute;top:calc(50% - 5px);left:0;width:10px;height:10px;border-radius:999px;background:var(--emT);box-shadow:0 0 14px var(--em);animation:travel 240ms linear both}
+.banner{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:6px;background:rgba(46,187,127,.1);border:1px solid #16402F;animation:pop 420ms var(--ease) both}
+
+/* Erasure */
+.flow{display:flex;align-items:stretch}
+.step{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:10px;background:var(--side);border:1px solid var(--line);transition:background 280ms var(--ease),border-color 280ms var(--ease)}
+.step .hd{display:flex;align-items:center;gap:10px}
+.step .ic{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;border:1px solid var(--border2);color:var(--muted);font-family:var(--mono);font-size:12px;flex-shrink:0}
+.step .nm{font-size:16px;font-weight:700;color:#fff}
+.step .ds{font-size:12px;line-height:1.45;color:var(--muted)}
+.step.active{background:#0A3F86;border-color:var(--oceanic);animation:glow 1.3s ease-in-out infinite}
+.step.active .ic{background:#fff;border-color:#fff;color:var(--horizon);font-weight:600}
+.step.active .ds{color:#D3E5F8}
+.step.done{background:rgba(46,187,127,.08);border-color:var(--em)}
+.step.done .ic{background:rgba(46,187,127,.2);border-color:transparent;animation:pop 380ms var(--ease) both}
+.step.done.shred{background:rgba(214,69,80,.12);border-color:var(--rose)}
+.step.done.shred .ic{background:rgba(214,69,80,.25)}
+.arrow{display:flex;align-items:center;justify-content:center;width:28px;flex-shrink:0;color:var(--border2);transition:color 280ms}
+.arrow.lit{color:var(--em)}
+.elog{font-family:var(--mono);font-size:12px;line-height:1.65;display:flex;flex-direction:column;gap:2px;padding:12px 14px;height:136px;overflow:hidden;border-radius:6px;background:var(--term)}
+.elog div{display:flex;gap:10px;white-space:nowrap;animation:lineIn 300ms var(--ease) both}
+.elog .ts{color:var(--muted)}.elog .nd{color:var(--blueT);width:64px;flex-shrink:0}.elog .m{color:#DFE5EE;overflow:hidden;text-overflow:ellipsis}
+.targets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tgt{font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:4px;background:var(--card);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgt.gone{background:rgba(214,69,80,.2);color:var(--roseT);text-decoration:line-through;animation:pop 320ms var(--ease) both}
+.abl-row{display:grid;grid-template-columns:1.6fr .7fr .7fr .8fr 1.4fr;gap:16px;align-items:center;padding:14px 24px;border-top:1px solid var(--line2)}
+.abl-head{padding:10px 24px;font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--muted);background:var(--side);border-top:none}
+.big{font-size:40px;line-height:1;font-weight:700;letter-spacing:-0.03em;font-variant-numeric:tabular-nums}
+.verdict{justify-self:end;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em}
+
+/* Ledger */
+.blk{display:flex;gap:16px}
+.blk .rail{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0}
+.blk .rail .pt{width:14px;height:14px;margin-top:16px;border-radius:999px;background:var(--bg);border:3px solid var(--oceanic)}
+.blk .rail .ln{flex:1;width:2px;background:var(--line)}
+.blk .bx{flex:1;min-width:0;margin-bottom:12px;border-radius:10px;background:var(--card);border:1px solid var(--line);overflow:hidden;transition:border-color 280ms}
+.blk .bh{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line2)}
+.blk pre{margin:0;padding:10px 14px;font-family:var(--mono);font-size:12px;line-height:1.6;color:#DFE5EE;background:var(--term);white-space:pre-wrap;word-break:break-all}
+.blk .k{color:var(--blueT)}.blk .sv{color:var(--emT)}
+.blk.bad .bx{border-color:var(--rose)}
+.blk.bad .pt{background:var(--rose);border-color:#F08A92;box-shadow:0 0 12px var(--rose)}
+.blk.bad .ln{background:#5A2A3A}
+.blk.enter{animation:viewIn 480ms var(--ease) both}
+.vpanel{position:relative;height:220px;border-radius:10px;background:var(--term);overflow:hidden;border:1px solid var(--line2)}
+.matrix{margin:0;padding:10px 14px;font-family:var(--mono);font-size:11px;line-height:1.5;color:var(--em);white-space:pre;animation:scroll 700ms linear infinite}
+.result{position:absolute;inset:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:10px;text-align:center;animation:pop 520ms var(--ease) both}
+.result.ok{background:rgba(46,187,127,.14);animation:pop 520ms var(--ease) both,halo 2.4s ease-in-out 520ms infinite}
+.result.fail{background:rgba(214,69,80,.16);box-shadow:0 0 0 1px var(--rose),0 0 40px rgba(214,69,80,.5)}
+.result .n{font-size:76px;line-height:1;font-weight:700;letter-spacing:-0.04em}
+.result .w{font-size:15px;font-weight:700;letter-spacing:.1em;color:#fff}
+
+/* Scorecard */
+.donut-card{display:flex;align-items:center;gap:28px;padding:28px}
+.donut{position:relative;width:200px;height:200px;flex-shrink:0}
+.donut .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut .c b{font-size:44px;line-height:1;font-weight:700;letter-spacing:-0.03em;color:#fff}
+.donut-arc{animation:donut 1.2s var(--ease) both}
+.grow{transform-origin:left;animation:grow 900ms var(--ease) 500ms both}
+
+/* Keyframes */
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(240,98,114,.7)}70%{box-shadow:0 0 0 9px rgba(240,98,114,0)}100%{box-shadow:0 0 0 0 rgba(240,98,114,0)}}
+@keyframes viewIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes flash{0%{background:rgba(46,187,127,.7);box-shadow:0 0 18px rgba(46,187,127,.9);color:#fff}100%{background:rgba(46,187,127,.16);box-shadow:0 0 0 rgba(46,187,127,0)}}
+@keyframes blink{50%{opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-9px)}30%{transform:translateX(8px)}45%{transform:translateX(-6px)}60%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes redFade{from{background:rgba(214,69,80,.42)}to{background:rgba(214,69,80,.1)}}
+@keyframes greenFade{from{background:rgba(46,187,127,.36)}to{background:rgba(46,187,127,.08)}}
+@keyframes amberFade{from{background:rgba(224,160,48,.36)}to{background:rgba(224,160,48,.08)}}
+@keyframes travel{from{left:0;opacity:1}to{left:calc(100% - 10px);opacity:.2}}
+@keyframes pop{0%{opacity:0;transform:scale(.8)}60%{opacity:1;transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 1px var(--oceanic),0 0 18px rgba(0,96,196,.5)}50%{box-shadow:0 0 0 2px var(--peri),0 0 44px rgba(30,131,179,.9)}}
+@keyframes lineIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+@keyframes scroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+@keyframes halo{0%,100%{box-shadow:0 0 0 1px var(--em),0 0 30px rgba(46,187,127,.45)}50%{box-shadow:0 0 0 2px var(--emT),0 0 60px rgba(46,187,127,.75)}}
+@keyframes donut{from{stroke-dasharray:0 999}}
+@keyframes grow{from{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---- additions for the live (wired) console ---- */
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.field{height:44px;padding:0 12px;border-radius:6px;border:1px solid var(--border2);background:var(--term);color:#fff;font:400 13px var(--sans);outline:none;min-width:0}
+.field:focus{border-color:var(--horizon);box-shadow:0 0 0 3px rgba(0,96,196,.28)}
+select.field{padding-right:26px}
+textarea.field{height:auto;min-height:84px;padding:10px 12px;line-height:1.55;font-family:var(--mono);font-size:13px;resize:vertical;width:100%}
+.field.grow1{flex:1 1 280px}
+.composer{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 16px}
+.lbl{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--muted)}
+.tchips{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px}
+.tchip{display:flex;flex-direction:column;gap:3px;min-width:136px;padding:8px 12px;border-radius:8px;background:var(--side);border:1px solid var(--line);color:var(--text);cursor:pointer;text-align:left;font-family:var(--sans);transition:border-color 180ms var(--ease),box-shadow 180ms var(--ease)}
+.tchip:hover{border-color:var(--oceanic);box-shadow:0 0 18px rgba(30,131,179,.35)}
+.tchip:focus-visible{outline:2px solid var(--peri);outline-offset:2px}
+.tchip .h{display:flex;gap:8px;align-items:center;font-size:12px;font-weight:600;color:#fff}
+.tchip .h i{font-style:normal;font-family:var(--mono);font-size:10px;padding:1px 5px;border-radius:4px;background:var(--chip);color:var(--blueT)}
+.tchip .d{font-family:var(--mono);font-size:11px;color:var(--muted);max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tchip.bad{border-color:#5A2A3A}.tchip.bad .d{color:var(--roseT)}
+.tchip.ok .d{color:var(--emT)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--muted);padding:10px 14px;background:var(--side);border-bottom:1px solid var(--line)}
+.tbl td{padding:9px 14px;border-bottom:1px solid #111C48;font-family:var(--mono);font-size:12px;color:var(--text);white-space:nowrap}
+.tbl td.w{white-space:normal;word-break:break-all}
+.err{color:var(--roseT);font-size:12px}
+.note{font-size:12px;line-height:1.5;color:var(--muted)}
+.tgt.unreg{box-shadow:inset 0 0 0 1px var(--amber);color:var(--amberT)}
+.tgt.vt{color:var(--blueT)}
+.empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:56px 24px;border-radius:10px;background:var(--term);border:1px dashed var(--border2);text-align:center}
+.bar{height:6px;border-radius:999px;background:var(--chip);overflow:hidden}
+.bar>i{display:block;height:6px;border-radius:999px;background:var(--em)}
+.barrow{display:grid;grid-template-columns:110px 1fr 56px 70px;gap:12px;align-items:center;font-size:12px;padding:6px 0}
+.hl{background:rgba(214,69,80,.22);color:var(--roseT);border-radius:3px;padding:1px 3px}
+.hl sup{font-family:var(--mono);font-size:9px;margin-left:3px;color:#fff;opacity:.8}
+.live.off{background:rgba(224,160,48,.14);border-color:rgba(224,160,48,.5);color:var(--amberT)}
+.live.off .dot{background:var(--amber);animation:none}
+.live.ok{background:rgba(46,187,127,.12);border-color:rgba(46,187,127,.45);color:var(--emT)}
+.live.ok .dot{background:var(--em);animation:none}
+.skel{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--chip),#1B2B66,var(--chip));background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.scroll-x{min-width:0}.term{min-width:0}
+.offline{display:none;padding:14px 16px;border-radius:10px;background:rgba(224,160,48,.1);border:1px solid #5A4420;color:var(--amberT);font-size:13px;line-height:1.5}
+.offline.show{display:block}
+.offline a{color:#fff}
+.stage{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.vrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;background:var(--side);border:1px solid var(--line);font-size:13px}
+.vrow .r{font-family:var(--mono);font-size:12px;color:var(--text)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:12px}
+.kv span:nth-child(odd){color:var(--muted)}
+.kv span:nth-child(even){font-family:var(--mono);color:#fff;word-break:break-all}
+.res4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:1100px){.res4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.res4>div{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:8px;background:var(--term)}
+.res4 .l{font-size:11px;color:var(--muted)}.res4 .v{font-size:18px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}.res4 .s{font-size:11px;color:var(--muted)}
+.abl2{display:grid;grid-template-columns:1.1fr 2fr .8fr 1.3fr;gap:16px;align-items:center;padding:14px 24px;border-top:1px solid var(--line2)}
+.bubble{padding:10px 14px;border-radius:10px;background:var(--side);border:1px solid var(--line);font-size:13px;line-height:1.5;max-width:92%}
+.bubble.bot{align-self:flex-start;border-color:#16402F}
+.bubble.cust{align-self:flex-end}
+.bubble small{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:2px}
+
+/* Secure chat (L9 chat bot) */
+.chatgrid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr);gap:16px;align-items:start}
+@media (max-width:1100px){.chatgrid{grid-template-columns:1fr}}
+.chatwin{position:relative;display:flex;flex-direction:column;overflow:hidden;transition:border-color 400ms var(--ease),box-shadow 400ms var(--ease)}
+.chatwin.xray{border-color:var(--em);box-shadow:0 0 0 1px rgba(46,187,127,.35),0 0 44px rgba(46,187,127,.2)}
+.ch-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--termHead)}
+.avatar{width:38px;height:38px;flex-shrink:0;border-radius:999px;background:var(--horizon);display:flex;align-items:center;justify-content:center;color:#fff}
+.xtoggle{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600}
+.xtoggle .lab{color:var(--muted);transition:color 300ms,text-shadow 300ms;cursor:pointer;user-select:none}
+.xtoggle .lab.on{color:#fff}
+.xtoggle .lab.x.on{color:var(--emT);text-shadow:0 0 14px rgba(46,187,127,.8)}
+.switch{position:relative;width:66px;height:36px;flex-shrink:0;border-radius:999px;border:1px solid var(--border2);background:var(--chip);cursor:pointer;padding:0;box-shadow:0 0 20px rgba(0,96,196,.45);transition:background 300ms,box-shadow 300ms,border-color 300ms}
+.switch::after{content:'';position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:999px;background:#fff;transition:transform 420ms cubic-bezier(.3,1.5,.5,1),background 300ms}
+.switch[aria-checked="true"]{background:rgba(46,187,127,.3);border-color:var(--em);box-shadow:0 0 0 3px rgba(46,187,127,.18),0 0 30px rgba(46,187,127,.7)}
+.switch[aria-checked="true"]::after{transform:translateX(30px);background:var(--emT)}
+.switch:focus-visible{outline:2px solid var(--peri);outline-offset:3px}
+.xbanner{display:none;align-items:center;justify-content:center;gap:8px;padding:7px 12px;background:rgba(46,187,127,.12);border-bottom:1px solid #16402F;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--emT)}
+.chatwin.xray .xbanner{display:flex;animation:fadeIn 300ms ease both}
+.ch-bar{display:flex;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--side)}
+.ch-bar select{flex:1;min-width:0}
+.msgs{position:relative;height:430px;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px;transition:background 400ms}
+.chatwin.xray .msgs{background:var(--term)}
+.msg{max-width:80%;display:flex;flex-direction:column;gap:4px}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.agent{align-self:flex-start}
+.msg .bb{padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.6;color:#fff}
+.msg.user .bb{background:var(--horizon);border-bottom-right-radius:4px}
+.msg.agent .bb{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg .meta{font-size:11px;color:var(--muted)}
+.msg.new{animation:msgIn 360ms var(--ease) both}
+.msg.x .bb{font-family:var(--mono);font-size:13px;background:#071533;border:1px solid #16402F;color:#DFE5EE}
+.msg.user.x .bb{border-color:#1E4A8A;background:#08183F}
+.pv .tk{display:none}
+.msg .xv{display:none}
+.msg.x .xv{display:inline}
+.msg.x .cv{display:none}
+.msg.x .pv .raw{display:none}
+.msg.x .pv .tk{display:inline-block}
+.raw{text-decoration:underline dotted rgba(255,255,255,.45);text-underline-offset:3px;border-radius:3px}
+.tk{font-family:var(--mono);font-size:12px;line-height:1.4;padding:1px 8px;border-radius:999px;background:rgba(46,187,127,.18);color:var(--emT);border:1px solid rgba(46,187,127,.55);box-shadow:0 0 12px rgba(46,187,127,.35);white-space:nowrap}
+.msg.x .tk{animation:tokIn 560ms var(--ease) both}
+.sysmsg{align-self:center;max-width:90%;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 16px;border-radius:10px;background:rgba(214,69,80,.1);border:1px solid #5A2A3A;text-align:center;font-size:13px;color:#fff}
+.dcard{align-self:stretch;display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:12px;background:rgba(46,187,127,.1);border:1px solid var(--em);box-shadow:0 0 24px rgba(46,187,127,.2);animation:pop 460ms var(--ease) both}
+.dots{display:inline-flex;gap:4px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);align-self:flex-start}
+.dots i{width:6px;height:6px;border-radius:999px;background:var(--muted);animation:bounce 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+.beam{position:absolute;left:0;right:0;top:0;height:3px;background:var(--em);box-shadow:0 0 24px 6px rgba(46,187,127,.6);opacity:0;pointer-events:none;z-index:3}
+.beam.run{animation:beam 900ms ease-in-out both}
+.ch-input{display:flex;gap:8px;padding:12px 14px 6px;border-top:1px solid var(--line);background:var(--side)}
+.ch-input input{flex:1;min-width:0;height:44px;border-radius:999px;border:1px solid var(--border2);background:var(--term);color:#fff;padding:0 16px;font:14px var(--sans);outline:none}
+.ch-input input:focus{border-color:var(--horizon);box-shadow:0 0 0 3px rgba(0,96,196,.28)}
+.ch-input input:disabled{opacity:.5}
+.send{width:44px;height:44px;flex-shrink:0;border-radius:999px;border:none;background:var(--horizon);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.send:hover{background:var(--horizon-600)}
+.send:disabled{opacity:.45;cursor:default}
+.preview{display:flex;gap:8px;align-items:center;padding:4px 18px 8px;background:var(--side);font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden}
+.preview .pt{color:#DFE5EE;overflow:hidden;text-overflow:ellipsis}
+.preview .tk{font-size:11px;padding:0 6px;box-shadow:none}
+.quick{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px;background:var(--side)}
+.qchip{min-height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--border2);background:transparent;color:var(--blueT);font-size:12px;cursor:pointer}
+.qchip:hover{background:#0F1D4D}
+.qchip:disabled{opacity:.45;cursor:default}
+.qa{display:grid;grid-template-columns:1fr;gap:10px;padding:12px 14px 14px;background:var(--side);border-top:1px solid var(--line2)}
+.qa button{min-height:46px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 12px}
+.qa .q1{border:1px solid var(--horizon);background:rgba(0,96,196,.2);color:#fff}
+.qa .q1:hover{background:rgba(0,96,196,.35)}
+.qa button:disabled{opacity:.5;cursor:default}
+.vrow{display:grid;grid-template-columns:1.1fr .8fr 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line2);font-size:12px}
+.vrow.head{border-top:none;font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--muted);padding-top:0}
+.vrow.newv{animation:lineIn 360ms var(--ease) both}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tokIn{0%{opacity:0;transform:scale(.5)}60%{opacity:1;transform:scale(1.15);box-shadow:0 0 26px rgba(46,187,127,1)}100%{transform:scale(1)}}
+@keyframes beam{0%{top:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:calc(100% - 3px);opacity:0}}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-4px);opacity:1}}
+
+/* Settings (L9) */
+.setgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1100px){.setgrid{grid-template-columns:1fr}}
+.setcard{display:flex;flex-direction:column;gap:12px;padding:18px 22px}
+.setcard h3{margin:0;font-size:15px;font-weight:600;color:#fff;display:flex;justify-content:space-between;align-items:center}
+.fl{display:flex;flex-direction:column;gap:5px}
+.fl>span{font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--muted)}
+.fl .hint{font-size:11px;letter-spacing:0;color:var(--muted);font-weight:400}
+textarea.field{min-height:84px;padding:10px 12px;line-height:1.5;resize:vertical;font-family:var(--sans)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ro{padding:12px 14px;border-radius:8px;background:var(--term);border:1px dashed var(--border2);font-size:12px;line-height:1.55;color:#DFE5EE}
+.ro b{color:var(--emT)}
+.chk{display:flex;gap:10px;align-items:center;font-size:13px}
+.chk .ok{color:var(--emT)}.chk .no{color:var(--roseT)}
+.lang{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;background:var(--side)}
+.lang>summary{cursor:pointer;font-weight:600;color:#fff;font-size:14px}
+.btable{width:100%;border-collapse:collapse;font-size:12px}
+.btable th{font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--muted);text-align:left;padding:6px 8px}
+.btable td{padding:7px 8px;border-top:1px solid var(--line2)}
+.savebar{position:sticky;bottom:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-radius:10px;background:var(--side);border:1px solid var(--border2);box-shadow:0 -8px 24px rgba(0,0,0,.35);z-index:5}
+.savebar .msg2{font-size:13px;flex:1;min-width:200px}
+.probs{margin:6px 0 0;padding-left:18px;font-size:12px;color:var(--roseT)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="side" aria-label="Privacy layers">
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#A6CAF0" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5z"/><circle cx="12" cy="12" r="2.2"/><path d="M12 9.8V6.6M13.9 13.1l2.8 1.6M10.1 13.1l-2.8 1.6"/></svg>
+    <div><b>DPDP Privacy Console</b><small>CreditNirvana · zero-trust data plane</small></div>
+  </div>
+  <div class="navlist">
+    <span class="overline">DATA FLOW</span>
+    <button class="nav" data-view="gateway"><span class="lay">L3·L1</span>Gateway hot path<span class="key">1</span></button>
+    <button class="nav" data-view="vault"><span class="lay">L2</span>Token vault<span class="key">2</span></button>
+    <button class="nav" data-view="firewall"><span class="lay">L4</span>Consent firewall<span class="key">3</span></button>
+    <button class="nav" data-view="lineage"><span class="lay">L5</span>Lineage registry<span class="key">4</span></button>
+    <button class="nav" data-view="erasure"><span class="lay">L6</span>Erasure agent<span class="key">5</span></button>
+    <button class="nav" data-view="ledger"><span class="lay">L7</span>Tamper-evident ledger<span class="key">6</span></button>
+    <button class="nav" data-view="quality"><span class="lay">L0·L1</span>Detection quality<span class="key">7</span></button>
+    <button class="nav" data-view="voice"><span class="lay">L9</span>Voice bot<span class="key">8</span></button>
+    <button class="nav" data-view="chat"><span class="lay">L9</span>Chat bot<span class="key">9</span></button>
+    <button class="nav" data-view="settings"><span class="lay">L9</span>Settings<span class="key">·</span></button>
+  </div>
+  <div class="health" id="health">
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#fff"><span class="dot" id="hDot"></span><span id="hText">Checking layers…</span></div>
+    <span class="mono" style="font-size:11px;color:var(--muted)" id="hSub">DPDP Act 2023 · default deny</span>
+    <span style="font-size:11px;color:var(--muted)">Keys 1–9 or ← → to switch views</span>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="topbar">
+    <div class="crumb"><span class="mono">mission-control</span><span aria-hidden="true">/</span><strong id="crumb">L3·L1 gateway</strong></div>
+    <div class="tb-right">
+      <span class="live off" id="conn"><span class="dot"></span><span id="connT">CONNECTING</span></span>
+      <span class="tb-item" title="Time from the message arriving to the masked text reaching the LLM boundary (budget 50 ms)">Latency <span class="mono" style="color:var(--emT);font-weight:600" id="tbLat">– ms</span><span class="mini"><i id="tbBar" style="width:0%"></i></span><span class="mono">/ 50</span></span>
+      <span class="tb-item" title="The gateway forgets a conversation's raw text after this much idle time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E0A030" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Memory lock <span class="mono" style="color:var(--amberT);font-weight:600" id="tbLock">--:--</span></span>
+      <span class="mono" style="color:var(--text)" id="tbClock">--:--:-- UTC</span>
+    </div>
+  </div>
+
+  <div class="offline" id="offline"></div>
+
+  <!-- ============ VIEW 1: GATEWAY ============ -->
+  <section class="view" id="v-gateway" aria-label="Gateway hot path">
+    <div class="vhead">
+      <div class="t">
+        <span class="eyebrow">LAYER 3 + LAYER 1 · HOT PATH</span>
+        <h1>Gateway hot path</h1>
+        <p class="sub">Every inbound message is detected, tokenized against the vault and audited before any model or store sees it.</p>
+      </div>
+      <button class="btn" id="gwPause" title="Plays synthetic calls from the dev corpus through the real gateway, one message at a time">Start live stream</button>
+    </div>
+    <div class="card composer" id="gwComposer">
+      <div class="row" style="flex-basis:100%"><span class="lbl">SEND A MESSAGE AS</span><div class="row" id="gwChips"></div></div>
+      <select class="field" id="gwSpeaker" aria-label="Speaker"><option>Customer</option><option>Agent</option></select>
+      <select class="field" id="gwPurpose" aria-label="Purpose"><option value="service">purpose: service</option><option value="collections">purpose: collections</option><option value="dispute">purpose: dispute</option><option value="model_improvement">purpose: model_improvement (blocked)</option></select>
+      <input class="field grow1" id="gwText" placeholder="e.g. my number is nine eight four five zero one two three four five" autocomplete="off" aria-label="Message text">
+      <button class="btn btn-primary" id="gwSend" style="min-height:44px;font-size:14px;padding:0 20px">Send</button>
+      <span class="err" id="gwErr" style="flex-basis:100%"></span>
+    </div>
+    <div class="grid4">
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 16px 12px">
+        <span style="align-self:flex-start;font-size:12px;font-weight:500;color:var(--muted)">Masking latency</span>
+        <svg width="200" height="122" viewBox="0 0 200 122" role="img" aria-label="Latency gauge with a 50 millisecond redline">
+          <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="#13214F" stroke-width="14" stroke-linecap="round"/>
+          <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="#D64550" stroke-width="14" stroke-dasharray="0 209.4 41.9 999"/>
+          <path id="gArc" d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="#2EBB7F" stroke-width="14" stroke-linecap="round" stroke-dasharray="0 999" style="transition:stroke-dasharray 500ms cubic-bezier(.2,0,0,1)"/>
+          <line x1="155.4" y1="78" x2="185" y2="61" stroke="#F5A3A9" stroke-width="2"/>
+          <text id="gVal" x="100" y="98" text-anchor="middle" fill="#FFFFFF" style="font:700 30px Inter,sans-serif">–</text>
+          <text x="100" y="116" text-anchor="middle" fill="#86A0BC" style="font:500 11px Inter,sans-serif">ms · redline 50</text>
+        </svg>
+      </div>
+      <div class="card kpi"><span class="l">Throughput</span><span class="v" id="gwTp">–</span><span class="s" id="gwTpS">waiting for the first message</span></div>
+      <div class="card kpi"><span class="l">Idle-memory check</span><span class="v" id="gwMem" style="display:flex;align-items:center;gap:8px;font-size:24px">–</span><span class="s" id="gwMemS"></span></div>
+      <div class="card kpi"><span class="l">Values tokenized</span><span class="v" id="gwEnt">–</span><span class="s" id="gwEntS"></span></div>
+    </div>
+    <div class="grid2">
+      <div class="term" style="border:1px solid #3A1F3F">
+        <div class="term-head"><span class="name"><span class="lights" aria-hidden="true"><i style="background:#F06272"></i><i style="background:#E0A030"></i><i style="background:#2EBB7F"></i></span>raw_ingress.tty</span><span class="mono" style="font-size:11px;color:var(--roseT)">UNTRUSTED · SHOWN FOR THE DEMO ONLY</span></div>
+        <div class="term-body">
+          <div class="tline cur"><div class="tmeta"><span id="rcTs"></span><span id="rcId"></span><span id="rcCh"></span></div><div class="ttext"><span style="color:var(--roseT)">$ </span><span id="rawCur"></span><span class="caret" style="color:var(--roseT)">▌</span></div></div>
+          <div id="rawHist"></div>
+        </div>
+      </div>
+      <div class="term" style="border:1px solid #16402F">
+        <div class="term-head"><span class="name"><span class="lights" aria-hidden="true"><i style="background:#F06272"></i><i style="background:#E0A030"></i><i style="background:#2EBB7F"></i></span>vault_egress.tty</span><span class="mono" style="font-size:11px;color:var(--emT)">WHAT THE LLM AND THE STORES RECEIVE</span></div>
+        <div class="term-body">
+          <div class="tline cur"><div class="tmeta"><span id="mcTs"></span><span id="mcId"></span><span id="mcSt" style="color:var(--emT)"></span></div><div class="ttext"><span style="color:var(--emT)">&gt; </span><span id="maskCur"></span><span class="caret" style="color:var(--emT)">▌</span></div></div>
+          <div id="maskHist"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="padding:0">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px 0"><span style="font-size:13px;font-weight:600;color:#fff">Last message, layer by layer</span><span class="mono" style="font-size:11px;color:var(--muted)" id="gwTraceId">click a step to open its layer</span></div>
+      <div class="tchips" id="gwTrace"><span class="note">Send a message (or start the stream) to see each layer's part in it.</span></div>
+    </div>
+  </section>
+
+  <!-- ============ VIEW 2: VAULT ============ -->
+  <section class="view" id="v-vault" aria-label="Token vault">
+    <div class="vhead">
+      <div class="t">
+        <span class="eyebrow">LAYER 2 · ENCRYPTED VAULT</span>
+        <h1>Token vault</h1>
+        <p class="sub">The database holds ciphertext only, under a key that belongs to one borrower. Destroy the key and every copy is unreadable.</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px"><span class="pill" id="vBackend">backend: –</span><span class="pill">AES-256-GCM</span><span class="pill">HMAC-SHA256 blind index</span></div>
+    </div>
+    <div class="row" id="vChips"></div>
+    <div class="grid4" id="vKpis"></div>
+    <div class="grid2">
+      <div class="term" style="border:1px solid var(--line)">
+        <div class="term-head"><span class="name">vault_records (what the database holds)</span><span class="mono" style="font-size:11px;color:var(--muted)" id="vCount"></span></div>
+        <div class="scroll-x" style="max-height:340px;overflow:auto"><table class="tbl" id="vTable"></table></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card" style="display:flex;flex-direction:column;gap:12px;padding:20px 22px">
+          <span style="font-size:15px;font-weight:600;color:#fff">Who can read a token?</span>
+          <span class="note">Each button is a real call to the vault as that caller. Only the borrower's own reply path may rehydrate; everyone else is refused by the vault itself.</span>
+          <div class="row"><label class="lbl" for="vTok">TOKEN</label><select class="field" id="vTok" style="height:40px"></select></div>
+          <div class="seg" id="vRoles" style="flex-wrap:wrap">
+            <button class="chipbtn" data-role="borrower_reply">Borrower's reply</button>
+            <button class="chipbtn" data-role="agent_dashboard">Agent dashboard</button>
+            <button class="chipbtn" data-role="log_pipeline">Log pipeline</button>
+            <button class="chipbtn" data-role="engineer">Engineer</button>
+          </div>
+          <div id="vOut" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+        <div class="term" style="border:1px solid var(--line)">
+          <div class="term-head"><span class="name">vault access log</span><span class="mono" style="font-size:11px;color:var(--muted)">latest operations</span></div>
+          <div class="elog" id="vLog" style="height:150px;border-radius:0"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VIEW 3: FIREWALL ============ -->
+  <section class="view" id="v-firewall" aria-label="Consent firewall">
+    <div class="vhead">
+      <div class="t">
+        <span class="eyebrow">LAYER 4 · WRITE GUARD</span>
+        <h1>Consent firewall</h1>
+        <p class="sub">No write reaches a store unless its purpose is allowed for that store. Anything unknown is refused.</p>
+      </div>
+      <span class="pill" id="fwPill">policy table · – stores</span>
+    </div>
+    <div class="bento" id="bento"></div>
+    <div class="card composer">
+      <div class="row" style="flex-basis:100%"><span class="lbl">TRY A WRITE FOR</span><div class="row" id="fwChips"></div></div>
+      <select class="field" id="fwStore" aria-label="Store"></select>
+      <select class="field" id="fwPurpose" aria-label="Purpose"></select>
+      <label class="note" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="fwConsent"> claim explicit consent</label>
+      <button class="btn btn-primary" id="fwTry" style="min-height:44px;font-size:14px;padding:0 20px">Try write</button>
+      <span id="fwOut" style="flex-basis:100%;font-size:12px"></span>
+    </div>
+    <div class="term" style="border:1px solid var(--line)">
+      <div class="term-head"><span class="name">write_guard.log <span class="mono" style="font-size:11px;font-weight:400;color:var(--muted)">· from the audit chain, read as the auditor</span></span>
+        <div class="seg" role="group" aria-label="Filter events">
+          <button class="chipbtn" data-f="all" aria-pressed="true">All</button>
+          <button class="chipbtn" data-f="b" aria-pressed="false">Blocked</button>
+          <button class="chipbtn" data-f="a" aria-pressed="false">Allowed</button>
+          <button class="chipbtn" data-f="r" aria-pressed="false" title="Allowed because a consent id was claimed; no consent registry is connected to verify it">Unverified</button>
+        </div>
+      </div>
+      <div class="feed" id="feed" data-filter="all" aria-live="off"></div>
+    </div>
+  </section>
+
+  <!-- ============ VIEW 4: LINEAGE ============ -->
+  <section class="view" id="v-lineage" aria-label="Lineage registry">
+    <div class="vhead">
+      <div class="t">
+        <span class="eyebrow">LAYER 5 · INVERTED INDEX</span>
+        <h1>Lineage registry</h1>
+        <p class="sub">Pick a borrower. One registry read lights every connected copy, token and store. Copies nobody registered show up in amber.</p>
+      </div>
+      <form class="lookup" id="lnForm">
+        <label class="idfield">case <input id="lnInput" value="" aria-label="Case number or id" autocomplete="off"></label>
+        <button class="btn" type="submit" style="min-height:44px;background:var(--horizon);border-color:var(--horizon)">Trace</button>
+      </form>
+    </div>
+    <div class="row" id="lnChips"></div>
+    <div id="lnBody"></div>
+  </section>
+
+  <!-- ============ VIEW 5: ERASURE ============ -->
+  <section class="view" id="v-erasure" aria-label="Erasure agent">
+    <div class="vhead">
+      <div class="t">
+        <span class="eyebrow">LAYER 6 · LANGGRAPH AGENT · RIGHT TO ERASURE</span>
+        <h1 style="font-size:34px;letter-spacing:-0.03em">Erasure agent</h1>
+        <p class="sub mono" style="font-size:13px" id="erSub">pick a borrower</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+        <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(46,187,127,.12);border:1px solid #16402F;font-size:12px;color:#fff"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2EBB7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10 10 0 012 12s3.6-7 10-7a9.7 9.7 0 015 1.4M22 12s-1 2-3 4M3 3l18 18M9.9 9.9a3 3 0 004.2 4.2"/></svg><strong style="font-weight:600">Agent blindness: active</strong><span style="color:var(--emT)">values matched inside the vault</span></span>
+        <button class="btn" id="erPrep" title="Creates a new test borrower with a few messages and plants copies the registry does not know about">Prepare a fresh borrower</button>
+        <button class="btn" id="erPlant" title="Plant copies the platform never registered (a derived summary, a debug log, a crash dump)">Add stray copies</button>
+        <button class="btn btn-primary" id="erRun">Trigger erasure</button>
+      </div>
+    </div>
+    <div class="row" id="erChips"></div>
+    <div class="card" style="display:flex;flex-direction:column;gap:18px;padding:22px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span style="font-size:15px;font-weight:600;color:#fff">LangGraph state machine <span class="note" style="font-weight:400">· initiated by the agent, recommended by the privacy officer, approved by the DPO (maker-checker)</span></span><span class="mono" id="erPhase" style="font-size:12px;color:var(--blueT)">idle</span></div>
+      <div class="flow" id="erFlow"></div>
+      <div class="grid2">
+        <div class="elog" id="erLog"></div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-radius:6px;background:var(--term)">
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Targets shredded <span style="color:var(--amberT)">· amber = not in the registry</span></span><span class="mono" style="color:var(--roseT);font-weight:600" id="erCount">0 / 0</span></div>
+          <div class="targets" id="erTargets" style="max-height:104px;overflow:auto"></div>
+        </div>
+      </div>
+      <div id="erResult"></div>
+    </div>
+    <div class="term" style="border:1px solid var(--border2)">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;padding:18px 24px;border-bottom:1px solid var(--line)">
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:16px;font-weight:700;color:#fff">Ablation: what each discovery method earns</span><span style="font-size:13px;color:var(--muted)">Silent survivors = personal data still retrievable after the request is marked complete. Switching a method off leaves the agent still saying "verified".</span></div>
+        <span class="mono" style="font-size:12px;color:var(--muted)" id="ablCap">recorded run</span>
+      </div>
+      <div class="scroll-x"><div style="min-width:760px" id="ablBody"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ VIEW 6: LEDGER ============ -->
+  <section class="view" id="v-ledger" aria-label="Tamper-evident ledger">
+    <div class="vhead">
+      <div class="t">
+        <span class="eyebrow">LAYER 7 · HASH-CHAINED LEDGER</span>
+        <h1>Tamper-evident ledger</h1>
+        <p class="sub">Each block commits to the one before it. Editing any row breaks every hash after it.</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px"><span class="pill">SHA-256 · append-only</span><span class="pill" id="lgHeadPill">head –</span></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+      <div id="blocks" style="flex:3 1 520px;min-width:0;display:flex;flex-direction:column" aria-label="Block explorer"></div>
+      <aside style="flex:2 1 340px;min-width:0;display:flex;flex-direction:column;gap:16px">
+        <div class="card" style="display:flex;flex-direction:column;gap:16px;padding:22px">
+          <span style="font-size:15px;font-weight:600;color:#fff">Chain integrity</span>
+          <span style="font-size:13px;line-height:1.5;color:var(--muted)">Recomputes every block hash from genesis on the server and compares each link. Reading the log is itself recorded in the log.</span>
+          <button class="btn btn-primary" id="lgVerify" style="width:100%">Verify chain</button>
+          <div class="vpanel" id="lgPanel" aria-live="polite"></div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;gap:12px;padding:20px 22px">
+          <span style="font-size:13px;font-weight:600;color:#fff">Red-team drill</span>
+          <span style="font-size:13px;line-height:1.5;color:var(--muted)" id="lgDrillTxt">Edit one number inside a copy of the log, without recomputing hashes, then verify the copy. The real log is never touched.</span>
+          <button class="btn" id="lgTamper" style="border-color:#5A2A3A;background:transparent;color:var(--roseT)">Tamper with a block</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+          <div class="card kpi" style="padding:16px"><span class="l">Blocks</span><span class="v" style="font-size:22px" id="lgBlocks">–</span></div>
+          <div class="card kpi" style="padding:16px"><span class="l">Erasures sealed</span><span class="v" style="font-size:22px" id="lgSealed">–</span></div>
+        </div>
+        <span class="note">Not built: the head hash is not anchored in a write-once store, so someone who rewrites the whole file and every hash is not caught by the chain alone.</span>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ VIEW 7: QUALITY ============ -->
+  <section class="view" id="v-quality" aria-label="Detection quality">
+    <div class="vhead">
+      <div class="t">
+        <span class="eyebrow">LAYER 0 + LAYER 1 · DETECTION QUALITY</span>
+        <h1>Detection quality</h1>
+        <p class="sub" id="qSub">How much PII the detector masks, scored on labelled synthetic conversations.</p>
+      </div>
+      <span class="badge b-lock" style="padding:6px 12px;font-size:12px"><span class="dot"></span>SYNTHETIC DATA · OPTIMISTIC</span>
+    </div>
+    <div id="qBody"><div class="skel" style="width:40%"></div></div>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px;padding:20px 22px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span style="font-size:15px;font-weight:600;color:#fff">Detector lab</span><span class="note">Layer 1 on its own: nothing is tokenized, stored or sent anywhere.</span></div>
+      <textarea class="field" id="dlText" aria-label="Text to scan">Hello, this is Priya Nair. My number is nine eight four five zero one two three four five and my PAN is ABCPN4821K.</textarea>
+      <div class="row"><button class="btn btn-primary" id="dlRun" style="min-height:40px;font-size:14px;padding:0 20px">Detect</button><button class="chipbtn" data-ex="0">English, spoken digits</button><button class="chipbtn" data-ex="1">Hindi</button><button class="chipbtn" data-ex="2">Email + UPI</button><span class="mono" id="dlMs" style="font-size:12px;color:var(--muted)"></span></div>
+      <div id="dlOut"></div>
+    </div>
+  </section>
+
+  <!-- ============ VIEW 8: VOICE ============ -->
+  <section class="view" id="v-voice" aria-label="Voice bot">
+    <div class="vhead">
+      <div class="t">
+        <span class="eyebrow">LAYER 9 · VOICE BOT + CALL DISPOSITION</span>
+        <h1>Voice bot</h1>
+        <p class="sub">A call is a normal case: every utterance goes through layers 1–7, and the model only ever sees masked text.</p>
+      </div>
+      <span class="pill" id="vcPill">checking…</span>
+    </div>
+    <div id="vcBody"></div>
+  </section>
+  <!-- ============ VIEW 9: CHAT ============ -->
+  <section class="view" id="v-chat" aria-label="Chat bot">
+    <div class="vhead">
+      <div class="t">
+        <span class="eyebrow" style="color:var(--emT)">TEXT CHANNEL · MASK → VAULT → BLIND LLM → DISPOSITION</span>
+        <h1 style="font-size:34px;letter-spacing:-0.03em">Chat bot</h1>
+        <p class="sub">A normal customer chat about one thing: will you pay. Flip to X-Ray to see exactly what the model receives: tokens, never plaintext. It ends with the disposition.</p>
+      </div>
+      <span class="pill" id="chPill">checking…</span>
+    </div>
+    <div class="chatgrid">
+      <div class="card chatwin" id="chWin">
+        <div class="ch-head">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="avatar" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5z"/><circle cx="12" cy="12" r="2.2"/></svg></span>
+            <div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:15px;font-weight:600;color:#fff">Collections assistant</span><span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--emT)"><span class="dot" style="width:7px;height:7px"></span>Secure session · tokenized end to end</span></div>
+          </div>
+          <div class="xtoggle">
+            <span class="lab c on" id="chLabC">Customer view</span>
+            <button class="switch" id="chSwitch" role="switch" aria-checked="false" aria-label="LLM X-Ray view"></button>
+            <span class="lab x" id="chLabX">LLM X-Ray view</span>
+          </div>
+        </div>
+        <div class="ch-bar"><select class="field" id="chBor"></select><button class="btn btn-primary" id="chStart" style="min-height:40px;padding:0 18px">Start chat</button></div>
+        <div class="xbanner">X-RAY · THIS IS EXACTLY WHAT THE MODEL RECEIVES · 0 RAW VALUES</div>
+        <div class="msgs" id="chMsgs" aria-live="polite"><div class="note" style="margin:auto;text-align:center">Choose a borrower and start the chat.</div></div>
+        <div class="beam" id="chBeam" aria-hidden="true"></div>
+        <form class="ch-input" id="chForm">
+          <input id="chInput" autocomplete="off" placeholder="Type a message… try a phone number, PAN or a payment promise" aria-label="Message" disabled>
+          <button class="send" id="chSendBtn" type="submit" aria-label="Send" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></button>
+        </form>
+        <div class="preview"><span style="flex-shrink:0">LLM will receive ›</span><span class="pt" id="chPreview">—</span></div>
+        <div class="quick">
+          <button class="qchip" type="button" data-q="My phone number is 98450 12345 and I will pay Rs 4,200 by the 7th.">Promise + phone</button>
+          <button class="qchip" type="button" data-q="When is my next EMI due?">Ask about EMI</button>
+          <button class="qchip" type="button" data-q="I am not going to pay this, stop messaging me.">Refuse</button>
+          <button class="qchip" type="button" data-q="Can you call me back tomorrow evening?">Call back</button>
+          <button class="qchip" type="button" id="chReset" style="margin-left:auto;color:var(--text)">New chat</button>
+        </div>
+        <div class="qa"><button class="q1" id="chEnd" type="button" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h9"/></svg>End chat + disposition</button></div>
+      </div>
+      <aside style="display:flex;flex-direction:column;gap:16px;min-width:0">
+        <div class="card" style="display:flex;flex-direction:column;gap:10px;padding:18px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:600;color:#fff">Token vault</span><span class="mono" id="chVaultCount" style="font-size:12px;color:var(--emT)">0 entries</span></div>
+          <div id="chVault"><span class="note">Nothing vaulted yet.</span></div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;gap:10px;padding:18px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:600;color:#fff">Live vault telemetry</span><span class="badge b-ok"><span class="dot"></span>LIVE</span></div>
+          <div class="elog" id="chLog" style="height:330px" aria-live="off"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+  <!-- ============ VIEW 10: SETTINGS ============ -->
+  <section class="view" id="v-settings" aria-label="Voice and chat settings">
+    <div class="vhead">
+      <div class="t">
+        <span class="eyebrow">LAYER 9 · CONFIGURATION</span>
+        <h1>Settings</h1>
+        <p class="sub">Models, languages, the bot's job, limits and the borrower list. Saved to <span class="mono">config.local.json</span> and applied to the next message. Privacy rules and API keys are not editable here.</p>
+      </div>
+      <span class="pill" id="stPill">checking…</span>
+    </div>
+    <div id="stBody"></div>
+  </section>
+</main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const isoTs = (sec) => new Date((sec || Date.now() / 1000) * 1000).toISOString().slice(11, 23);
+  const nowTs = () => new Date().toISOString().slice(11, 23);
+  const fmtIN = (n) => (n == null ? '–' : Number(n).toLocaleString('en-IN'));
+  const pad2 = (n) => (n < 10 ? '0' : '') + n;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+  const TICK_OK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2EBB7F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+
+  /* ---------------- API: every number on this page comes from here ---------------- */
+  const FILE_MODE = location.protocol === 'file:';
+  const BASE = FILE_MODE ? 'http://127.0.0.1:8808' : '';
+  let connected = null;
+  function setConn(ok) {
+    if (connected === ok) return;
+    connected = ok;
+    $('conn').className = 'live ' + (ok ? 'ok' : 'off');
+    $('connT').textContent = ok ? 'LIVE · REAL LAYERS' : 'BACKEND OFFLINE';
+    const o = $('offline');
+    if (ok) o.classList.remove('show');
+    else {
+      o.classList.add('show');
+      o.innerHTML = FILE_MODE
+        ? 'This page was opened as a file, so it cannot reach the layers. Start the server (<span class="mono">.venv/bin/python -m layer8_demo.server</span>) and open <a href="http://127.0.0.1:8808/console">http://127.0.0.1:8808/console</a>.'
+        : 'Cannot reach the demo server. Start it with <span class="mono">.venv/bin/python -m layer8_demo.server</span> and reload.';
+    }
+  }
+  async function api(path, o) {
+    o = o || {};
+    const h = { 'X-User': o.user || 'asha' };
+    if (o.sid) h['X-Case'] = o.sid;
+    if (o.body !== undefined) h['Content-Type'] = 'application/json';
+    let r;
+    try {
+      r = await fetch(BASE + path, { method: o.method || (o.body !== undefined ? 'POST' : 'GET'), headers: h, body: o.body !== undefined ? JSON.stringify(o.body) : undefined });
+    } catch (e) { setConn(false); throw new Error('offline'); }
+    setConn(true);
+    if (!r.ok) {
+      let d = '';
+      try { d = (await r.json()).detail; } catch (e) { /* not json */ }
+      const err = new Error(typeof d === 'string' && d ? d : 'HTTP ' + r.status);
+      err.status = r.status;
+      throw err;
+    }
+    return r.json();
+  }
+  const msgOf = (e) => (e && e.message) || 'failed';
+
+  /* ---------------- Cases (borrowers) shared by every view ---------------- */
+  const Cases = {
+    list: [], sid: null, subs: [],
+    async load() {
+      this.list = await api('/api/cases');
+      if (!this.sid || !this.list.find((c) => c.sid === this.sid)) {
+        const c = this.list.find((x) => x.state === 'ACTIVE') || this.list[0];
+        this.sid = c ? c.sid : null;
+      }
+      this.subs.forEach((f) => f());
+    },
+    cur() { return this.list.find((c) => c.sid === this.sid) || null; },
+    pick(sid) { this.sid = sid; this.subs.forEach((f) => f()); },
+    label(c) { return 'Case ' + c.case; }
+  };
+  function chips(el, opts) {
+    opts = opts || {};
+    const list = Cases.list.filter((c) => !opts.activeOnly || c.state === 'ACTIVE');
+    el.innerHTML = list.map((c) => `<button type="button" class="sample" data-sid="${c.sid}" aria-pressed="${c.sid === Cases.sid}" title="${esc(c.profile && c.profile.product ? c.profile.product + ' ' + (c.profile.loan_ref || '') : '')}">${esc(Cases.label(c))} · ${esc(c.initials)}${c.state === 'ERASED' ? ' · erased' : ''}</button>`).join('') || '<span class="note">No borrowers yet.</span>';
+    el.querySelectorAll('.sample').forEach((b) => b.addEventListener('click', () => Cases.pick(b.dataset.sid)));
+  }
+
+  /* ---------------- Overview: top bar, health, KPIs ---------------- */
+  const Overview = (() => {
+    let o = null, at = 0, last = null;
+    function setLatency(ms) {
+      if (ms == null) return;
+      last = ms;
+      $('tbLat').textContent = Math.round(ms) + ' ms';
+      $('tbLat').style.color = ms > 50 ? 'var(--roseT)' : 'var(--emT)';
+      $('tbBar').style.width = Math.min(100, Math.round(ms / 50 * 100)) + '%';
+      $('gVal').textContent = Math.round(ms);
+      $('gArc').setAttribute('stroke-dasharray', (Math.min(ms, 60) / 60 * 251.33).toFixed(1) + ' 999');
+    }
+    function paint() {
+      if (!o) return;
+      const bad = o.layers.filter((l) => !l.ok);
+      $('hDot').style.background = bad.length ? 'var(--amber)' : 'var(--em)';
+      $('hText').textContent = bad.length ? bad.length + ' layer' + (bad.length > 1 ? 's' : '') + ' need attention' : 'All ' + o.layers.length + ' layers healthy';
+      $('health').title = o.layers.map((l) => l.id + ' ' + l.name + ': ' + (l.ok ? 'ok' : 'FAIL') + ' · ' + l.detail).join('\n');
+      $('hSub').textContent = 'vault ' + o.vault + ' · ' + o.consent.stores + ' stores · default deny';
+      if (last == null && o.latency.p50 != null) setLatency(o.latency.p50);
+      $('gwTp').textContent = o.throughput.per_min + ' msg/min';
+      $('gwTpS').textContent = o.latency.n ? 'p50 ' + o.latency.p50 + ' ms · p95 ' + o.latency.p95 + ' ms · ' + o.latency.over_budget + ' of ' + o.latency.n + ' over 50 ms' : 'waiting for the first message';
+      const ok = o.memory.stale === 0;
+      $('gwMem').innerHTML = (ok ? TICK_OK : '<span style="color:var(--roseT)">✕</span>') + (ok ? 'Passed' : 'Check failed');
+      $('gwMemS').textContent = o.memory.conversations + ' conversations in memory · oldest idle ' + Math.round(o.memory.oldest_idle_s / 60 * 10) / 10 + ' min of ' + o.memory.ttl_s / 60 + ' · ' + o.memory.stale + ' past the lock';
+      $('gwEnt').textContent = fmtIN(o.entities_tokenised);
+      $('gwEntS').textContent = 'across ' + fmtIN(o.throughput.messages_total) + ' messages this run · stored only as ciphertext';
+      $('lgBlocks').textContent = fmtIN(o.chain.length);
+      $('lgSealed').textContent = fmtIN(o.chain.erasures_sealed);
+      $('lgHeadPill').textContent = 'head ' + o.chain.head.slice(0, 12);
+      $('fwPill').textContent = 'policy table · ' + o.consent.stores + ' stores · ' + o.consent.decide_us + ' µs per decision';
+      tickLock();
+    }
+    function tickLock() {
+      if (!o) return;
+      const left = Math.max(0, o.memory.freshest_remaining_s - Math.floor((Date.now() - at) / 1000));
+      $('tbLock').textContent = pad2(Math.floor(left / 60)) + ':' + pad2(left % 60);
+    }
+    async function refresh() {
+      try { o = await api('/api/console/overview'); at = Date.now(); paint(); } catch (e) { /* offline pill already shown */ }
+      return o;
+    }
+    setInterval(() => { $('tbClock').textContent = new Date().toISOString().slice(11, 19) + ' UTC'; tickLock(); }, 1000);
+    setInterval(refresh, 5000);
+    return { refresh, setLatency, get: () => o };
+  })();
+
+  /* ---------------- View 1: Gateway ---------------- */
+  const Gateway = (() => {
+    const st = { cur: null, typed: 0, hold: 0, queue: [], raw: [], mask: [], done: [], timer: null, streaming: false, calls: 0, lastRes: null };
+    const MAX_CALLS = 3;
+    function partsOf(res) {
+      const text = res.text || '', parts = [];
+      let i = 0;
+      [...(res.l1.spans || [])].sort((a, b) => a.start - b.start).forEach((sp) => {
+        if (sp.start < i) return;
+        if (sp.start > i) parts.push([text.slice(i, sp.start)]);
+        parts.push([text.slice(sp.start, sp.end), sp.token || '<' + sp.label + '>']);
+        i = sp.end;
+      });
+      if (i < text.length) parts.push([text.slice(i)]);
+      return parts.length ? parts : [['']];
+    }
+    const blockedOf = (it) => it.status === 'blocked' || it.status === 'erased';
+    const len = (it) => it.parts.reduce((a, x) => a + x[0].length, 0);
+    function histRow(it, masked) {
+      const meta = masked
+        ? `<span>${it.ts}</span><span>${esc(it.id)}</span><span style="color:${blockedOf(it) ? 'var(--roseT)' : 'var(--emT)'}">${blockedOf(it) ? 'blocked' : 'masked in ' + Math.round(it.ms) + ' ms'}</span>`
+        : `<span>${it.ts}</span><span>${esc(it.id)}</span><span>${esc(it.ch)} · ${esc(it.speaker)}</span>`;
+      let body;
+      if (masked && blockedOf(it)) body = `<span class="pii">⊘ ${esc(it.reason || it.status)}</span>`;
+      else body = it.parts.map((x) => x.length > 1 ? `<span class="${masked ? 'tok' : 'pii'}">${esc(masked ? x[1] : x[0])}</span>` : esc(x[0])).join('');
+      return `<div class="tline"><div class="tmeta">${meta}</div><div class="ttext">${body}</div></div>`;
+    }
+    function pushHist(it) {
+      $('rawHist').insertAdjacentHTML('afterbegin', histRow(it, false));
+      $('maskHist').insertAdjacentHTML('afterbegin', histRow(it, true));
+      [$('rawHist'), $('maskHist')].forEach((el) => { while (el.children.length > 5) el.lastChild.remove(); });
+    }
+    function startMsg(it, instant) {
+      if (st.cur) pushHist(st.cur);
+      st.cur = it; st.typed = 0; st.hold = 0;
+      const rc = $('rawCur'), mc = $('maskCur');
+      rc.innerHTML = ''; mc.innerHTML = '';
+      st.raw = []; st.mask = []; st.done = [];
+      it.parts.forEach((x) => {
+        const r = document.createElement('span'); if (x.length > 1) r.className = 'pii'; r.style.display = 'none'; rc.appendChild(r); st.raw.push(r);
+        const m = document.createElement('span'); m.style.display = 'none'; mc.appendChild(m); st.mask.push(m); st.done.push(false);
+      });
+      $('rcTs').textContent = it.ts; $('mcTs').textContent = it.ts;
+      $('rcId').textContent = it.id; $('mcId').textContent = it.id;
+      $('rcCh').textContent = it.ch + ' · ' + it.speaker; $('mcSt').textContent = 'tokenizing…';
+      if (instant) { st.typed = len(it) + 99; render(it); st.hold = 99; }
+    }
+    function render(it) {
+      let rem = st.typed;
+      if (blockedOf(it)) {
+        it.parts.forEach((x, i) => { st.raw[i].style.display = ''; st.raw[i].textContent = x[0]; });
+        const m = st.mask[0]; m.style.display = ''; m.className = 'pii'; m.textContent = '⊘ blocked: ' + (it.reason || it.status);
+        $('mcSt').textContent = 'blocked';
+        return;
+      }
+      it.parts.forEach((x, i) => {
+        const take = Math.min(x[0].length, Math.max(rem, 0));
+        rem -= x[0].length;
+        const r = st.raw[i], m = st.mask[i];
+        if (take <= 0) return;
+        r.style.display = ''; r.textContent = x[0].slice(0, take);
+        m.style.display = '';
+        if (x.length === 1) m.textContent = x[0].slice(0, take);
+        else if (take === x[0].length) { if (!st.done[i]) { st.done[i] = true; m.className = 'tok' + (st.typed > len(it) ? '' : ' flash'); m.textContent = x[1]; } }
+        else { m.className = 'pend'; m.textContent = '[detecting…]'; }
+      });
+      if (st.typed >= len(it)) $('mcSt').textContent = 'masked in ' + Math.round(it.ms) + ' ms';
+    }
+    function step() {
+      const it = st.cur;
+      if (!it) return;
+      const L = len(it);
+      const fast = st.queue.length >= 2;
+      if (st.typed < L) { st.typed = Math.min(L, st.typed + (fast ? 999 : 3)); render(it); return; }
+      if (st.hold < 99) st.hold++;
+      if (st.queue.length && (fast || st.hold >= 14)) startMsg(st.queue.shift());
+    }
+    function toItem(res, ch) {
+      return { status: res.status, reason: res.reason, ts: isoTs(res.ts), id: res.message_id + ' · ' + res.conversation_id.slice(5, 9), ch: ch || 'Call', speaker: res.speaker, ms: (res.l3 && (res.l3.pre_llm_ms != null ? res.l3.pre_llm_ms : res.l3.ms)) || 0, parts: partsOf(res), res };
+    }
+    function present(res, ch) {
+      const it = toItem(res, ch);
+      if (res.status === 'ok' || res.status === 'degraded') Overview.setLatency(it.ms);
+      st.lastRes = res;
+      trace(res);
+      if (!st.cur) startMsg(it); else st.queue.push(it);
+    }
+    function trace(res) {
+      const l3 = res.l3 || {}, ok = res.status === 'ok' || res.status === 'degraded', stage = l3.stage_ms || {};
+      const lastSeq = (res.l7.events.length ? res.l7.events[res.l7.events.length - 1].seq : null);
+      const writes = (res.l4.writes || []).map((w) => w.store.replace('_store', '') + (w.allowed ? ' ✓' : ' ✗')).join(' · ');
+      const c = [];
+      c.push(['L1', 'Detect', res.l1.ms + ' ms · ' + res.l1.spans.length + ' span' + (res.l1.spans.length === 1 ? '' : 's') + (res.l1.spans.length ? ' · ' + [...new Set(res.l1.spans.map((s) => s.label))].join(', ') : ''), 'quality', true]);
+      c.push(['L2', 'Tokenize', (stage.tokenise != null ? stage.tokenise + ' ms · ' : '') + (res.l2.tokens_this_message.length) + ' token' + (res.l2.tokens_this_message.length === 1 ? '' : 's'), 'vault', ok]);
+      c.push(['L3', 'Audit net', ok ? (l3.retries ? 'caught a miss · retried ' + l3.retries + '×' : 'passed') : 'stopped: ' + (res.reason || res.status), 'gateway', ok]);
+      c.push(['L3', 'LLM', ok ? (l3.llm_live ? 'Bedrock' : 'stub') + ' · saw tokens only' : 'never called', 'gateway', ok]);
+      c.push(['L4', 'Consent', writes || (ok ? 'no write' : 'refused: ' + (res.reason || '')), 'firewall', ok && !!writes]);
+      c.push(['L5', 'Lineage', '+' + res.l5.added.length + ' ref' + (res.l5.added.length === 1 ? '' : 's'), 'lineage', res.l5.added.length > 0]);
+      c.push(['L7', 'Ledger', '+' + res.l7.events.length + ' block' + (res.l7.events.length === 1 ? '' : 's') + (lastSeq != null ? ' → #' + lastSeq : ''), 'ledger', true]);
+      $('gwTraceId').textContent = res.message_id + ' · ' + res.conversation_id + ' · request ' + (res.request_id || '–');
+      $('gwTrace').innerHTML = c.map((x) => `<button class="tchip ${x[4] ? 'ok' : 'bad'}" data-go="${x[3]}"><span class="h"><i>${x[0]}</i>${x[1]}</span><span class="d" title="${esc(x[2])}">${esc(x[2])}</span></button>`).join('');
+      $('gwTrace').querySelectorAll('.tchip').forEach((b) => b.addEventListener('click', () => show(b.dataset.go)));
+    }
+    async function send(text, o) {
+      o = o || {};
+      const sid = o.sid || Cases.sid, c = Cases.list.find((x) => x.sid === sid);
+      const res = await api('/api/message', { body: { text, speaker: o.speaker || 'Customer', purpose: o.purpose || 'service' }, user: 'asha', sid });
+      present(res, o.ch || (c && c.profile && c.profile.channel) || 'Call');
+      Cases.load().catch(() => {});
+      Overview.refresh();
+      return res;
+    }
+    async function sendFromComposer() {
+      const t = $('gwText').value.trim();
+      $('gwErr').textContent = '';
+      if (!t) return;
+      const c = Cases.cur();
+      if (!c) { $('gwErr').textContent = 'No borrower selected.'; return; }
+      if (c.state === 'ERASED') { $('gwErr').textContent = 'This borrower has been erased. Pick another case.'; return; }
+      $('gwSend').disabled = true;
+      try { await send(t, { speaker: $('gwSpeaker').value, purpose: $('gwPurpose').value }); $('gwText').value = ''; }
+      catch (e) { $('gwErr').textContent = msgOf(e); }
+      $('gwSend').disabled = false; $('gwText').focus();
+    }
+    async function stream() {
+      st.calls = 0;
+      while (st.streaming && st.calls < MAX_CALLS) {
+        let row;
+        try { row = await api('/api/console/sample'); } catch (e) { $('gwErr').textContent = msgOf(e); break; }
+        let c;
+        try { c = await api('/api/session/new', { body: { name: 'Sample call ' + row.id, product: 'Personal loan', language: row.lang } }); } catch (e) { $('gwErr').textContent = msgOf(e); break; }
+        await Cases.load();
+        for (const t of row.turns.slice(0, 10)) {
+          if (!st.streaming) break;
+          try { await send(t.text, { sid: c.sid, speaker: t.speaker, ch: row.channel }); } catch (e) { $('gwErr').textContent = msgOf(e); st.streaming = false; break; }
+          await sleep(1500 + Math.min(2500, t.text.length * 25));
+        }
+        st.calls++;
+      }
+      if (st.streaming && st.calls >= MAX_CALLS) $('gwErr').textContent = 'Stream stopped after ' + MAX_CALLS + ' sample calls (each one is a new case). Press Start to play more.';
+      st.streaming = false;
+      $('gwPause').textContent = 'Start live stream';
+    }
+    async function seed() {
+      const items = [];
+      for (const c of Cases.list.slice(0, 6)) {
+        try {
+          const d = await api('/api/case/' + c.sid, { user: 'asha' });
+          d.history.filter((h) => h.status === 'ok' || h.status === 'degraded').forEach((h) => items.push(toItem(h, (c.profile && c.profile.channel) || 'Call')));
+        } catch (e) { /* skip */ }
+      }
+      items.sort((a, b) => a.res.ts - b.res.ts);
+      const recent = items.slice(-6);
+      recent.slice(0, -1).forEach(pushHist);
+      if (recent.length) { startMsg(recent[recent.length - 1], true); }
+    }
+    function init() {
+      $('gwSend').addEventListener('click', sendFromComposer);
+      $('gwText').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendFromComposer(); });
+      $('gwPause').addEventListener('click', () => {
+        st.streaming = !st.streaming;
+        $('gwPause').textContent = st.streaming ? 'Pause stream' : 'Start live stream';
+        $('gwErr').textContent = '';
+        if (st.streaming) stream();
+      });
+      Cases.subs.push(() => chips($('gwChips'), { activeOnly: true }));
+    }
+    return { init, seed, send, present, enter() { if (!st.timer) st.timer = setInterval(step, 40); }, leave() { clearInterval(st.timer); st.timer = null; } };
+  })();
+
+  /* ---------------- View 2: Vault ---------------- */
+  const Vault = (() => {
+    let data = null;
+    const short = (h) => (h && h.length > 26 ? h.slice(0, 26) + '…' : h);
+    async function load() {
+      const c = Cases.cur();
+      if (!c) return;
+      try { data = await api('/api/vault', { sid: c.sid }); } catch (e) { $('vTable').innerHTML = `<tr><td class="err">${esc(msgOf(e))}</td></tr>`; return; }
+      paint();
+    }
+    function paint() {
+      const d = data, k = d.keys[0], c = Cases.cur();
+      $('vBackend').textContent = 'backend: ' + d.backend;
+      $('vKpis').innerHTML = [
+        ['Encrypted values', d.entries.length, c && c.state === 'ERASED' ? 'borrower erased: nothing left' : 'for ' + (c ? Cases.label(c) : '–')],
+        ['Borrower key', k ? k.key_id : 'destroyed', k ? 'status ' + k.status + ' · DEK v' + k.dek_version : 'crypto-shredded: ciphertext can no longer be decrypted'],
+        ['Key uses', k ? k.uses : 0, k ? 'wrapped by KEK v' + k.kek_version : '–'],
+        ['Key derivation', 'HKDF-SHA256', 'master → KEK; per-borrower DEK wrapped by the KEK']
+      ].map((x) => `<div class="card kpi"><span class="l">${x[0]}</span><span class="v" style="font-size:${String(x[1]).length > 9 ? 20 : 30}px">${esc(x[1])}</span><span class="s">${esc(x[2])}</span></div>`).join('');
+      $('vCount').textContent = d.entries.length + ' rows · no plaintext column';
+      $('vTable').innerHTML = '<tr><th>TOKEN</th><th>TYPE</th><th>CIPHERTEXT (hex)</th><th>KEY</th><th>PURPOSE</th><th>STATUS</th></tr>' +
+        (d.entries.map((e) => `<tr><td style="color:var(--emT)">${esc(e.token)}</td><td>${esc(e.label)}</td><td class="w" title="${esc(e.ciphertext)}">${esc(short(e.ciphertext))}</td><td>${esc(e.key_id)}</td><td>${esc(e.purpose)}</td><td>${esc(e.status)}</td></tr>`).join('') || '<tr><td colspan="6" style="color:var(--muted);padding:24px">Nothing stored for this borrower.</td></tr>');
+      const sel = $('vTok'), prev = sel.value;
+      sel.innerHTML = d.entries.map((e) => `<option>${esc(e.token)}</option>`).join('') || '<option value="">(no tokens)</option>';
+      if (prev) sel.value = prev;
+      const log = (d.access_log || []).slice(-8);
+      $('vLog').innerHTML = log.map((l) => `<div><span class="ts">${esc(l.op || 'op')}</span><span class="nd" style="width:120px">${esc(l.caller || '')}</span><span class="m">${esc(l.conversation || '')}</span></div>`).join('') || '<div><span class="m" style="color:var(--muted)">no vault operations recorded yet</span></div>';
+    }
+    async function attempt(role) {
+      const tok = $('vTok').value, c = Cases.cur();
+      if (!tok || !c) { $('vOut').innerHTML = '<span class="note">Pick a borrower that has tokens first.</span>'; return; }
+      document.querySelectorAll('#vRoles .chipbtn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.role === role)));
+      let r;
+      try { r = await api('/api/vault/attempt', { body: { token: tok, role }, sid: c.sid }); } catch (e) { r = { allowed: false, result: msgOf(e) }; }
+      const row = `<div class="vrow"><span>${esc(role.replace('_', ' '))} → <span class="mono" style="color:var(--emT)">${esc(tok)}</span></span><span style="display:flex;align-items:center;gap:10px"><span class="r">${esc(r.result)}${r.length ? ' · ' + r.length + ' chars' : ''}</span><span class="badge ${r.allowed ? 'b-ok' : 'b-bad'}"><span class="dot"></span>${r.allowed ? 'ALLOWED' : 'DENIED'}</span></span></div>`;
+      $('vOut').insertAdjacentHTML('afterbegin', row);
+      while ($('vOut').children.length > 5) $('vOut').lastChild.remove();
+      load();
+    }
+    function init() {
+      Cases.subs.push(() => { chips($('vChips')); });
+      document.querySelectorAll('#vRoles .chipbtn').forEach((b) => b.addEventListener('click', () => attempt(b.dataset.role)));
+    }
+    return { init, enter() { chips($('vChips')); load(); }, leave() {}, reload: load };
+  })();
+
+  /* ---------------- View 3: Firewall ---------------- */
+  const Firewall = (() => {
+    const PURPOSES = ['service', 'collections', 'compliance', 'dispute', 'analytics', 'model_improvement'];
+    const tags = { b: '[BLOCKED]', a: '[ALLOWED]', r: '[UNVERIFIED]' };
+    const badge = { a: '<span class="badge b-ok"><span class="dot"></span>ALLOWED</span>', b: '<span class="badge b-bad"><span class="dot"></span>BLOCKED</span>', r: '<span class="badge b-lock"><span class="dot"></span>CONSENT NEEDED</span>' };
+    let matrix = null, events = [], lastSeq = -1, timer = null, loaded = false;
+    function classOf(e) {
+      if (e.kind === 'write_allowed') return e.verified === false ? 'r' : 'a';
+      return 'b';
+    }
+    function text(e) {
+      const who = e.borrower ? ' · B ' + e.borrower : '';
+      switch (e.kind) {
+        case 'write_allowed': return 'store.write → ' + e.store + ' · purpose=' + e.purpose + ' · ' + e.record + who + (e.verified === false ? ' · consent id claimed, not verified' : '');
+        case 'write_rejected': return 'WriteGuard rejected: ' + e.reason + ' · ' + e.record + ' → ' + e.store + who;
+        case 'write_failed': return 'Store write failed (' + e.reason + ') · ' + e.record + ' → ' + e.store;
+        case 'CONSENT_DENIED': return 'Gateway consent gate denied: ' + (e.reason || 'purpose not allowed') + ' · purpose=' + e.purpose + who;
+        case 'L3_BLOCKED': return 'Gateway blocked the request: ' + (e.reason || 'fail closed') + who;
+        case 'LEAK_PREVENTED': return 'Audit net stopped a leak before the LLM' + who;
+        default: return e.kind;
+      }
+    }
+    const row = (e, isNew) => `<div class="frow k-${classOf(e)}${isNew ? ' new' : ''}"><span class="ts">${esc((e.ts || '').slice(11, 23))}</span><span class="tag">${tags[classOf(e)].padEnd(13, ' ').replace(/ /g, '&nbsp;')}</span><span class="msg" title="${esc(text(e))}">${esc(text(e))}</span></div>`;
+    function counts() {
+      const by = {};
+      let a = 0, b = 0, r = 0;
+      events.forEach((e) => {
+        const k = classOf(e);
+        if (k === 'a') a++; else if (k === 'b') b++; else r++;
+        if (e.purpose) { const d = by[e.purpose] || (by[e.purpose] = { a: 0, b: 0 }); if (k === 'b') d.b++; else d.a++; }
+      });
+      return { a, b, r, by };
+    }
+    function paintCounters() {
+      const c = counts();
+      if ($('fwA')) { $('fwA').textContent = fmtIN(c.a); $('fwB').textContent = fmtIN(c.b); $('fwR').textContent = fmtIN(c.r); }
+      PURPOSES.forEach((p) => {
+        const d = c.by[p] || { a: 0, b: 0 };
+        const x = $('pc-' + p);
+        if (x) { x.querySelector('.num').textContent = fmtIN(d.a + d.b); x.querySelector('.sub2').textContent = d.a + ' allowed · ' + d.b + ' refused'; }
+      });
+    }
+    function buildBento() {
+      const stores = matrix.stores;
+      $('bento').innerHTML = PURPOSES.map((p) => {
+        const rules = stores.map((s) => [s, (matrix.cells.find((c) => c.store === s && c.purpose === p) || {}).rule || 'deny']);
+        const allow = rules.filter((r) => r[1] === 'allow').map((r) => r[0]), need = rules.filter((r) => r[1] === 'explicit_consent').map((r) => r[0]);
+        const k = allow.length ? 'a' : need.length ? 'r' : 'b';
+        const line1 = allow.length ? 'Allowed into: ' + allow.join(', ') : 'Allowed into: nowhere';
+        const line2 = need.length ? 'Explicit consent required for: ' + need.join(', ') : (allow.length ? 'No explicit consent needed' : 'Default deny');
+        return `<div class="pcard k-${k}" id="pc-${p}"><div class="row" style="justify-content:space-between"><span class="mono" style="font-size:13px;font-weight:600;color:#fff">${p}</span>${badge[k]}</div>
+          <div class="row end" style="justify-content:space-between;align-items:flex-end"><div style="display:flex;flex-direction:column;gap:2px;font-size:12px"><span style="color:var(--text)">${esc(line1)}</span><span style="color:var(--muted)">${esc(line2)}</span></div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end"><span class="num">0</span><span class="sub2" style="font-size:11px;color:var(--muted)"></span></div></div></div>`;
+      }).join('') + `<div class="pcard s2" style="background:var(--side);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+          <div style="grid-column:span 3;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#fff"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F06272" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>Fail-closed · default deny · unknown store or purpose is refused</div>
+          <div style="display:flex;flex-direction:column"><span id="fwA" style="font-size:22px;font-weight:700;color:var(--em)">0</span><span style="font-size:11px;color:var(--muted)">writes allowed</span></div>
+          <div style="display:flex;flex-direction:column"><span id="fwB" style="font-size:22px;font-weight:700;color:#F08A92">0</span><span style="font-size:11px;color:var(--muted)">refused</span></div>
+          <div style="display:flex;flex-direction:column"><span id="fwR" style="font-size:22px;font-weight:700;color:var(--amberT)">0</span><span style="font-size:11px;color:var(--muted)">allowed on an unverified consent claim</span></div>
+        </div>`;
+      $('fwStore').innerHTML = stores.map((s) => `<option value="${s}">store: ${s}${s === 'crm_export' ? ' (not in policy)' : ''}</option>`).join('');
+      $('fwPurpose').innerHTML = PURPOSES.map((p) => `<option>${p}</option>`).join('');
+    }
+    async function poll(first) {
+      let d;
+      try { d = await api('/api/console/feed?after=' + lastSeq + '&limit=5000', { user: 'vikram' }); } catch (e) { return; }
+      lastSeq = Math.max(lastSeq, d.head_seq);
+      if (!d.events.length) return;
+      events = events.concat(d.events);
+      const feed = $('feed');
+      const prev = feed.querySelector('.frow.new'); if (prev) prev.classList.remove('new');
+      if (first) feed.innerHTML = d.events.slice(-14).map((e) => row(e, false)).reverse().join('');
+      else d.events.forEach((e) => feed.insertAdjacentHTML('afterbegin', row(e, true)));
+      while (feed.children.length > 40) feed.lastChild.remove();
+      paintCounters();
+    }
+    async function tryWrite() {
+      const c = Cases.cur(), out = $('fwOut');
+      if (!c || c.state === 'ERASED') { out.innerHTML = '<span class="err">Pick an active borrower first.</span>'; return; }
+      const store = $('fwStore').value, purpose = $('fwPurpose').value, claim = $('fwConsent').checked;
+      $('fwTry').disabled = true;
+      try {
+        const r = await api('/api/consent/try', { body: { store, purpose, consent_id: claim ? 'C-demo-' + c.case : null, explicit: claim }, user: 'rohit', sid: c.sid });
+        out.innerHTML = `<span class="badge ${r.allowed ? 'b-ok' : 'b-bad'}"><span class="dot"></span>${r.allowed ? 'ALLOWED' : 'BLOCKED'}</span> <span class="mono" style="color:var(--text)">${esc(r.reason)}</span> <span class="note">· written to the ledger as block #${r.event && r.event.seq}</span>`;
+      } catch (e) { out.innerHTML = `<span class="err">${esc(msgOf(e))}</span>`; }
+      $('fwTry').disabled = false;
+      poll(false); Overview.refresh();
+    }
+    async function ensure() {
+      if (loaded) return;
+      try { matrix = await api('/api/consent/matrix'); } catch (e) { return; }
+      loaded = true;
+      buildBento();
+      await poll(true);
+      paintCounters();
+    }
+    function init() {
+      document.querySelectorAll('#v-firewall .chipbtn').forEach((b) => b.addEventListener('click', () => {
+        document.querySelectorAll('#v-firewall .seg .chipbtn').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        $('feed').dataset.filter = b.dataset.f;
+      }));
+      $('fwTry').addEventListener('click', tryWrite);
+      Cases.subs.push(() => chips($('fwChips'), { activeOnly: true }));
+    }
+    return { init, enter() { chips($('fwChips'), { activeOnly: true }); ensure().then(() => { if (!timer) timer = setInterval(() => poll(false), 2000); }); }, leave() { clearInterval(timer); timer = null; } };
+  })();
+
+  /* ---------------- View 4: Lineage ---------------- */
+  const Lineage = (() => {
+    let pulse = null;
+    const colHead = (t) => `<span class="overline">${t}</span>`;
+    const wire = (i) => `<div class="wire" data-w="${i}" aria-hidden="true"><i></i></div>`;
+    const stat = (l, v) => `<div class="card" style="display:flex;flex-direction:column;gap:2px;padding:14px 18px"><span style="font-size:12px;color:var(--muted)">${l}</span><span style="font-size:22px;font-weight:700;color:#fff">${v}</span></div>`;
+    function find(q) {
+      q = (q || '').trim().toUpperCase().replace(/^CASE\s*/, '').replace(/^B-/, '');
+      return Cases.list.find((c) => String(c.case) === q || c.sid.toUpperCase() === q || c.borrower.toUpperCase().replace(/^B-/, '') === q);
+    }
+    async function render() {
+      clearInterval(pulse);
+      const c = Cases.cur();
+      chips($('lnChips'));
+      $('lnInput').value = c ? String(c.case) : '';
+      if (!c) { $('lnBody').innerHTML = '<div class="empty"><span style="font-size:16px;font-weight:600;color:#fff">No borrowers</span></div>'; return; }
+      $('lnBody').innerHTML = '<div class="skel" style="width:30%"></div>';
+      let L, V;
+      try { [L, V] = await Promise.all([api('/api/lineage', { sid: c.sid }), api('/api/vault', { sid: c.sid })]); }
+      catch (e) { $('lnBody').innerHTML = `<div class="empty"><span class="err">${esc(msgOf(e))}</span></div>`; return; }
+      const g = L.graph;
+      if (!g.nodes.length) {
+        $('lnBody').innerHTML = `<div class="empty"><span style="font-size:16px;font-weight:600;color:#fff">No lineage entry for ${esc(Cases.label(c))}</span><span style="font-size:13px;color:var(--muted)">${c.state === 'ERASED' ? 'This borrower was erased: the registry forgot the key, so there is nothing left to trace.' : 'Nothing has been stored for this borrower yet. Send a message first.'}</span></div>`;
+        return;
+      }
+      const kinds = {};
+      g.nodes.forEach((n) => { (kinds[n.kind] = kinds[n.kind] || []).push(n); });
+      const tokCount = {};
+      g.nodes.forEach((n) => n.tokens.forEach((t) => { tokCount[t] = (tokCount[t] || 0) + 1; }));
+      const toks = V.entries.map((e) => [e.token, e.label, tokCount[e.token] || 0]);
+      const unreg = L.stores.reduce((a, s) => a + s.unregistered_records, 0);
+      const touched = L.stores.filter((s) => s.count > 0).length;
+      const p = c.profile || {};
+      const kindNames = { log: 'Log lines', chunk: 'Vector chunks', emb: 'Embeddings', evalitem: 'Eval items' };
+      const stats = [stat('Registry lookup', `<span style="color:var(--em)">${L.lookup_ms} ms</span>`), stat('Registered copies', g.nodes.length), stat('Stores touched', touched + ' of ' + L.stores.length), stat('Not in the registry', `<span style="color:${unreg ? 'var(--amberT)' : 'var(--emT)'}">${unreg}</span>`)];
+      $('lnBody').innerHTML = `
+        <div class="grid4" style="margin-bottom:16px">${stats.join('')}</div>
+        <div class="term" style="border:1px solid var(--line);padding:22px;gap:16px">
+          <div class="scroll-x"><div class="dag">
+            <div class="dcol">${colHead('BORROWER')}<div class="node root" data-col="0"><span class="mono" style="font-size:18px;font-weight:600">${esc(Cases.label(c))}</span><span style="font-size:12px;color:#D3E5F8">${esc(p.product || 'Loan account')} ${esc(p.loan_ref || '')}${p.dpd != null ? ' · ' + p.dpd + ' DPD' : ''}</span><span class="mono" style="font-size:11px;color:#D3E5F8">key h:${esc(c.hash.slice(0, 12))}…</span></div></div>
+            ${wire(0)}
+            <div class="dcol">${colHead('CONVERSATIONS')}<div class="node" data-col="1"><div style="display:flex;justify-content:space-between;gap:8px"><span class="mono" style="font-size:14px;font-weight:600;color:#fff">${esc(g.conversation.slice(0, 12))}</span><span style="font-size:11px;color:var(--blueT)">${esc(p.channel || 'Call')}</span></div><span style="font-size:12px;color:var(--muted)">${c.messages} messages</span></div></div>
+            ${wire(1)}
+            <div class="dcol">${colHead('DERIVED COPIES')}${Object.keys(kinds).map((k) => `<div class="node" data-col="2"><div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:13px;color:#fff;font-weight:600">${esc(kindNames[k] || k)}</span><span class="mono" style="font-size:12px;color:var(--blueT)">× ${kinds[k].length}</span></div><span class="mono" style="font-size:11px;color:var(--muted)">${esc(kinds[k][0].label)}${kinds[k].length > 1 ? ' … ' + esc(kinds[k][kinds[k].length - 1].label) : ''}</span></div>`).join('')}</div>
+            ${wire(2)}
+            <div class="dcol">${colHead('VAULT TOKENS')}${toks.slice(0, 7).map((t) => `<div class="node" data-col="3"><span class="mono" style="font-size:13px;color:var(--emT)">${esc(t[0])}</span><span class="mono" style="font-size:11px;color:var(--muted)">${esc(t[1])} · in ${t[2]} copies</span></div>`).join('')}${toks.length > 7 ? `<div class="node" data-col="3"><span style="font-size:12px;color:var(--muted)">+ ${toks.length - 7} more tokens</span></div>` : ''}${toks.length ? '' : '<div class="node" data-col="3"><span style="font-size:12px;color:var(--muted)">no tokens</span></div>'}</div>
+            ${wire(3)}
+            <div class="dcol">${colHead('DATA STORES')}${L.stores.map((s) => `<div class="node store" data-col="4" data-hit="${s.count > 0 ? 1 : 0}" data-un="${s.unregistered_records}" data-cnt="${s.count}"><span class="mono nm" style="font-size:12px;color:#fff" title="${esc(s.path)}">${esc(s.store.replace(/^unmapped:.*\//, 'unmapped/'))}</span><span class="tag"></span></div>`).join('')}</div>
+          </div></div>
+          <div id="lnBanner"></div>
+        </div>`;
+      let lit = 0;
+      pulse = setInterval(() => {
+        lit++;
+        document.querySelectorAll('#lnBody [data-col]').forEach((n) => {
+          const col = +n.dataset.col;
+          if (col === 0 && lit >= 1) n.classList.add('lit');
+          if (col > 0 && col <= lit && col < 4) n.classList.add('lit');
+          if (col === 4 && lit >= 4) {
+            const hit = n.dataset.hit === '1', un = +n.dataset.un;
+            n.classList.toggle('lit', hit); n.classList.toggle('skip', !hit);
+            n.querySelector('.tag').textContent = hit ? (un ? un + ' not in registry' : 'hit · ' + n.dataset.cnt) : 'empty';
+            if (un) n.querySelector('.tag').style.color = 'var(--amberT)';
+          }
+        });
+        const w = document.querySelector(`#lnBody .wire[data-w="${lit - 1}"]`);
+        if (w) { w.classList.add('lit'); w.insertAdjacentHTML('beforeend', '<span class="pulse"></span>'); }
+        if (lit >= 5) {
+          clearInterval(pulse);
+          $('lnBanner').innerHTML = unreg
+            ? `<div class="banner" style="background:rgba(224,160,48,.1);border-color:#5A4420"><span style="font-size:14px;color:#fff"><strong>${unreg} cop${unreg === 1 ? 'y is' : 'ies are'} not in the registry.</strong> <span style="color:var(--text)">The registry only knows what was registered. The erasure agent has to search for these.</span></span></div>`
+            : `<div class="banner"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2EBB7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><span style="font-size:14px;color:#fff"><strong>Surgical lookup.</strong> <span style="color:var(--text)">${g.nodes.length} registered copies found in ${L.lookup_ms} ms without scanning any store.</span></span></div>`;
+        }
+      }, 230);
+    }
+    function init() {
+      $('lnForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const c = find($('lnInput').value);
+        if (c) Cases.pick(c.sid);
+        else { clearInterval(pulse); $('lnBody').innerHTML = `<div class="empty"><span style="font-size:16px;font-weight:600;color:#fff">No lineage entry for ${esc($('lnInput').value || '(empty)')}</span><span style="font-size:13px;color:var(--muted)">The index holds no key for this ID. Try one of the case chips above.</span></div>`; }
+      });
+    }
+    return { init, enter() { render(); }, leave() { clearInterval(pulse); }, render };
+  })();
+
+  /* ---------------- View 5: Erasure ---------------- */
+  const Erasure = (() => {
+    const STEP = 1100;
+    const defs = [
+      ['Discover', 'Lineage lookup + conversation and derivative sweeps'],
+      ['Plan', 'Order targets so no derivative outlives its source'],
+      ['Delete', 'Remove rows, vectors and cache entries'],
+      ['Verify', 'Re-scan every store from scratch'],
+      ['Shred', 'Destroy the borrower key; ciphertext becomes unreadable']
+    ];
+    let running = false, hold = false, targets = [], loadedSid = null, abl = null;
+    function build() {
+      $('erFlow').innerHTML = defs.map((d, i) => `
+        <div class="step${i === 4 ? ' shred' : ''}" data-s="${i}"><div class="hd"><span class="ic">${i + 1}</span><span class="nm">${d[0]}</span></div><span class="ds">${d[1]}</span></div>
+        ${i < 4 ? `<div class="arrow" data-a="${i}" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>` : ''}`).join('');
+      $('erLog').innerHTML = '';
+      $('erResult').innerHTML = '';
+    }
+    function setSteps(step, runningNow) {
+      document.querySelectorAll('#erFlow .step').forEach((el, i) => {
+        const s = i < step ? 'done' : (i === step && runningNow ? 'active' : 'pending');
+        el.classList.remove('done', 'active', 'pending'); el.classList.add(s);
+        const ic = el.querySelector('.ic');
+        ic.innerHTML = s === 'done' ? CHECK : String(i + 1);
+        ic.style.color = s === 'done' ? (i === 4 ? 'var(--roseB)' : 'var(--em)') : '';
+      });
+      document.querySelectorAll('#erFlow .arrow').forEach((a, i) => a.classList.toggle('lit', i < step));
+    }
+    const log = (nd, m) => { const l = $('erLog'); l.insertAdjacentHTML('beforeend', `<div><span class="ts">${nowTs()}</span><span class="nd">${esc(nd)}</span><span class="m" title="${esc(m)}">${esc(m)}</span></div>`); while (l.children.length > 7) l.firstChild.remove(); };
+    function paintTargets(gone) {
+      $('erTargets').innerHTML = targets.map((t, i) => `<span class="tgt${t.unreg ? ' unreg' : ''}${t.vt ? ' vt' : ''}${i < gone ? ' gone' : ''}" title="${esc(t.name)}">${esc(t.name)}</span>`).join('');
+      $('erCount').textContent = Math.min(gone, targets.length) + ' / ' + targets.length;
+    }
+    async function preview() {
+      const c = Cases.cur();
+      chips($('erChips'));
+      $('erRun').disabled = running || !c || c.state === 'ERASED';
+      $('erPlant').disabled = running || !c || c.state === 'ERASED';
+      if (!c) { $('erSub').textContent = 'no borrower'; return; }
+      if (running) return;
+      build(); setSteps(0, false);
+      if (c.state === 'ERASED') {
+        targets = []; paintTargets(0);
+        $('erSub').textContent = Cases.label(c) + ' · erased';
+        $('erPhase').textContent = 'erased · nothing left to erase'; $('erPhase').style.color = 'var(--emT)';
+        $('erResult').innerHTML = '<span class="note">This borrower has already been erased. Use "Prepare a fresh borrower" for another run.</span>';
+        return;
+      }
+      try {
+        const [E, V] = await Promise.all([api('/api/erasure', { sid: c.sid }), api('/api/vault', { sid: c.sid })]);
+        targets = [];
+        E.stores.forEach((s) => s.records.forEach((r) => targets.push({ name: (s.store.startsWith('unmapped') ? 'unmapped' : s.store.replace('_store', '')) + '.' + r.id, unreg: !r.in_registry })));
+        V.entries.forEach((e) => targets.push({ name: 'vault.' + e.token, vt: true }));
+        if (V.keys.length) targets.push({ name: 'key.' + V.keys[0].key_id, vt: true });
+        paintTargets(0);
+        const unreg = E.stores.reduce((a, s) => a + s.unregistered_records, 0);
+        $('erSub').textContent = Cases.label(c) + ' · ' + E.borrower.messages + ' messages · ' + targets.length + ' targets (' + unreg + ' not in the registry)';
+        $('erPhase').textContent = 'idle'; $('erPhase').style.color = 'var(--blueT)';
+        loadedSid = c.sid;
+      } catch (e) { $('erSub').textContent = msgOf(e); }
+    }
+    function mapTrace(trace) {
+      const out = [[], [], [], [], [], []];
+      (trace || []).forEach((t) => {
+        const k = t.split(':')[0].replace(/ pass.*/, '');
+        const i = { discover: 0, plan: 1, delete: 2, verify: 3, shred: 4, audit: 5 }[k];
+        out[i == null ? 5 : i].push([k, t.slice(t.indexOf(':') + 1).trim()]);
+      });
+      return out;
+    }
+    async function run() {
+      const c = Cases.cur();
+      if (running || !c || c.state === 'ERASED') return;
+      if (loadedSid !== c.sid) await preview();
+      running = true; $('erRun').disabled = true; $('erPlant').disabled = true; $('erPrep').disabled = true;
+      build(); setSteps(0, false); paintTargets(0);
+      $('erPhase').textContent = 'request · maker-checker'; $('erPhase').style.color = 'var(--blueT)';
+      let res, rid;
+      try {
+        const r = await api('/api/privacy/requests', { body: { sid: c.sid, reason: 'borrower_request', note: 'Erasure requested by the borrower' }, user: 'asha' });
+        rid = r.request_id; log('request', rid + ' initiated · Asha Rao (agent)');
+        await api('/api/privacy/requests/' + rid + '/recommend', { body: { note: 'Identity and request checked' }, user: 'rohit' });
+        log('request', 'recommended · Rohit Mehta (privacy officer)');
+        await api('/api/privacy/requests/' + rid + '/approve', { body: { note: 'Approved' }, user: 'meera' });
+        log('request', 'approved · Meera Iyer (DPO) → agent runs');
+        res = (await api('/api/privacy/requests/' + rid, { user: 'meera' })).result;
+      } catch (e) {
+        log('error', msgOf(e)); $('erPhase').textContent = 'stopped: ' + msgOf(e); $('erPhase').style.color = 'var(--roseT)';
+        running = false; $('erPrep').disabled = false; await Cases.load(); return;
+      }
+      $('erSub').textContent = rid + ' · ' + Cases.label(c) + ' · agent ran in ' + res.secs + ' s';
+      const lines = mapTrace(res.trace);
+      for (let i = 0; i < 5; i++) {
+        setSteps(i, true); $('erPhase').textContent = 'node · ' + defs[i][0].toLowerCase();
+        lines[i].forEach((l) => log(l[0], l[1]));
+        if (i === 2) { const n = targets.length; for (let g = 1; g <= n; g++) { paintTargets(g); await sleep(Math.max(30, Math.min(120, STEP / Math.max(n, 1)))); } }
+        await sleep(STEP);
+      }
+      lines[5].forEach((l) => log(l[0], l[1]));
+      setSteps(5, false); paintTargets(targets.length);
+      const found = Object.values(res.stores_before).reduce((a, b) => a + b, 0);
+      const good = res.status === 'ERASED_VERIFIED' && res.clean;
+      $('erPhase').textContent = (good ? 'completed' : res.status) + ' · ' + found + ' records · ' + res.raw_after + ' raw values left';
+      $('erPhase').style.color = good ? 'var(--emT)' : 'var(--amberT)';
+      $('erResult').innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span style="font-size:14px;font-weight:600;color:#fff">Independent check <span class="note" style="font-weight:400">· a plain file scan outside the agent, and a vault decrypt probe</span></span>
+          <span style="display:flex;gap:8px;align-items:center"><span class="badge ${good ? 'b-ok' : 'b-lock'}"><span class="dot"></span>${esc(res.status)}</span><button class="btn" id="erToLedger" style="min-height:32px;font-size:12px">Open ledger block #${res.audit_seq}</button></span></div>
+        <div class="res4">
+          <div><span class="l">Raw values found in stores</span><span class="v" style="color:${res.raw_after ? 'var(--roseT)' : 'var(--emT)'}">${res.raw_before} → ${res.raw_after}</span><span class="s">scan of every store file</span></div>
+          <div><span class="l">Vault entries</span><span class="v">${res.vault_before} → ${res.vault_after}</span><span class="s">encrypted values</span></div>
+          <div><span class="l">Borrower key</span><span class="v">${res.key_present ? 'present' : 'destroyed'}</span><span class="s">${esc(res.probe)}</span></div>
+          <div><span class="l">Ledger</span><span class="v">${res.chain.ok ? 'intact' : 'BROKEN'}</span><span class="s">block #${res.audit_seq} · ${esc(res.hash)}…</span></div>
+        </div>`;
+      $('erToLedger').addEventListener('click', () => show('ledger'));
+      running = false; $('erPrep').disabled = false; hold = true;
+      try { await Cases.load(); } catch (e) { /* ignore */ }
+      hold = false; chips($('erChips')); Overview.refresh();
+      $('erRun').disabled = true; $('erPlant').disabled = true;
+    }
+    async function plant() {
+      const c = Cases.cur();
+      if (!c || running) return;
+      try { await api('/api/plant', { body: {}, sid: c.sid }); log('plant', 'added 3 copies the registry does not know about'); }
+      catch (e) { log('error', msgOf(e)); }
+      loadedSid = null; preview();
+    }
+    async function prepare() {
+      if (running) return;
+      $('erPrep').disabled = true;
+      try {
+        const n = 'Test borrower ' + Math.floor(Math.random() * 900 + 100);
+        const c = await api('/api/session/new', { body: { name: n, product: 'Personal loan', language: 'English' } });
+        for (const t of ['Hello, I am Rakesh Verma. My number is nine eight seven six five four three two one zero.', 'My PAN is ABCPV1234K and my email is rakesh.verma@example.com.', 'I will pay on the 7th.']) await api('/api/message', { body: { text: t, speaker: 'Customer', purpose: 'service' }, user: 'asha', sid: c.sid });
+        await api('/api/plant', { body: {}, sid: c.sid });
+        await Cases.load(); Cases.pick(c.sid);
+      } catch (e) { $('erSub').textContent = msgOf(e); }
+      $('erPrep').disabled = false;
+    }
+    async function loadAbl() {
+      try { abl = await api('/api/console/ablation'); } catch (e) { return; }
+      $('ablCap').textContent = abl.set + ' · ' + abl.recorded;
+      const rows = abl.rows.filter((r) => !/^none/i.test(r.config)).sort((a, b) => b.silent - a.silent);
+      $('ablBody').innerHTML = `<div class="abl2 abl-head" style="padding:10px 24px;font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--muted);background:var(--side);border-top:none"><span>METHOD SWITCHED OFF</span><span>WHAT IT MISSED</span><span>SILENT SURVIVORS</span><span style="text-align:right">VERDICT</span></div>
+        <div class="abl2" style="background:rgba(46,187,127,.1)"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600;color:#fff">None: the full agent</span><span style="font-size:12px;color:var(--muted)">Lineage + sweeps + verify + shred</span></div><span style="font-size:12px;color:var(--muted)">nothing</span><span class="big" style="color:var(--em)">0</span><span class="verdict" style="background:var(--em);color:var(--bg);box-shadow:0 0 20px rgba(46,187,127,.5)">100% COMPLETE</span></div>` +
+        rows.map((r) => {
+          const bad = r.silent > 0, heavy = r.silent >= 10;
+          return `<div class="abl2" style="background:${heavy ? 'rgba(214,69,80,.1)' : bad ? 'rgba(224,160,48,.07)' : 'transparent'}"><div style="font-size:15px;font-weight:600;color:#fff">${esc(r.config)}</div><span style="font-size:12px;color:var(--muted)">${esc(r.missed)}</span><span class="big" style="font-size:32px;color:${heavy ? 'var(--roseB)' : bad ? 'var(--amberT)' : 'var(--muted)'}">${r.silent}</span><span class="verdict" style="${heavy ? 'background:var(--rose);color:#fff' : bad ? 'border:1px solid var(--amber);color:var(--amberT)' : 'border:1px solid var(--border2);color:var(--muted)'}">${bad ? 'NON-COMPLIANT' : 'NO EFFECT HERE'}</span></div>`;
+        }).join('');
+    }
+    function init() {
+      build(); setSteps(0, false); paintTargets(0);
+      $('erRun').addEventListener('click', run);
+      $('erPlant').addEventListener('click', plant);
+      $('erPrep').addEventListener('click', prepare);
+      Cases.subs.push(() => { if (current === 'erasure' && !hold) { loadedSid = null; preview(); } });
+      loadAbl();
+    }
+    return { init, enter() { preview(); }, leave() {} };
+  })();
+
+  /* ---------------- View 6: Ledger ---------------- */
+  const Ledger = (() => {
+    let recs = [], chain = null, head = '', status = 'idle', drill = null, t = null;
+    const subject = (r) => r.request_id || r.record_id || (r.resource && r.resource.id) || r.request || '';
+    const tsOf = (r) => ((r.ts_utc || (r.ts ? new Date(r.ts * 1000).toISOString() : '')) + '').slice(11, 19) + ' UTC';
+    async function load() {
+      try {
+        const d = await api('/api/audit/full', { user: 'vikram' });
+        recs = d.records; chain = d.chain; head = d.head;
+      } catch (e) { $('blocks').innerHTML = `<div class="empty"><span class="err">${esc(msgOf(e))}</span></div>`; return false; }
+      return true;
+    }
+    function renderBlocks(cascade) {
+      let last = recs.slice(-8).reverse(), hidden = 0;
+      if (drill) {
+        const from = Math.max(0, drill.edited_seq - 1), win = recs.filter((r) => r.seq >= from && r.seq <= drill.edited_seq + 4);
+        last = win.slice().reverse(); hidden = recs.filter((r) => r.seq > drill.edited_seq + 4).length;
+      }
+            $('blocks').innerHTML = last.map((r, i) => {
+        const real = r._verify && !(r._verify.hash_ok && r._verify.link_ok && r._verify.seq_ok);
+        const bad = real || (drill && status === 'fail' && r.seq >= drill.edited_seq);
+        const edited = drill && r.seq === drill.edited_seq;
+        const lineEv = edited ? `<span class="sv">"${esc(r.kind_name)}"</span>, <span class="k">"${esc(drill.field)}"</span>: <span class="sv">${esc(drill.old)} → ${esc(drill.new)}</span>` : `<span class="sv">"${esc(r.kind_name)}"</span>`;
+        return `<div class="blk${bad ? ' bad' : ''}${cascade ? ' enter' : ''}" style="animation-delay:${i * 90}ms">
+          <div class="rail"><span class="pt"></span><span class="ln"></span></div>
+          <div class="bx"><div class="bh"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="mono" style="font-size:13px;font-weight:600;color:#fff">#${r.seq}</span><span class="badge" style="background:var(--chip);color:var(--blueT)">${esc(r.kind_name)}</span><span class="mono" style="font-size:11px;color:var(--muted)">${esc(subject(r))}</span></div>
+          ${bad ? `<span style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--roseT)">${real ? 'HASH MISMATCH' : 'UNTRUSTED'}</span>` : `<span class="mono" style="font-size:11px;color:var(--muted)">${tsOf(r)}</span>`}</div>
+          <pre>{
+  <span class="k">"prev_hash"</span>: <span class="sv">"${esc((r.prev_hash || '').slice(0, 44))}…"</span>,
+  <span class="k">"event"</span>: ${lineEv},
+  <span class="k">"actor"</span>: <span class="sv">"${esc((r.actor && r.actor.name) || 'system')}${r.actor && r.actor.role ? ' · ' + esc(r.actor.role) : ''}"</span>,
+  <span class="k">"head_hash"</span>: <span class="sv">"${esc((r.hash || '').slice(0, 44))}…"</span>
+}</pre></div></div>`;
+      }).join('') + (hidden && status === 'fail' ? `<div class="note" style="padding:0 0 12px 36px">… and ${hidden} later block${hidden === 1 ? '' : 's'}: every hash after the edit no longer matches.</div>` : '') || '<div class="empty"><span class="note">The ledger is empty.</span></div>';
+    }
+    function matrixText() {
+      const lines = recs.slice(-40).map((r) => '#' + r.seq + '  ' + (r.hash || '').slice(0, 24) + '  ' + ((r._verify && r._verify.hash_ok) ? 'OK' : '··'));
+      return lines.concat(lines).join('\n');
+    }
+    function panel(extra) {
+      const p = $('lgPanel');
+      if (status === 'idle') p.innerHTML = `<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:16px"><span class="mono" style="font-size:12px;color:var(--muted)">head_hash</span><span class="mono" style="font-size:12px;color:var(--blueT);word-break:break-all">${esc(head)}</span><span style="font-size:12px;color:var(--muted)">${drill ? 'Drill armed: block #' + drill.edited_seq + ' was edited in a copy. Run Verify.' : 'Not yet verified this session'}</span></div>`;
+      if (status === 'busy') p.innerHTML = `<pre class="matrix" aria-hidden="true">${esc(matrixText())}</pre><div class="mono" style="position:absolute;left:0;right:0;bottom:0;padding:8px 14px;background:rgba(3,9,35,.9);font-size:12px;color:var(--blueT)">re-hashing ${recs.length} blocks…</div>`;
+      if (status === 'ok') p.innerHTML = `<div class="result ok" role="status"><span class="n" style="color:var(--em)">0</span><span class="w">TAMPERING DETECTED</span><span class="mono" style="font-size:11px;color:var(--emT);padding:0 12px">${recs.length} blocks re-hashed from genesis in ${extra} ms · every link intact</span></div>`;
+      if (status === 'fail') p.innerHTML = `<div class="result fail" role="alert"><span class="n" style="color:var(--roseB)">1</span><span class="w">TAMPERED BLOCK FOUND</span><span class="mono" style="font-size:11px;color:var(--roseT);padding:0 12px">${drill ? '#' + drill.detected_at + ' hash mismatch in the copy · #' + drill.detected_at + ' onward untrusted · the real log is ' + (drill.real_log_intact ? 'intact' : 'ALSO BROKEN') : 'chain broken at #' + (chain && chain.bad_seq)}</span></div>`;
+      $('lgVerify').disabled = status === 'busy';
+      $('lgVerify').textContent = status === 'busy' ? 'Verifying…' : 'Verify chain';
+      $('lgTamper').textContent = drill ? 'Clear the drill' : 'Tamper with a block';
+      $('lgDrillTxt').textContent = drill ? 'Block #' + drill.edited_seq + ' field "' + drill.field + '" was changed from ' + drill.old + ' to ' + drill.new + ' in a COPY. The real log was never touched.' : 'Edit one number inside a copy of the log, without recomputing hashes, then verify the copy. The real log is never touched.';
+    }
+    async function verify() {
+      status = 'busy'; panel(); clearTimeout(t);
+      const t0 = performance.now();
+      await load();
+      try { await api('/api/audit/access', { body: { action: 'AUDIT_VERIFY', ref: 'ledger view', result: drill ? 'tamper drill' : (chain && chain.ok ? 'ok' : 'broken') }, user: 'vikram' }); } catch (e) { /* audited best effort */ }
+      const ms = Math.round(performance.now() - t0);
+      await sleep(Math.max(0, 1500 - ms));
+      status = drill ? 'fail' : (chain && chain.ok ? 'ok' : 'fail');
+      renderBlocks(false); panel(ms);
+      Overview.refresh();
+    }
+    async function tamper() {
+      if (drill) { drill = null; status = 'idle'; await load(); renderBlocks(true); panel(); return; }
+      $('lgTamper').disabled = true;
+      try { drill = await api('/api/audit/tamper', { method: 'POST', body: {}, user: 'vikram' }); }
+      catch (e) { $('lgDrillTxt').textContent = msgOf(e); $('lgTamper').disabled = false; return; }
+      $('lgTamper').disabled = false;
+      status = 'idle'; await load(); renderBlocks(true); panel();
+    }
+    function init() { $('lgVerify').addEventListener('click', verify); $('lgTamper').addEventListener('click', tamper); }
+    return { init, async enter() { await load(); renderBlocks(true); panel(); }, leave() { clearTimeout(t); if (status === 'busy') status = 'idle'; } };
+  })();
+
+  /* ---------------- View 7: Quality (Layer 0 data + Layer 1 detector) ---------------- */
+  const Quality = (() => {
+    const EX = [
+      'Hello, this is Priya Nair. My number is nine eight four five zero one two three four five and my PAN is ABCPN4821K.',
+      'मेरा नाम सुनीता राव है और मेरा नंबर नौ आठ चार पांच शून्य एक दो तीन चार पांच है।',
+      'Send the receipt to lakshmi.devi@example.com, I will pay through UPI lakshmi@okbank on the 5th.'
+    ];
+    let content = null, det = null;
+    const donut = (pct, color, label, delay) => `<svg width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="${esc(label)} ${pct} percent"><circle cx="100" cy="100" r="78" fill="none" stroke="#13214F" stroke-width="18"/><circle class="donut-arc" cx="100" cy="100" r="78" fill="none" stroke="${color}" stroke-width="18" stroke-linecap="round" transform="rotate(-90 100 100)" style="stroke-dasharray:${(pct / 100 * 490.1).toFixed(1)} 490.1;animation-delay:${delay}ms"/></svg>`;
+    function paintFresh(f, o) {
+      const n = f.new, od = f.old, d = (a, b) => (a - b >= 0 ? '+' : '−') + Math.abs(a - b).toFixed(1) + ' pts';
+      const weakest = f.types.slice().sort((a, b) => a.new - b.new)[0];
+      $('qSub').textContent = 'Improved detector, scored once on a fresh held-out split: ' + f.calls + ' synthetic calls, ' + f.spans + ' labelled PII spans' + (f.commit ? ' (detector frozen at ' + f.commit + ')' : '') + '.';
+      const bars = (rows, isType) => rows.slice().sort((a, b) => a.new - b.new).map((t) => `<div class="barrow"><span class="mono">${esc(t.name)}</span><div class="bar"><i style="width:${t.new}%;background:${t.new < 98 ? 'var(--amber)' : 'var(--em)'}"></i></div><span class="mono" style="text-align:right">${t.new}%</span><span class="mono" style="color:${isType && t.new > t.old ? 'var(--emT)' : 'var(--muted)'};text-align:right">${isType ? (t.new > t.old ? 'was ' + t.old : 'same') : ''}</span></div>`).join('');
+      $('qBody').innerHTML = `
+        <div class="grid2">
+          <div class="card donut-card"><div class="donut">${donut(n.masked50, '#86A0BC', 'Masked at least half of the span', 200)}<div class="c"><b>${n.masked50}%</b><span style="font-size:12px;color:var(--muted)">touched</span></div></div>
+            <div style="display:flex;flex-direction:column;gap:8px"><span class="overline">AT LEAST HALF MASKED</span><span style="font-size:20px;font-weight:700;color:#fff">Detector touched the value</span><span style="font-size:13px;line-height:1.5;color:var(--muted)">Old detector ${od.masked50}% → new ${n.masked50}% (${d(n.masked50, od.masked50)}).</span></div></div>
+          <div class="card donut-card" style="border-color:#16402F;box-shadow:0 0 32px rgba(46,187,127,.12)"><div class="donut">${donut(n.full, '#2EBB7F', 'Fully masked', 450)}<div class="c"><b>${n.full}%</b><span style="font-size:12px;color:var(--muted)">fully masked</span></div></div>
+            <div style="display:flex;flex-direction:column;gap:8px"><span class="overline" style="color:var(--emT)">FULLY MASKED</span><span style="font-size:20px;font-weight:700;color:#fff">At least 95% of the value hidden</span><span style="font-size:13px;line-height:1.5;color:var(--muted)">Old detector ${od.full}% → new ${n.full}% (${d(n.full, od.full)}). The audit net re-checks what the detector still misses.</span></div></div>
+        </div>
+        <div class="grid4" style="margin-top:16px">
+          <div class="card kpi"><span class="l">Right type label too</span><span class="v" style="font-size:34px;color:var(--amberT)">${n.label}%</span><span class="s">Was ${od.label}%. Masking is right more often than the label: a spoken phone number can be labelled PAN.</span></div>
+          <div class="card kpi"><span class="l">False alarms on PII-free calls</span><span class="v" style="font-size:34px;color:var(--roseT)">${n.fa_pct}%</span><span class="s">${n.fa_n} of ${n.fa_of} clean calls. Slightly worse than the old detector (${od.fa_pct}%).</span></div>
+          <div class="card kpi"><span class="l">Weakest type now</span><span class="v" style="font-size:34px">${esc(weakest.name)}</span><span class="s">${weakest.new}% fully masked (was ${weakest.old}%)</span></div>
+          <div class="card kpi"><span class="l">Gateway latency, this run</span><span class="v" style="font-size:34px">${o && o.latency.p50 != null ? o.latency.p50 + ' ms' : '–'}</span><span class="s">${o && o.latency.p95 != null ? 'p95 ' + o.latency.p95 + ' ms · budget 50 ms · n=' + o.latency.n : 'no messages yet'}</span></div>
+        </div>
+        <div class="grid2" style="margin-top:16px">
+          <div class="card" style="padding:18px 22px"><span style="font-size:14px;font-weight:600;color:#fff">By PII type (fully masked, new detector)</span>${bars(f.types, true)}</div>
+          <div class="card" style="padding:18px 22px"><span style="font-size:14px;font-weight:600;color:#fff">By language variant (fully masked, new detector)</span>${bars(f.langs, false)}</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px;margin-top:16px;border-radius:10px;background:var(--side);border:1px solid var(--line)">
+          <span style="font-size:14px;color:#fff"><strong>Also in the report:</strong> <span style="color:var(--text)">${f.amounts ? 'amounts wrongly masked went ' + f.amounts.old + ' → ' + f.amounts.new + ' of ' + f.amounts.of + ' (worse, cause not yet investigated). ' : ''}The LLM-accuracy cost of reading tokens instead of raw text is not measured.</span></span>
+          <span class="mono" style="font-size:12px;color:var(--muted)">same generator as our other data, so optimistic · source: ${esc(f.source)}</span>
+        </div>`;
+    }
+    function paint() {
+      if (det && det.fresh) { paintFresh(det.fresh, Overview.get()); return; }
+      const r = content && content.l1_report, o = Overview.get();
+      if (!r) { $('qBody').innerHTML = '<div class="empty"><span class="note">layer1_detection/LAYER1_REPORT.md could not be read.</span></div>'; return; }
+      const weakest = r.types.slice().sort((a, b) => a.full - b.full)[0];
+      $('qSub').textContent = 'Scored on the ' + r.split + ' split: ' + fmtIN(r.rows) + ' synthetic conversations, ' + fmtIN(r.types.reduce((a, t) => a + t.spans, 0)) + ' labelled PII spans.';
+      $('qBody').innerHTML = `
+        <div class="grid2">
+          <div class="card donut-card"><div class="donut">${donut(r.masked50, '#86A0BC', 'Masked at least half of the span', 200)}<div class="c"><b>${r.masked50}%</b><span style="font-size:12px;color:var(--muted)">touched</span></div></div>
+            <div style="display:flex;flex-direction:column;gap:8px"><span class="overline">AT LEAST HALF MASKED</span><span style="font-size:20px;font-weight:700;color:#fff">Detector touched the value</span><span style="font-size:13px;line-height:1.5;color:var(--muted)">Share of gold PII spans where at least 50% of the characters were covered by a detected span.</span></div></div>
+          <div class="card donut-card" style="border-color:#16402F;box-shadow:0 0 32px rgba(46,187,127,.12)"><div class="donut">${donut(r.full, '#2EBB7F', 'Fully masked', 450)}<div class="c"><b>${r.full}%</b><span style="font-size:12px;color:var(--muted)">fully masked</span></div></div>
+            <div style="display:flex;flex-direction:column;gap:8px"><span class="overline" style="color:var(--emT)">FULLY MASKED</span><span style="font-size:20px;font-weight:700;color:#fff">At least 95% of the value hidden</span><span style="font-size:13px;line-height:1.5;color:var(--muted)">What actually keeps raw PII from the model. The gateway's audit net re-checks what the detector missed.</span></div></div>
+        </div>
+        <div class="grid4" style="margin-top:16px">
+          <div class="card kpi"><span class="l">Right type label too</span><span class="v" style="font-size:34px;color:var(--amberT)">${r.label}%</span><span class="s">Masking is right more often than the label: a spoken phone number can be labelled PAN.</span></div>
+          <div class="card kpi"><span class="l">False alarms on PII-free calls</span><span class="v" style="font-size:34px;color:var(--amberT)">${r.false_alarm ? r.false_alarm.pct + '%' : '–'}</span><span class="s">${r.false_alarm ? r.false_alarm.n + ' of ' + r.false_alarm.of + ' clean calls had something masked.' : ''}</span></div>
+          <div class="card kpi"><span class="l">Weakest type</span><span class="v" style="font-size:34px">${esc(weakest.name)}</span><span class="s">${weakest.full}% fully masked · ${fmtIN(weakest.spans)} spans</span></div>
+          <div class="card kpi"><span class="l">Gateway latency, this run</span><span class="v" style="font-size:34px">${o && o.latency.p50 != null ? o.latency.p50 + ' ms' : '–'}</span><span class="s">${o && o.latency.p95 != null ? 'p95 ' + o.latency.p95 + ' ms · budget 50 ms · n=' + o.latency.n : 'no messages yet'}</span></div>
+        </div>
+        <div class="grid2" style="margin-top:16px">
+          <div class="card" style="padding:18px 22px"><span style="font-size:14px;font-weight:600;color:#fff">By PII type (fully masked)</span>${r.types.slice().sort((a, b) => a.full - b.full).map((t) => `<div class="barrow"><span class="mono">${esc(t.name)}</span><div class="bar"><i style="width:${t.full}%;background:${t.full < 93 ? 'var(--amber)' : 'var(--em)'}"></i></div><span class="mono" style="text-align:right">${t.full}%</span><span class="mono" style="color:var(--muted);text-align:right">n=${fmtIN(t.spans)}</span></div>`).join('')}</div>
+          <div class="card" style="padding:18px 22px"><span style="font-size:14px;font-weight:600;color:#fff">By language (fully masked)</span>${r.langs.slice().sort((a, b) => a.full - b.full).map((t) => `<div class="barrow"><span class="mono">${esc(t.name)}</span><div class="bar"><i style="width:${t.full}%;background:${t.full < 93 ? 'var(--amber)' : 'var(--em)'}"></i></div><span class="mono" style="text-align:right">${t.full}%</span><span class="mono" style="color:var(--muted);text-align:right">n=${fmtIN(t.spans)}</span></div>`).join('')}</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px;margin-top:16px;border-radius:10px;background:var(--side);border:1px solid var(--line)">
+          <span style="font-size:14px;color:#fff"><strong>Not measured yet:</strong> <span style="color:var(--text)">how much a downstream LLM task loses when it reads tokens instead of raw text.</span></span>
+          <span class="mono" style="font-size:12px;color:var(--muted)">${esc(r.caveat)} · source: layer1_detection/LAYER1_REPORT.md</span>
+        </div>`;
+    }
+    async function detect() {
+      const txt = $('dlText').value;
+      if (!txt.trim()) return;
+      $('dlRun').disabled = true;
+      try {
+        const d = await api('/api/detect', { body: { text: txt } });
+        $('dlMs').textContent = d.ms + ' ms · ' + d.chars + ' chars · ' + d.spans.length + ' span' + (d.spans.length === 1 ? '' : 's');
+        let i = 0, h = '';
+        d.spans.slice().sort((a, b) => a.start - b.start).forEach((s) => { if (s.start < i) return; h += esc(txt.slice(i, s.start)) + `<span class="hl" title="${esc((s.sources || []).join(' + '))}">${esc(txt.slice(s.start, s.end))}<sup>${esc(s.label)}</sup></span>`; i = s.end; });
+        h += esc(txt.slice(i));
+        $('dlOut').innerHTML = `<div class="ttext" style="padding:12px 14px;border-radius:6px;background:var(--term);white-space:pre-wrap">${h}</div>` +
+          (d.spans.length ? `<table class="tbl" style="margin-top:10px"><tr><th>LABEL</th><th>TEXT</th><th>FOUND BY</th><th>CONFIDENCE</th></tr>${d.spans.map((s) => `<tr><td>${esc(s.label)}</td><td class="w">${esc(s.text)}</td><td>${esc((s.sources || []).join(' + '))}</td><td>${esc(s.conf || '')}${s.uncertain ? ' · uncertain' : ''}</td></tr>`).join('')}</table>` : '<p class="note">Nothing detected.</p>');
+      } catch (e) { $('dlOut').innerHTML = `<span class="err">${esc(msgOf(e))}</span>`; }
+      $('dlRun').disabled = false;
+    }
+    async function init() {
+      $('dlRun').addEventListener('click', detect);
+      document.querySelectorAll('#v-quality [data-ex]').forEach((b) => b.addEventListener('click', () => { $('dlText').value = EX[+b.dataset.ex]; detect(); }));
+      try { content = await api('/api/content'); } catch (e) { /* shown on enter */ }
+    }
+    return { init, async enter() { if (!content) { try { content = await api('/api/content'); } catch (e) { /* ignore */ } } if (!det) { try { det = await api('/api/console/detection'); } catch (e) { /* ignore */ } } Overview.refresh().then(paint); paint(); }, leave() {} };
+  })();
+
+  /* ---------------- View 8: Voice (Layer 9: only present when started with layer9_voice.run) ---------------- */
+  function makeBot(cfg) {
+    const P = cfg.prefix;
+    let call = null, bors = [], llmName = '', sttOn = false, ttsOn = false;
+    let rec = null, chunks = [], stream = null, timer = null, busy = false, logHtml = '', dispHtml = '';
+    const mode = () => cfg.channel;
+    const tokHtml = (t) => esc(t).replace(/(&lt;[A-Z_]+_\d+&gt;)/g, '<span style="background:#16294f;color:#9fc0ff;border-radius:4px;padding:0 5px;font-family:var(--mono);font-size:12px">$1</span>');
+    const chip = (f) => `<span style="display:inline-block;padding:1px 8px;margin:0 4px 4px 0;border-radius:99px;background:#16294f;color:#9fc0ff;font:11px var(--mono)">${esc(f.label)}${f.token ? ' → ' + esc(f.token) : ''}</span>`;
+    function play(b64) { if (!b64) return; try { new Audio('data:audio/wav;base64,' + b64).play().catch(() => {}); } catch (e) { /* no audio output */ } }
+    function setStatus(t, bad) { const e = $(P + 'Err'); if (e) { e.textContent = t || ''; e.style.color = bad ? '' : 'var(--muted)'; } }
+    async function enter() {
+      const body = $(P + 'Body');
+      let s;
+      try { s = await api('/voice/status'); }
+      catch (e) {
+        $(P + 'Pill').textContent = 'not running';
+        body.innerHTML = `<div class="empty"><span style="font-size:16px;font-weight:600;color:#fff">The voice module is not running</span><span style="font-size:13px;color:var(--muted);max-width:520px">Layer 9 is an add-on. Start the console with it using <span class="mono">.venv/bin/python -m layer9_voice.run</span> (set <span class="mono">VOICE_LLM=stub</span> to keep everything local), then reload this page.</span></div>`;
+        return;
+      }
+      llmName = String(s.llm || ''); sttOn = !!s.speech_to_text; ttsOn = !!s.text_to_speech;
+      $(P + 'Pill').textContent = 'model: ' + s.llm + ' · speech-to-text ' + (sttOn ? 'on' : 'off') + ' · text-to-speech ' + (ttsOn ? 'on' : 'off');
+      try { bors = await api('/voice/borrowers'); } catch (e) { bors = []; }
+      paint();
+    }
+    function paint() {
+      const sel = $(P + 'Bor') ? $(P + 'Bor').value : '';
+      $(P + 'Body').innerHTML = `
+        <div class="card composer"><span class="lbl">CALL</span>
+          <select class="field" id="${P}Bor" ${call ? 'disabled' : ''}>${bors.map((b) => `<option value="${esc(b.id)}">${esc(b.name)} · ${esc(b.language)} · ${esc(b.product)}</option>`).join('')}</select>
+          <button class="btn btn-primary" id="${P}Start" style="min-height:44px;font-size:14px;padding:0 20px" ${call ? 'disabled' : ''}>${cfg.channel === 'voice' ? 'Start call' : 'Start chat'}</button>
+          <button class="btn" id="${P}Mic" style="min-height:44px${cfg.channel === 'voice' ? '' : ';display:none'}" ${call && mode() === 'voice' && sttOn ? '' : 'disabled'} title="${sttOn ? 'Click to talk, click again to send' : 'Speech is not configured (no SARVAM_API_KEY): type instead'}">Speak</button>
+          <input class="field grow1" id="${P}Say" placeholder="${cfg.channel === 'voice' ? 'Or type what the customer says' : 'Type what the customer says'}" ${call ? '' : 'disabled'} autocomplete="off">
+          <button class="btn" id="${P}Send" ${call ? '' : 'disabled'} style="min-height:44px">Send</button>
+          <button class="btn" id="${P}End" ${call ? '' : 'disabled'} style="min-height:44px">End + disposition</button>
+          <span class="err" id="${P}Err" style="flex-basis:100%"></span></div>
+        <div class="grid2"><div class="card" style="padding:18px 22px;display:flex;flex-direction:column;gap:10px;min-height:260px"><span style="font-size:14px;font-weight:600;color:#fff">Masked transcript <span class="note" style="font-weight:400">· what the model saw</span></span><div id="${P}Chat" style="display:flex;flex-direction:column;gap:8px">${logHtml}</div></div>
+          <div class="card" style="padding:18px 22px;display:flex;flex-direction:column;gap:10px"><span style="font-size:14px;font-weight:600;color:#fff">Call disposition</span><div id="${P}Disp">${dispHtml || '<span class="note">Ends with a structured outcome, parsed strictly (no default).</span>'}</div></div></div>`;
+      if (sel) $(P + 'Bor').value = sel;
+      $(P + 'Start').addEventListener('click', start); $(P + 'Send').addEventListener('click', say); $(P + 'End').addEventListener('click', end); $(P + 'Mic').addEventListener('click', toggleMic);
+      $(P + 'Say').addEventListener('keydown', (e) => { if (e.key === 'Enter') say(); });
+    }
+    function add(html) { logHtml += html; $(P + 'Chat').insertAdjacentHTML('beforeend', html); $(P + 'Chat').lastElementChild.scrollIntoView({ block: 'nearest' }); }
+    const botBubble = (t, extra) => add(`<div class="bubble bot"><small>BOT${extra ? ' · ' + esc(extra) : ''}</small>${esc(t)}</div>`);
+    function custBubble(r, said) {
+      const masked = r.customer_masked ? tokHtml(r.customer_masked) : `<span class="err">blocked: nothing was sent to the model (${esc(r.reason || r.status)})</span>`;
+      const chips = (r.found || []).map(chip).join('');
+      const ms = r.pre_llm_ms != null ? Math.round(r.pre_llm_ms) + ' ms' : '';
+      add(`<div class="bubble cust"><small>CUSTOMER · masked${ms ? ' · checked in ' + ms : ''}</small>${masked}${chips ? '<div style="margin-top:6px">' + chips + '</div>' : ''}${said ? '<div class="note" style="margin-top:6px">said: ' + esc(said) + '</div>' : ''}</div>`);
+    }
+    async function start() {
+      setStatus('');
+      logHtml = ''; dispHtml = '';
+      const chan = mode(), voice = chan === 'voice';
+      try { call = await api('/voice/call/start', { body: { borrower_id: $(P + 'Bor').value, channel: chan, audio: voice && ttsOn } }); } catch (e) { setStatus(msgOf(e), true); call = null; return; }
+      call.channel = chan; paint(); $(P + 'Bor').disabled = true; $(P + 'Start').disabled = true;
+      botBubble(call.greeting, 'greeting'); play(call.audio_b64);
+      if (voice && !sttOn) setStatus('Speech is not configured: type what the customer says.');
+      Cases.load().catch(() => {});
+    }
+    async function say() {
+      const t = $(P + 'Say').value.trim(); if (!t || !call || busy) return;
+      $(P + 'Say').value = ''; setStatus('Checking and replying…'); busy = true;
+      try {
+        const r = await api('/voice/call/' + call.call_id + '/say', { body: { text: t, audio: call.channel === 'voice' && ttsOn } });
+        custBubble(r, t); botBubble(r.bot_say || ('[' + r.status + ']'), r.status); play(r.bot_audio_b64); setStatus('');
+        if (r.goodbye) { busy = false; Overview.refresh(); return closeByBot(); }
+      } catch (e) { setStatus(msgOf(e), true); }
+      busy = false; Overview.refresh();
+    }
+    async function toggleMic() {
+      if (!call || busy) return;
+      if (rec && rec.state === 'recording') { rec.stop(); return; }
+      try { stream = stream || await navigator.mediaDevices.getUserMedia({ audio: true }); }
+      catch (e) { setStatus('Microphone not available (' + e.message + '): type instead', true); return; }
+      chunks = [];
+      const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+      rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+      rec.onstop = async () => {
+        clearTimeout(timer); const mic = $(P + 'Mic'); if (mic) { mic.textContent = 'Speak'; mic.style.background = ''; }
+        const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
+        if (!call) return;
+        if (blob.size < 1500) { setStatus('Too short: try again.'); return; }
+        await sendAudio(blob);
+      };
+      rec.start(); $(P + 'Mic').textContent = 'Stop and send'; $(P + 'Mic').style.background = '#8a2a2a'; setStatus('Listening… (25 s max)');
+      timer = setTimeout(() => { if (rec && rec.state === 'recording') rec.stop(); }, 25000);
+    }
+    async function sendAudio(blob) {
+      busy = true; setStatus('Transcribing, masking and replying…');
+      try {
+        const r = await fetch(BASE + '/voice/call/' + call.call_id + '/audio', { method: 'POST', headers: { 'X-User': 'asha', 'Content-Type': blob.type.split(';')[0] }, body: blob });
+        if (!r.ok) { let d = ''; try { d = (await r.json()).detail; } catch (e) { /* not json */ } throw new Error(d || 'HTTP ' + r.status); }
+        const j = await r.json();
+        if (j.status === 'no_speech') setStatus('No speech heard: try again.');
+        else {
+          custBubble(j, j.heard); botBubble(j.bot_say, j.status); play(j.bot_audio_b64); setStatus(j.tts_error ? 'Spoken reply failed (' + j.tts_error + '): text shown instead.' : '');
+          if (j.goodbye) { busy = false; Overview.refresh(); return closeByBot(); }
+        }
+      } catch (e) { setStatus(msgOf(e), true); }
+      busy = false; Overview.refresh();
+    }
+    async function closeByBot() {                       // the bot said goodbye: the conversation is complete, so produce the disposition without a click
+      setStatus('Conversation complete: generating the disposition…');
+      await sleep(call && call.channel === 'voice' ? 2500 : 600);
+      return end();
+    }
+    async function end() {
+      if (!call) return;
+      if (rec && rec.state === 'recording') { rec.onstop = null; rec.stop(); }
+      $(P + 'End').disabled = true; setStatus('Working out the disposition…');
+      try {
+        const r = await api('/voice/call/' + call.call_id + '/end', { method: 'POST', body: {} });
+        const d = r.disposition || {};
+        dispHtml = r.error ? `<span class="err">${esc(r.error)}</span>${/stub/.test(llmName) ? '<span class="note">The stub model cannot write a structured disposition. Start with Sarvam or Bedrock to see one.</span>' : ''}`
+          : `<div class="kv"><span>disposition</span><span>${esc(d.disposition)}</span><span>will pay</span><span>${esc(d.will_pay)}</span><span>promised amount</span><span>${esc(d.promised_amount == null ? '–' : 'Rs ' + fmtIN(d.promised_amount))}</span><span>promised date</span><span>${esc(d.promised_date || '–')}</span><span>reason</span><span style="font-family:var(--sans)">${esc(d.reason || '')}</span></div>${(d.evidence || []).map((q) => '<div class="note" style="margin-top:6px">“' + tokHtml(q) + '”</div>').join('')}<span class="note">${r.turns} turn(s) · the model read a masked transcript only.</span>`;
+        $(P + 'Disp').innerHTML = dispHtml; setStatus('');
+        call = null;
+        $(P + 'Say').disabled = true; $(P + 'Send').disabled = true; $(P + 'Mic').disabled = true; $(P + 'Bor').disabled = false; $(P + 'Start').disabled = false;
+      } catch (e) { setStatus(msgOf(e), true); $(P + 'End').disabled = false; }
+      Cases.load().catch(() => {}); Overview.refresh();
+    }
+    return { init() {}, enter, leave() { if (rec && rec.state === 'recording') { rec.onstop = null; rec.stop(); } } };
+  }
+  const Voice = makeBot({ prefix: 'vc', channel: 'voice' });
+
+
+  /* ---------------- View 9: Chat bot (Layer 9; real pipeline, reference look) ---------------- */
+  const Chat = (() => {
+    let call = null, bors = [], ready = false, xray = false, busy = false, seen = 0, vaultSeen = new Set(), previewT = null, previewSeq = 0, llmName = '';
+    const tag = { L1: 'var(--blueT)', L2: 'var(--emT)', L3: 'var(--blueT)', L4: 'var(--emT)', LLM: 'var(--blueT)', XRAY: 'var(--emT)', VIEW: 'var(--muted)', L9: 'var(--emT)', BLOCK: 'var(--roseT)' };
+    function log(t, m) {
+      const lg = $('chLog');
+      lg.insertAdjacentHTML('beforeend', `<div><span class="ts">${nowTs().slice(0, 8)}</span><span class="nd" style="color:${tag[t] || 'var(--blueT)'};width:48px">${esc(t)}</span><span class="m">${esc(m)}</span></div>`);
+      while (lg.children.length > 14) lg.firstChild.remove();
+    }
+    const time = () => new Date().toTimeString().slice(0, 5);
+    function segsFrom(text, spans) {
+      const out = []; let i = 0;
+      (spans || []).slice().sort((a, b) => a.start - b.start).forEach((sp) => {
+        if (sp.start < i || sp.end > text.length) return;
+        if (sp.start > i) out.push({ t: text.slice(i, sp.start) });
+        out.push({ type: sp.label, val: text.slice(sp.start, sp.end), tok: sp.token || ('<' + sp.label + '>') });
+        i = sp.end;
+      });
+      if (i < text.length) out.push({ t: text.slice(i) });
+      return out;
+    }
+    const segHTML = (segs) => segs.map((s) => (s.type ? `<span class="pv"><span class="raw">${esc(s.val)}</span><span class="tk">${esc(s.tok)}</span></span>` : esc(s.t))).join('');
+    const tokText = (t) => esc(t).replace(/(&lt;[A-Z_]+_\d+&gt;)/g, '<span class="tk">$1</span>');
+    function addMsg(who, html, metaText) {
+      const el = document.createElement('div');
+      el.className = 'msg new ' + who + (xray ? ' x' : '');
+      el.innerHTML = `<div class="bb">${html}</div><span class="meta">${esc(metaText || (who === 'user' ? 'You' : 'Assistant'))} · ${time()}</span>`;
+      const box = $('chMsgs'); if (box.querySelector('.note')) box.textContent = '';
+      box.appendChild(el); box.scrollTop = box.scrollHeight;
+      return el;
+    }
+    function agentMsg(say, masked, meta) {      // customer view: what was said to the customer; X-Ray: what the model produced (tokens)
+      return addMsg('agent', `<span class="cv">${esc(say)}</span><span class="xv">${tokText(masked || say)}</span>`, meta);
+    }
+    function setSwitch(on) {
+      if (on === xray) return;
+      xray = on; $('chSwitch').setAttribute('aria-checked', on ? 'true' : 'false'); $('chWin').classList.toggle('xray', on);
+      $('chLabC').classList.toggle('on', !on); $('chLabX').classList.toggle('on', on);
+      $('chMsgs').querySelectorAll('.msg').forEach((m) => m.classList.toggle('x', on));
+      log(on ? 'XRAY' : 'VIEW', on ? 'LLM context shown · tokens only · 0 raw values' : 'Customer view · what the customer typed');
+    }
+    function enable(on) {
+      $('chInput').disabled = !on; $('chSendBtn').disabled = !on; $('chEnd').disabled = !on;
+      $('chBor').disabled = on; $('chStart').disabled = on;
+      document.querySelectorAll('#v-chat .qchip[data-q]').forEach((b) => { b.disabled = !on; });
+      if (on) $('chInput').focus();
+    }
+    async function enter() {
+      let s;
+      try { s = await api('/voice/status'); }
+      catch (e) {
+        $('chPill').textContent = 'not running'; enable(false); $('chStart').disabled = true;
+        $('chMsgs').innerHTML = '<div class="note" style="margin:auto;text-align:center;max-width:420px">The voice module is not running. Start the console with <span class="mono">.venv/bin/python -m layer9_voice.run</span>, then reload this page.</div>';
+        return;
+      }
+      llmName = String(s.llm || ''); ready = true;
+      $('chPill').textContent = call ? 'session ' + call.call_id + ' · case ' + call.case : 'model: ' + s.llm;
+      if (!call) {
+        try { bors = await api('/voice/borrowers'); } catch (e) { bors = []; }
+        $('chBor').innerHTML = bors.map((b) => `<option value="${esc(b.id)}">${esc(b.name)} · ${esc(b.language)} · ${esc(b.product)}</option>`).join('');
+      }
+      if (!call) enable(false);
+    }
+    function reset() {
+      call = null; seen = 0; vaultSeen = new Set(); busy = false;
+      $('chMsgs').innerHTML = '<div class="note" style="margin:auto;text-align:center">Choose a borrower and start the chat.</div>';
+      $('chVault').innerHTML = '<span class="note">Nothing vaulted yet.</span>'; $('chVaultCount').textContent = '0 entries'; $('chLog').innerHTML = '';
+      $('chPreview').textContent = '—'; $('chInput').value = ''; enable(false); if (ready) $('chPill').textContent = 'model: ' + llmName;
+    }
+    async function start() {
+      try { call = await api('/voice/call/start', { body: { borrower_id: $('chBor').value, channel: 'chat' } }); }
+      catch (e) { call = null; $('chMsgs').innerHTML = `<div class="sysmsg">${esc(msgOf(e))}</div>`; return; }
+      seen = 0; vaultSeen = new Set(); $('chMsgs').textContent = ''; $('chLog').innerHTML = ''; $('chVault').innerHTML = '<span class="note">Nothing vaulted yet.</span>'; $('chVaultCount').textContent = '0 entries';
+      $('chPill').textContent = 'session ' + call.call_id + ' · case ' + call.case;
+      log('L9', 'Chat started · case ' + call.case + ' · channel chat'); agentMsg(call.greeting, call.greeting, 'Assistant · opening line');
+      enable(true); Cases.load().catch(() => {});
+    }
+    function teleFrom(events, ms) {
+      (events || []).forEach((e) => {
+        const k = e.kind_name;
+        if (k === 'L3_STARTED') log('L3', 'Gateway received the message');
+        else if (k === 'L1_DETECT_COMPLETE') log('L1', 'Detection complete' + (e.ms != null ? ' · ' + Math.round(e.ms) + ' ms' : ''));
+        else if (k === 'L2_TOKENISE_COMPLETE') log('L2', 'Encrypted & vaulted ' + (e.values != null ? e.values : 0) + ' value(s)' + (e.attempt ? ' · retry ' + e.attempt : ''));
+        else if (k === 'L3_AUDIT_PASSED') log('L3', 'Gateway passed masked payload to LLM');
+        else if (k === 'L3_AUDIT_FAILED' || k === 'LEAK_PREVENTED') log('BLOCK', 'Audit net stopped a leak');
+        else if (k === 'L3_BLOCKED') log('BLOCK', 'Message blocked · nothing sent to the model');
+        else if (k === 'LLM_RESPONDED') log('LLM', 'Reply generated on tokens only' + (e.ms != null ? ' (' + Math.round(e.ms) + ' ms)' : ''));
+        else if (k === 'write_allowed') log('L4', 'Consent allowed write → ' + (e.store || e.target || 'store'));
+        else if (k === 'write_rejected' || k === 'CONSENT_DENIED') log('BLOCK', 'Consent refused a write');
+      });
+    }
+    async function vaultRefresh() {
+      let v;
+      try { v = await api('/api/vault', { sid: call.case_sid }); } catch (e) { return; }
+      const rows = v.entries || [];
+      $('chVaultCount').textContent = rows.length + (rows.length === 1 ? ' entry' : ' entries');
+      if (!rows.length) { $('chVault').innerHTML = '<span class="note">Nothing vaulted yet.</span>'; return; }
+      $('chVault').innerHTML = '<div class="vrow head"><span>TOKEN</span><span>TYPE</span><span>STORED AS</span><span>STATUS</span></div>' + rows.map((r) => {
+        const fresh = !vaultSeen.has(r.token); vaultSeen.add(r.token);
+        return `<div class="vrow${fresh ? ' newv' : ''}"><span class="mono" style="color:var(--emT)">${esc(r.token)}</span><span>${esc(String(r.label || '').toLowerCase())}</span><span class="mono" style="color:var(--muted)">enc:${esc(String(r.ciphertext || '').slice(0, 10))}…</span><span class="badge b-ok" style="font-size:10px">${esc(r.status || 'VAULTED')}</span></div>`;
+      }).join('');
+    }
+    async function say(text) {
+      text = (text || '').trim(); if (!text || !call || busy) return;
+      busy = true; $('chInput').value = ''; $('chPreview').textContent = '—'; $('chSendBtn').disabled = true;
+      const mine = addMsg('user', esc(text), 'You');
+      const dots = document.createElement('div'); dots.className = 'dots'; dots.innerHTML = '<i></i><i></i><i></i>'; $('chMsgs').appendChild(dots); $('chMsgs').scrollTop = $('chMsgs').scrollHeight;
+      const beam = $('chBeam'); beam.classList.remove('run'); void beam.offsetWidth; beam.classList.add('run');
+      let r;
+      try { r = await api('/voice/call/' + call.call_id + '/say', { body: { text } }); }
+      catch (e) { dots.remove(); mine.insertAdjacentHTML('afterend', `<div class="sysmsg">${esc(msgOf(e))}</div>`); busy = false; $('chSendBtn').disabled = false; return; }
+      dots.remove();
+      let spans = [], events = [];
+      try {
+        const d = await api('/api/case/' + call.case_sid), h = (d.history || [])[ (d.history || []).length - 1 ];
+        if (h && h.l1) spans = h.l1.spans || [];
+        if (h && h.l7) events = h.l7.events || [];
+      } catch (e) { /* the bubble then shows the typed text only */ }
+      mine.querySelector('.bb').innerHTML = segHTML(segsFrom(text, spans));
+      teleFrom(events);
+      if (!r.customer_masked) {
+        mine.insertAdjacentHTML('afterend', `<div class="sysmsg">Blocked: nothing was sent to the model (${esc(r.reason || r.status)})</div>`);
+      }
+      agentMsg(r.bot_say, r.bot_masked || r.bot_say, 'Assistant · ' + (llmName.replace(/^sarvam:/, '') || 'model'));
+      await vaultRefresh(); Overview.refresh();
+      busy = false; $('chSendBtn').disabled = !call; if (call) $('chInput').focus();
+      if (r.goodbye) { log('L9', 'Conversation complete · generating the disposition'); await sleep(500); await end(); }
+    }
+    async function end() {
+      if (!call || busy) return;
+      busy = true; $('chEnd').disabled = true; $('chSendBtn').disabled = true; $('chInput').disabled = true;
+      const dots = document.createElement('div'); dots.className = 'dots'; dots.innerHTML = '<i></i><i></i><i></i>'; $('chMsgs').appendChild(dots);
+      try {
+        const r = await api('/voice/call/' + call.call_id + '/end', { method: 'POST', body: {} });
+        dots.remove(); const d = r.disposition;
+        const yes = d && d.will_pay === 'yes';
+        const html = d ? `<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;letter-spacing:.08em;color:var(--emT);font-weight:600">DISPOSITION</span><span class="badge ${yes ? 'b-ok' : ''}" style="font-size:13px">${esc(String(d.disposition).replace(/_/g, ' '))}</span></div>
+          <div class="kv"><span>will pay</span><span>${esc(d.will_pay)}</span><span>promised amount</span><span>${esc(d.promised_amount == null ? '–' : 'Rs ' + fmtIN(d.promised_amount))}</span><span>promised date</span><span>${esc(d.promised_date || '–')}</span><span>reason</span><span style="font-family:var(--sans)">${esc(d.reason || '')}</span></div>
+          ${(d.evidence || []).map((q) => '<div class="note">“' + tokText(q) + '”</div>').join('')}<span class="note">${r.turns} turn(s) · the model read a masked transcript only.</span>`
+          : `<span class="err">${esc(r.error || 'no disposition')}</span>`;
+        const el = document.createElement('div'); el.className = 'dcard'; el.innerHTML = html; $('chMsgs').appendChild(el); $('chMsgs').scrollTop = $('chMsgs').scrollHeight;
+        log('L9', d ? 'Disposition: ' + d.disposition + ' · will pay ' + d.will_pay : 'Disposition failed: ' + (r.error || ''));
+      } catch (e) { dots.remove(); $('chMsgs').insertAdjacentHTML('beforeend', `<div class="sysmsg">${esc(msgOf(e))}</div>`); }
+      call = null; busy = false; $('chBor').disabled = false; $('chStart').disabled = false;
+      $('chInput').disabled = true; $('chSendBtn').disabled = true; $('chEnd').disabled = true; document.querySelectorAll('#v-chat .qchip[data-q]').forEach((b) => { b.disabled = true; });
+      Cases.load().catch(() => {}); Overview.refresh(); await vaultRefreshAfterEnd();
+    }
+    async function vaultRefreshAfterEnd() { /* the vault panel keeps showing the last chat's tokens until a new chat starts */ }
+    function preview() {                                  // Layer 1 on the draft only: nothing is tokenised, stored or sent
+      const v = $('chInput').value, seq = ++previewSeq;
+      if (!v.trim()) { $('chPreview').textContent = '—'; return; }
+      clearTimeout(previewT);
+      previewT = setTimeout(async () => {
+        let d; try { d = await api('/api/detect', { body: { text: v } }); } catch (e) { return; }
+        if (seq !== previewSeq) return;
+        let out = '', i = 0; const n = {};
+        (d.spans || []).forEach((sp) => { out += esc(v.slice(i, sp.start)); n[sp.label] = (n[sp.label] || 0) + 1; out += `<span class="tk">&lt;${esc(sp.label)}&gt;</span>`; i = sp.end; });
+        out += esc(v.slice(i)); $('chPreview').innerHTML = out;
+      }, 220);
+    }
+    function init() {
+      $('chSwitch').addEventListener('click', () => setSwitch(!xray));
+      $('chLabC').addEventListener('click', () => setSwitch(false)); $('chLabX').addEventListener('click', () => setSwitch(true));
+      $('chStart').addEventListener('click', start); $('chEnd').addEventListener('click', end); $('chReset').addEventListener('click', reset);
+      $('chForm').addEventListener('submit', (e) => { e.preventDefault(); say($('chInput').value); });
+      $('chInput').addEventListener('input', preview);
+      document.querySelectorAll('#v-chat .qchip[data-q]').forEach((b) => b.addEventListener('click', () => say(b.dataset.q)));
+    }
+    return { init, enter, leave() {} };
+  })();
+
+  /* ---------------- View 10: Settings (Layer 9 configuration) ---------------- */
+  const Settings = (() => {
+    const WHO = 'meera';                                    // demo identity: the DPO may change settings (the server enforces the role and audits the change)
+    let S = null, draft = null, dirty = false, msg = '', probs = [];
+    async function call(method, path, body, user) {
+      const h = { 'X-User': user || WHO };
+      if (body !== undefined) h['Content-Type'] = 'application/json';
+      let r;
+      try { r = await fetch(BASE + path, { method, headers: h, body: body !== undefined ? JSON.stringify(body) : undefined }); }
+      catch (e) { setConn(false); throw new Error('offline'); }
+      setConn(true);
+      let j = null; try { j = await r.json(); } catch (e) { /* no body */ }
+      return { ok: r.ok, status: r.status, json: j };
+    }
+    const get = (obj, path) => path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
+    function setPath(obj, path, val) { const ks = path.split('.'), last = ks.pop(); const o = ks.reduce((a, k) => a[k], obj); o[last] = val; }
+    const inp = (path, label, o) => { o = o || {}; const v = get(draft, path); return `<label class="fl"><span>${esc(label)}${o.hint ? ' <span class="hint">· ' + esc(o.hint) + '</span>' : ''}</span><input class="field" data-path="${esc(path)}" data-type="${o.type || 'text'}" value="${esc(v == null ? '' : v)}" ${o.ph ? 'placeholder="' + esc(o.ph) + '"' : ''}></label>`; };
+    const area = (path, label, hint) => `<label class="fl"><span>${esc(label)}${hint ? ' <span class="hint">· ' + esc(hint) + '</span>' : ''}</span><textarea class="field" data-path="${esc(path)}" data-type="text">${esc(get(draft, path) || '')}</textarea></label>`;
+    const sel = (path, label, opts, o) => { const v = get(draft, path); return `<label class="fl"><span>${esc(label)}</span><select class="field" data-path="${esc(path)}" data-type="${(o && o.type) || 'text'}">${opts.map(([val, t]) => `<option value="${esc(val)}" ${String(v == null ? '' : v) === String(val) ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`; };
+    const REAS = [['', 'model default'], ['off', 'off'], ['low', 'low'], ['medium', 'medium'], ['high', 'high']];
+    function checks() {
+      const st = S.status, rows = [
+        [st.sarvam_key, 'Sarvam key found in .env (the model, speech-to-text and text-to-speech)', 'No Sarvam key: add SARVAM_API_KEY to .env and restart'],
+        [!!st.model && !/stub/.test(st.model), 'Model: ' + (st.model || 'none'), 'The stub model is running: no real replies or dispositions'],
+        [S.problems.length === 0, S.source === 'local' ? 'config.local.json is valid' : 'Using the built-in defaults', 'Config problem: ' + S.problems.join(' ')],
+        [S.borrowers.rows.length > 0, S.borrowers.rows.length + ' borrower(s) from the ' + S.borrowers.source + ' list', 'No borrowers: import a CSV below'],
+        [st.phone_line, 'Phone line is on (inbound only)', 'Phone line is off (needs a paid Twilio number; the browser call and chat do not need it)']
+      ];
+      return rows.map(([ok, good, bad]) => `<div class="chk"><span class="${ok ? 'ok' : 'no'}">${ok ? '●' : '○'}</span><span>${esc(ok ? good : bad)}</span></div>`).join('');
+    }
+    function langBlock(name) {
+      const L = draft.languages[name];
+      return `<details class="lang" ${name === 'English' ? '' : ''}><summary>${esc(name)} <span class="note" style="font-weight:400">· ${esc(L.code)}</span></summary>
+        ${sel('languages.' + name + '.code', 'Language code', S.sarvam_codes.map((c) => [c, c]))}
+        ${area('languages.' + name + '.greeting', 'Opening line (voice call)')}${area('languages.' + name + '.chat_greeting', 'Opening line (chat)')}
+        ${area('languages.' + name + '.repeat', '"Say that again" line')}${area('languages.' + name + '.goodbye', 'Goodbye line', 'its LAST sentence is the closing word the bot ends with')}
+        ${inp('languages.' + name + '.neutral', 'Neutral word', { hint: 'spoken in place of a hidden value' })}
+        ${name === 'English' ? '<span class="note">English is the fallback and cannot be removed.</span>' : `<button class="btn" data-del-lang="${esc(name)}" style="align-self:flex-start">Remove ${esc(name)}</button>`}</details>`;
+    }
+    function paint() {
+      const dis = S.disposition_categories.map((x) => x.replace(/_/g, ' ').toLowerCase()).join(' · ');
+      $('stBody').innerHTML = `
+        <div class="setgrid">
+          <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+            <div class="card setcard"><h3>Status</h3>${checks()}</div>
+            <div class="card setcard"><h3>Models and speech</h3>
+              <div class="two">${inp('models.bot', 'Bot model')}${sel('models.bot_reasoning', 'Bot reasoning', REAS)}</div>
+              <div class="two">${inp('models.disposition', 'Disposition model')}${sel('models.disposition_reasoning', 'Disposition reasoning', REAS)}</div>
+              <div class="two">${inp('models.stt_model', 'Speech-to-text model')}${sel('models.stt_mode', 'Speech-to-text mode', [['transcribe', 'transcribe (recommended for masking)'], ['verbatim', 'verbatim'], ['codemix', 'codemix'], ['translit', 'translit'], ['translate', 'translate (not recommended)']])}</div>
+              <div class="two">${inp('models.tts_model', 'Text-to-speech model')}${inp('models.tts_speaker', 'Voice')}</div></div>
+            <div class="card setcard"><h3>Limits</h3>
+              <div class="two">${inp('limits.history_messages', 'Messages the model remembers', { type: 'int' })}${inp('limits.tts_hedge_seconds', 'Retry a slow spoken reply after (s)', { type: 'float' })}</div>
+              <div class="two">${inp('limits.max_phone_turns', 'Phone call: max answers', { type: 'int' })}${inp('limits.max_silent_answers', 'Phone call: max empty answers', { type: 'int' })}</div>
+              ${inp('limits.max_audio_seconds', 'Microphone: stop after (s)', { type: 'int', hint: 'Sarvam accepts up to 30' })}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+            <div class="card setcard"><h3>The bot's job</h3>
+              ${area('bot.job', 'Job description', 'what the bot is asked to find out')}
+              ${area('bot.extra_rules', 'Extra rules', 'optional, one per line')}
+              <div class="ro"><b>Always applied (cannot be changed):</b><br>${S.fixed_rules.privacy_and_conduct.map((r) => '• ' + esc(r)).join('<br>')}<br>• ${esc(S.fixed_rules.style_voice)}<br>• ${esc(S.fixed_rules.style_chat)}</div>
+              <div class="ro"><b>Disposition outcomes (fixed, parsed strictly):</b> ${esc(dis)}</div></div>
+            <div class="card setcard"><h3>Languages <span class="note" style="font-weight:400">· lines are not native-checked</span></h3>
+              ${Object.keys(draft.languages).map(langBlock).join('')}
+              <div class="two" style="align-items:end"><label class="fl"><span>Add a language</span><input class="field" id="stNewLang" placeholder="name, e.g. Tamil"></label>
+                <div style="display:flex;gap:8px"><select class="field" id="stNewCode" style="flex:1">${S.sarvam_codes.map((c) => `<option>${esc(c)}</option>`).join('')}</select><button class="btn" id="stAddLang">Add</button></div></div></div>
+          </div>
+        </div>
+        <div class="card setcard" style="margin-top:16px"><h3>Borrowers <span class="note" style="font-weight:400">· ${esc(S.borrowers.source)} list · ${S.borrowers.rows.length} row(s) · saved locally, never sent to a model</span></h3>
+          <table class="btable"><tr><th>NAME</th><th>LANGUAGE</th><th>PRODUCT</th><th>OVERDUE</th><th>LOAN</th><th>PHONE (masked)</th><th></th></tr>
+          ${S.borrowers.rows.map((b) => `<tr><td>${esc(b.name)}</td><td>${esc(b.language)}</td><td>${esc(b.product)}</td><td>${b.outstanding == null ? '–' : 'Rs ' + fmtIN(b.outstanding)}</td><td class="mono">••${esc(b.loan_last4 || '')}</td><td class="mono">${esc(b.phone || '–')}</td><td><button class="btn" data-del-b="${esc(b.id)}" style="min-height:28px;padding:0 10px">Remove</button></td></tr>`).join('')}</table>
+          <div class="two"><div style="display:flex;flex-direction:column;gap:8px"><span class="note">Add one</span>
+            <div class="two"><input class="field" id="bnName" placeholder="Name"><select class="field" id="bnLang">${Object.keys(draft.languages).map((n) => `<option>${esc(n)}</option>`).join('')}</select></div>
+            <div class="two"><input class="field" id="bnProd" placeholder="Product, e.g. Personal loan"><input class="field" id="bnAmt" placeholder="Overdue amount (Rs)"></div>
+            <div class="two"><input class="field" id="bnLoan" placeholder="Loan last 4 digits"><input class="field" id="bnPhone" placeholder="Phone (display only, optional)"></div>
+            <button class="btn" id="bnAdd" style="align-self:flex-start">Add borrower</button></div>
+            <div style="display:flex;flex-direction:column;gap:8px"><span class="note">Import a CSV <span class="mono">(columns: name, language, product, outstanding, dpd, loan_last4, phone)</span></span>
+              <textarea class="field" id="bnCsv" placeholder="name,language,product,outstanding,dpd,loan_last4,phone&#10;Asha Verma,Hindi,Personal loan,12500,20,4821," style="min-height:110px;font-family:var(--mono);font-size:12px"></textarea>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="file" id="bnFile" accept=".csv,text/csv,text/plain" style="font-size:12px;max-width:210px"><label class="chk"><input type="checkbox" id="bnReplace" checked> replace the list</label><button class="btn btn-primary" id="bnImport">Import</button><button class="btn" id="bnReset">Back to demo list</button></div></div></div>
+          <div class="err" id="bnErr"></div></div>
+        <div class="savebar" style="margin-top:16px"><button class="btn btn-primary" id="stSave" style="min-height:42px;padding:0 22px">Save settings</button><button class="btn" id="stDiscard" style="min-height:42px">Discard changes</button><button class="btn" id="stReset" style="min-height:42px">Reset to defaults</button>
+          <span class="msg2" id="stMsg"></span><span class="note">Saving as Meera Iyer · DPO (demo identity)</span></div>`;
+      wire(); showMsg();
+    }
+    function showMsg() {
+      const m = $('stMsg'); if (!m) return;
+      m.innerHTML = (dirty ? '<span style="color:var(--blueT)">Unsaved changes. </span>' : '') + esc(msg) + (probs.length ? '<ul class="probs">' + probs.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '');
+    }
+    function wire() {
+      document.querySelectorAll('#stBody [data-path]').forEach((el) => {
+        const handler = () => {
+          let v = el.value; const t = el.dataset.type;
+          if (t === 'int' || t === 'float') v = v.trim() === '' ? null : Number(v);
+          if (el.dataset.path.endsWith('_reasoning')) v = v === '' ? null : v;
+          setPath(draft, el.dataset.path, v); dirty = true; msg = ''; probs = []; showMsg();
+        };
+        el.addEventListener('input', handler); el.addEventListener('change', handler);
+      });
+      document.querySelectorAll('[data-del-lang]').forEach((b) => b.addEventListener('click', () => { delete draft.languages[b.dataset.delLang]; dirty = true; paint(); }));
+      $('stAddLang').addEventListener('click', () => {
+        const n = $('stNewLang').value.trim(); if (!n) return;
+        if (draft.languages[n]) { msg = n + ' already exists'; showMsg(); return; }
+        draft.languages[n] = { code: $('stNewCode').value, neutral: '', greeting: '', chat_greeting: '', repeat: '', goodbye: '' }; dirty = true; msg = 'Fill in the five lines for ' + n + ', then save.'; paint();
+      });
+      $('stSave').addEventListener('click', save); $('stDiscard').addEventListener('click', () => { draft = JSON.parse(JSON.stringify(S.config)); dirty = false; msg = 'Changes discarded.'; probs = []; paint(); });
+      $('stReset').addEventListener('click', reset);
+      $('bnAdd').addEventListener('click', addBorrower); $('bnImport').addEventListener('click', importCsv); $('bnReset').addEventListener('click', resetBorrowers);
+      $('bnFile').addEventListener('change', (e) => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => { $('bnCsv').value = String(rd.result || ''); }; rd.readAsText(f); });
+      document.querySelectorAll('[data-del-b]').forEach((b) => b.addEventListener('click', () => borrowerCall('DELETE', '/voice/settings/borrowers/' + encodeURIComponent(b.dataset.delB))));
+    }
+    function adopt(j) { S = j; draft = JSON.parse(JSON.stringify(S.config)); dirty = false; }
+    async function save() {
+      $('stSave').disabled = true; msg = 'Saving…'; probs = []; showMsg();
+      try {
+        const r = await call('PUT', '/voice/settings', { config: draft });
+        if (r.ok) { adopt(r.json); msg = 'Saved. It applies to the next message.'; paint(); Overview.refresh(); }
+        else { const d = r.json && r.json.detail; probs = d && d.problems ? d.problems : [typeof d === 'string' ? d : 'HTTP ' + r.status]; msg = 'Not saved:'; showMsg(); $('stSave').disabled = false; }
+      } catch (e) { msg = msgOf(e); showMsg(); $('stSave').disabled = false; }
+    }
+    async function reset() {
+      if (!confirm('Reset every setting to the built-in defaults? The borrower list is not touched.')) return;
+      const r = await call('DELETE', '/voice/settings'); if (r.ok) { adopt(r.json); msg = 'Back to the defaults.'; probs = []; paint(); Overview.refresh(); }
+    }
+    async function borrowerCall(method, path, body) {
+      $('bnErr').textContent = '';
+      const r = await call(method, path, body);
+      if (r.ok) { const keep = draft; adopt(r.json); if (dirty === false) { draft = keep; dirty = JSON.stringify(keep) !== JSON.stringify(S.config); } paint(); Overview.refresh(); }
+      else { const d = r.json && r.json.detail; $('bnErr').textContent = (d && d.problems ? d.problems.join(' · ') : (typeof d === 'string' ? d : 'HTTP ' + r.status)); }
+    }
+    function addBorrower() {
+      const amt = $('bnAmt').value.trim();
+      borrowerCall('POST', '/voice/settings/borrowers', { name: $('bnName').value, language: $('bnLang').value, product: $('bnProd').value, outstanding: amt === '' ? null : Number(amt), loan_last4: $('bnLoan').value, phone: $('bnPhone').value });
+    }
+    function importCsv() { borrowerCall('POST', '/voice/settings/borrowers/import', { csv: $('bnCsv').value, replace: $('bnReplace').checked }); }
+    function resetBorrowers() { if (confirm('Delete your borrower list and go back to the 3 demo borrowers?')) borrowerCall('DELETE', '/voice/settings/borrowers'); }
+    async function enter() {
+      if (dirty && S) return;                                   // keep unsaved edits when switching tabs
+      const r = await call('GET', '/voice/settings', undefined, 'asha').catch(() => null);
+      if (!r || !r.ok) {
+        $('stPill').textContent = 'not running';
+        $('stBody').innerHTML = `<div class="empty"><span style="font-size:16px;font-weight:600;color:#fff">The voice module is not running</span><span style="font-size:13px;color:var(--muted);max-width:520px">Start the console with <span class="mono">./run_demo.sh</span> (or <span class="mono">.venv/bin/python -m layer9_voice.run</span>), then reload this page.</span></div>`;
+        return;
+      }
+      adopt(r.json); $('stPill').textContent = (S.source === 'local' ? 'custom settings' : 'default settings') + ' · ' + (S.status.model || 'no model'); paint();
+    }
+    return { init() {}, enter, leave() {} };
+  })();
+
+  /* ---------------- Router ---------------- */
+  const views = {
+    gateway: { mod: Gateway, crumb: 'L3·L1 gateway' },
+    vault: { mod: Vault, crumb: 'L2 token vault' },
+    firewall: { mod: Firewall, crumb: 'L4 consent firewall' },
+    lineage: { mod: Lineage, crumb: 'L5 lineage registry' },
+    erasure: { mod: Erasure, crumb: 'L6 erasure agent' },
+    ledger: { mod: Ledger, crumb: 'L7 tamper-evident ledger' },
+    quality: { mod: Quality, crumb: 'L0·L1 detection quality' },
+    voice: { mod: Voice, crumb: 'L9 voice bot' },
+    chat: { mod: Chat, crumb: 'L9 chat bot' },
+    settings: { mod: Settings, crumb: 'L9 settings' }
+  };
+  const order = Object.keys(views);
+  let current = null;
+  function show(name) {
+    if (!views[name] || name === current) return;
+    if (current) { views[current].mod.leave(); $('v-' + current).classList.remove('active'); }
+    current = name;
+    $('v-' + name).classList.add('active');
+    document.querySelectorAll('.nav').forEach((n) => {
+      const on = n.dataset.view === name;
+      n.classList.toggle('active', on);
+      if (on) n.setAttribute('aria-current', 'page'); else n.removeAttribute('aria-current');
+    });
+    $('crumb').textContent = views[name].crumb;
+    views[name].mod.enter();
+    if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.nav').forEach((n) => n.addEventListener('click', () => show(n.dataset.view)));
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('input, textarea, select')) return;
+    const i = order.indexOf(current);
+    if (/^[1-9]$/.test(e.key) && +e.key <= order.length) show(order[+e.key - 1]);
+    else if (e.key === 'ArrowRight') show(order[(i + 1) % order.length]);
+    else if (e.key === 'ArrowLeft') show(order[(i - 1 + order.length) % order.length]);
+  });
+  window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+
+  /* ---------------- Boot ---------------- */
+  Object.values(views).forEach((v) => v.mod.init());
+  Cases.subs.push(() => { if (current === 'lineage') Lineage.render(); if (current === 'vault') Vault.reload(); });
+  (async function boot() {
+    show(views[location.hash.slice(1)] ? location.hash.slice(1) : 'gateway');
+    try { await Cases.load(); } catch (e) { return; }
+    await Overview.refresh();
+    Gateway.seed();
+  })();
+})();
+</script>
+</body>
+</html>

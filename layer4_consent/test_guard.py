@@ -119,6 +119,130 @@ def test_decision_is_under_1ms():
     assert per < 1.0
 
 
+# ---------------- consent registry, borrower mismatch, legacy delegation ----------------
+from .guard import guarded_write_ex
+from .registry import ConsentRegistry
+from .write_guard import WriteGuard
+
+
+def _reg():
+    return ConsentRegistry({"C-123": {"borrower_id": "B-001", "purposes": ["model_improvement", "service"], "status": "active"}})
+
+
+def _mi(cid="C-123", b="B-001", **kw):
+    return rec(new_tag("model_improvement", consent_id=cid, explicit=True, borrower_id=b), **kw)
+
+
+def test_registry_check_consent_rules():
+    t = [0.0]
+    r = ConsentRegistry(clock=lambda: t[0])
+    r.grant("C1", "B1", ["collection", "model_improvement"], expires_at=100)
+    assert r.check_consent("C1", "B1", "collections") and r.check_consent("C1", "B1", "model_improvement")
+    assert not r.check_consent("C1", "B2", "model_improvement")          # someone else's consent
+    assert not r.check_consent("C1", "B1", "analytics")                  # not covered
+    assert not r.check_consent("nope", "B1", "model_improvement") and not r.check_consent(None, "B1", "x")
+    t[0] = 100
+    assert not r.check_consent("C1", "B1", "model_improvement")          # expired
+    t[0] = 0
+    assert r.withdraw("C1") and not r.check_consent("C1", "B1", "model_improvement") and not r.withdraw("zzz")
+
+
+def test_guard_accepts_a_confirmed_consent_and_marks_it_verified():
+    s, a = Store(), Sink()
+    assert guarded_write("eval_sets", _mi(), s, a, registry=_reg())
+    assert a.events[-1]["kind"] == "write_allowed" and a.events[-1]["consent_verified"] is True and len(s.rows) == 1
+
+
+def test_guard_rejects_unknown_wrong_borrower_wrong_purpose_and_withdrawn_consent():
+    reg = _reg()
+    cases = [("unknown id", _mi(cid="C-999")), ("other borrower", _mi(b="B-002")),
+             ("withdrawn", None)]
+    for name, r in cases[:2]:
+        s, a = Store(), Sink()
+        assert guarded_write_ex("eval_sets", r, s, a, registry=reg) == (False, "consent_invalid"), name
+        assert s.rows == [] and a.events[-1]["reason"] == "consent_invalid"
+    s, a = Store(), Sink()
+    reg2 = ConsentRegistry({"C-5": {"borrower_id": "B-001", "purposes": ["service"], "status": "active"}})      # purpose not covered
+    assert guarded_write_ex("eval_sets", _mi(cid="C-5"), s, a, registry=reg2) == (False, "consent_invalid")
+    reg.withdraw("C-123")
+    assert guarded_write_ex("eval_sets", _mi(), s, a, registry=reg) == (False, "consent_invalid") and s.rows == []
+
+
+def test_registry_failure_or_nonsense_answer_fails_closed():
+    class Down:
+        def check_consent(self, *a): raise ConnectionError("registry down")
+    class Maybe:
+        def check_consent(self, *a): return "yes"                         # truthy but not True
+    for reg, why in ((Down(), "consent_registry_unavailable"), (Maybe(), "consent_invalid")):
+        s, a = Store(), Sink()
+        assert guarded_write_ex("eval_sets", _mi(), s, a, registry=reg) == (False, why) and s.rows == []
+
+
+def test_claimed_consent_on_a_normal_purpose_is_also_checked_when_a_registry_is_given():
+    s, a = Store(), Sink()
+    bad = rec(new_tag("service", consent_id="C-fake", explicit=True, borrower_id="B-001"))
+    assert guarded_write_ex("logs", bad, s, a, registry=_reg()) == (False, "consent_invalid")
+    assert guarded_write("logs", rec(new_tag("service", borrower_id="B-001")), s, a, registry=_reg())     # no claim, no check
+
+
+def test_borrower_mismatch_and_missing_borrower():
+    s, a = Store(), Sink()
+    r = rec(new_tag("service", borrower_id="B-001"), borrower_id="B-002")
+    assert guarded_write_ex("logs", r, s, a) == (False, "borrower_mismatch") and s.rows == []
+    assert a.events[-1]["borrower_hash"] != "unknown"
+    assert guarded_write_ex("eval_sets", rec(new_tag("model_improvement", consent_id="C-123", explicit=True)), s, a,
+                            registry=_reg()) == (False, "borrower_unknown_for_consent")
+    assert guarded_write("logs", rec(new_tag("service", borrower_id="B-001"), borrower_id="B-001"), s, a)      # agreeing ids are fine
+
+
+def test_legacy_mode_without_registry_still_writes_but_says_consent_was_only_claimed():
+    s, a = Store(), Sink()
+    assert guarded_write("eval_sets", _mi(), s, a)                        # registry=None: the old claim-only behaviour
+    assert a.events[-1]["consent_verified"] is False
+
+
+def test_explicit_consent_must_be_the_boolean_true():
+    for bad in ("false", "no", "true", 1, [1]):
+        s, a = Store(), Sink()
+        r = rec({"purpose": "model_improvement", "consent_id": "C-123", "explicit_consent": bad, "borrower_id": "B-001"})
+        assert guarded_write("eval_sets", r, s, a, registry=_reg()) is False and s.rows == [], bad
+    assert a.events[-1]["reason"] in ("explicit_consent_not_boolean",)
+
+
+def test_guarded_write_returns_a_plain_bool_never_a_truthy_tuple():
+    s, a = Store(), Sink()
+    assert guarded_write("eval_sets", rec(new_tag("service")), s, a) is False
+    assert guarded_write("logs", rec(new_tag("service")), s, a) is True
+
+
+def test_legacy_writeguard_delegates_and_keeps_its_contract():
+    import os, tempfile, json as _j
+    path = os.path.join(tempfile.mkdtemp(), "rej.jsonl")
+    g, s = WriteGuard(path), Store()
+    assert g.guarded_write("eval_sets", s, {"id": "e1", "text": "SECRET", "consent": new_tag("service")}) == (False, "purpose_not_allowed:service->eval_sets")
+    assert g.guarded_write("logs", s, {"id": "l1", "consent": new_tag("service")}) == (True, "ok")
+    assert g.guarded_write("logs", s, {"id": "l2"}) == (False, "missing_or_invalid_consent_tag")
+    assert len(g.rejections) == 2 and set(g.rejections[0]) == {"ts", "store", "record_id", "reason", "purpose"}
+    lines = [_j.loads(x) for x in open(path)]
+    assert len(lines) == 2 and "SECRET" not in open(path).read() and lines[0]["record_id"] == "e1"
+    # with a registry and an audit log the SAME rules apply and Layer 7 gets the events
+    from layer7_audit.chain import AuditLog
+    log = AuditLog(path=os.path.join(tempfile.mkdtemp(), "a.jsonl"), key=b"k" * 32)
+    g2, s2 = WriteGuard(registry=_reg(), audit_logger=log), Store()
+    assert g2.guarded_write("eval_sets", s2, _mi())[0] and not g2.guarded_write("eval_sets", s2, _mi(cid="C-999"))[0]
+    assert [r["kind"] for r in log.records()] == ["write_allowed", "write_rejected"] and log.verify_chain()[0]
+    assert log.records()[0]["borrower_hash"] == log.hash_borrower("B-001")[:16]
+
+
+def test_gateway_consent_gate_never_infers_explicit_consent_from_a_consent_id():
+    from layer3_gateway.consent import ConsentGate
+    seen = []
+    gate = ConsentGate(decide=lambda store, tag: (seen.append(tag) or (True, "ok")))
+    gate.check("B", "service", consent_id="C-1")
+    gate.check("B", "service", consent_id="C-1", explicit_consent=True)
+    assert seen[0]["explicit_consent"] is False and seen[1]["explicit_consent"] is True
+
+
 if __name__ == "__main__":
     n = 0
     for k, v in sorted(globals().items()):

@@ -5,11 +5,12 @@ const $$ = (s, e = document) => [...e.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const enc = encodeURIComponent;
-async function api(path, body, cs) {
-  const h = {}; const c = cs || S.case; if (c) h['x-case'] = c;
+const fmt = n => Number(n).toLocaleString('en-IN');
+async function api(path, body, cs, user) {
+  const h = { 'x-user': user || S.user, 'x-session': S.sid }; const c = cs || S.case; if (c) h['x-case'] = c;
   const r = await fetch(path, body === undefined ? { headers: h } : { method: 'POST', headers: { ...h, 'content-type': 'application/json' }, body: JSON.stringify(body) });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j.detail || r.statusText);
+  if (!r.ok) { const e = new Error(j.detail || r.statusText); e.status = r.status; throw e; }
   return j;
 }
 const col = l => `var(--${String(l || '').replace(/[^A-Z_]/g, '') || 'DIGITS'},#475467)`;
@@ -66,18 +67,16 @@ Object.assign(ICON, {
   architecture: 'M4 4h6v5H4zM14 4h6v5h-6zM9 15h6v5H9zM7 9v3h10V9M12 12v3',
 });
 const SCREENS = [
-  { id: 'conversations', name: 'Conversations', grp: 'Workspace' }, { id: 'borrowers', name: 'Borrowers', grp: 'Workspace' },
-  { id: 'privacy', name: 'Privacy requests', grp: 'Workspace' }, { id: 'audit', name: 'Audit trail', grp: 'Workspace', layer: 'L7', mod: 'layer7_audit' },
-  { id: 'consent', name: 'Consent policy', grp: 'Governance', layer: 'L4', mod: 'layer4_consent' }, { id: 'map', name: 'Data inventory', grp: 'Governance', layer: 'L5', mod: 'layer5_lineage' },
-  { id: 'architecture', name: 'Architecture', grp: 'Governance' },
-  { id: 'detection', name: 'Detection lab', grp: 'Engineering', layer: 'L1', mod: 'layer1_detection' }, { id: 'vault', name: 'Vault inspector', grp: 'Engineering', layer: 'L2', mod: 'layer2_vault' },
-  { id: 'data', name: 'Test data', grp: 'Engineering', layer: 'L0', mod: 'layer0_data' }, { id: 'e2e', name: 'Scenario', grp: 'Engineering', layer: 'L8', mod: 'layer8_demo' },
-  { id: 'layers', name: 'Test suites', grp: 'Engineering', mod: '' }];
+  { id: 'conversations', name: 'Conversations', grp: 'Workspace' }, { id: 'borrowers', name: 'Borrowers', grp: 'Workspace' }, { id: 'privacy', name: 'Privacy requests', grp: 'Workspace' },
+  { id: 'audit', name: 'Audit trail', grp: 'Compliance', layer: 'L7', mod: 'layer7_audit' }, { id: 'consent', name: 'Consent policy', grp: 'Compliance', layer: 'L4', mod: 'layer4_consent' }, { id: 'map', name: 'Data inventory', grp: 'Compliance', layer: 'L5', mod: 'layer5_lineage' },
+  { id: 'architecture', name: 'Architecture', grp: 'Platform' }, { id: 'layers', name: 'Test suites', grp: 'Platform', mod: '' },
+  { id: 'detection', name: 'Detection lab', grp: 'Developer', layer: 'L1', mod: 'layer1_detection' }, { id: 'vault', name: 'Vault inspector', grp: 'Developer', layer: 'L2', mod: 'layer2_vault' },
+  { id: 'data', name: 'Test data', grp: 'Developer', layer: 'L0', mod: 'layer0_data' }, { id: 'e2e', name: 'Scenario', grp: 'Developer', layer: 'L8', mod: 'layer8_demo' }];
 const ALIAS = { gateway: 'conversations', erasure: 'privacy' };
 
 const S = { content: null, status: null, screen: 'conversations', param: '', tk: 0, cases: [], case: null, hist: {}, selMsg: {}, view: 'agent', panel: 'borrower', convFilter: '', reqs: [], erFull: {}, anim: '',
-  gw: { purpose: 'service', speaker: 'Customer', detector: 'normal' }, busy: false, tests: {}, audit: null, lin: null, vaultAtt: [], af: { q: '', kinds: [], case: '' }, auTab: 'feed',
-  mapFilter: 'all', mapTab: 'records', cm: { store: 'eval_sets', purpose: 'service' }, e2e: null, dataLang: '', dataPage: 0, dataSel: null, detText: '', det: null, bTab: 'overview' };
+  gw: { purpose: 'service', speaker: 'Customer', detector: 'normal' }, busy: false, tests: {}, audit: null, lin: null, vaultAtt: [], af: { q: '', cats: [], outs: [], actor: '', range: 'all', case: '', trace: '' }, auTab: 'events',
+  mapFilter: 'all', mapTab: 'records', cm: { store: 'eval_sets', purpose: 'service' }, e2e: null, dataLang: '', dataPage: 0, dataSel: null, detText: '', det: null, bTab: 'overview', user: (sessionStorage.getItem('user') || 'asha'), sid: 's' + Math.random().toString(36).slice(2, 10), consentBy: {}, redacted: false, demo: localStorage.getItem('demo') === '1' };
 const SCR = {};
 const layerOf = id => S.content.layers.find(l => l.id === id);
 
@@ -98,43 +97,90 @@ const SCN = [
 const CALL = [['Agent', 'Hello sir, am I speaking with Ramesh Kumar?'], ['Customer', 'Yes, speaking.'], ['Agent', 'Please confirm your registered mobile number.'], ['Customer', 'nine eight four five zero'], ['Agent', 'Yes, go on.'],
   ['Customer', 'one two three four five'], ['Agent', 'Your PAN card number please.'], ['Customer', 'ABCPK1234L. This is Kumar here.'], ['Agent', 'Your EMI of ₹4,200 is due on the 5th. Thank you.'], ['Customer', 'Okay, I will pay by the 7th.']];
 
-/* ================================================================ shell */
+/* ================================================================ shell: identity, roles, navigation */
+const AUDIT_ROLES = ['auditor', 'privacy_officer', 'dpo'];
+const ROLE_LAND = { agent: 'conversations', privacy_officer: 'privacy', dpo: 'privacy', auditor: 'audit' };
+const ROLE_NAME = { agent: 'Collections agent', privacy_officer: 'Privacy officer', dpo: 'Data protection officer', auditor: 'Internal auditor' };
+const ACCESS = { audit: AUDIT_ROLES };
+const role = () => S.status.user.role;
+const canAudit = () => AUDIT_ROLES.includes(role());
+const allowed = id => !ACCESS[id] || ACCESS[id].includes(role());
+const initials = n => n.split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase();
+
 async function boot() {
   [S.content, S.status, S.cases] = await Promise.all([api('/api/content'), api('/api/status'), api('/api/cases')]);
-  const pick = [...S.cases].filter(c => c.state === 'ACTIVE' && c.messages).sort((a, b) => (b.last_ts || 0) - (a.last_ts || 0))[0] || S.cases[0]; S.case = pick && pick.sid; S.reqs = (await api('/api/erasure')).requests;
+  const pick = [...S.cases].filter(c => c.state === 'ACTIVE' && c.messages).sort((a, b) => (b.last_ts || 0) - (a.last_ts || 0))[0] || S.cases[0]; S.case = pick && pick.sid;
+  S.reqs = await api('/api/privacy/requests');
   renderEnv(); renderNav(); window.addEventListener('hashchange', route); initSearch();
-  document.addEventListener('keydown', e => { if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); $('#q').focus(); } if (e.key === 'Escape') { closeDrawer(); closeModal(); } });
+  document.addEventListener('keydown', e => { if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); $('#q').focus(); } if (e.key === 'Escape') { closeDrawer(); closeModal(); $('#umenu') && ($('#umenu').hidden = true); } });
+  document.addEventListener('click', () => closeMenus());
   $('#scrim').onclick = () => { closeDrawer(); closeModal(); };
+  if (!location.hash || location.hash === '#/') location.hash = '#/' + ROLE_LAND[role()];
   route();
 }
+
+const needsMe = r => { const u = S.status.user, prior = r.history.map(h => h.actor.id); if (r.state === 'INITIATED') return u.role === 'privacy_officer' && u.id !== r.initiator.id; if (r.state === 'RECOMMENDED') return u.role === 'dpo' && !prior.includes(u.id); return false; };
+const IC = { help: 'M12 17h.01M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z', bell: 'M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0', chev: 'M7 15l5 5 5-5M7 9l5-5 5 5' };
+const ico = d => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+function closeMenus(except) { $$('.tb-menu').forEach(m => { if (m.id !== except) m.hidden = true; }); }
 function renderEnv() {
-  const s = S.status;
-  $('#env').innerHTML = `<div class="envrow">${pill('warn', 'Mock stores')}${pill('', esc(s.vault) + ' vault')}</div>
-    <label class="llmrow" title="Live sends only TOKENISED text to ${esc(s.llm_model)}"><span>${s.llm_live ? 'Live LLM · Nova Pro' : 'LLM · local stub'}</span><button class="sw ${s.llm_live ? 'on' : ''}" id="llmsw" aria-label="Toggle live LLM"></button></label>
-    <div class="me"><span class="av">AG</span><div><b>Collections agent</b><span>Role: agent</span></div></div>`;
-  $('#llmsw').onclick = async () => { await api('/api/llm', { live: !S.status.llm_live }); S.status = await api('/api/status'); renderEnv(); toast(S.status.llm_live ? 'Live LLM on: tokenised text only' : 'Live LLM off: local stub'); };
+  const s = S.status, u = s.user;
+  $('#tbr').innerHTML = `<span class="demo-badge" title="Synthetic data and mock stores. The LLM is a local stub unless switched on in the user menu.">Demo environment</span>
+    <button class="btn ghost sm" id="tourbtn">Guided tour</button>
+    <div style="position:relative"><button class="tb-ico" id="helpb" aria-label="Help">${ico(IC.help)}</button><div class="tb-menu" id="helpm" hidden><div class="mh">Help</div>
+      <button class="mi" id="helptour"><span><b>Guided tour</b><span class="t3">Follow one borrower from the first call to erasure</span></span></button>
+      <a class="mi" href="/api/architecture.jpg" target="_blank" rel="noopener"><span><b>Architecture diagram</b><span class="t3">All layers on one page</span></span></a>
+      <div class="mi" style="cursor:default"><span><b>Keyboard</b><span class="t3">/ search · ← → move between tour steps · Esc close</span></span></div></div></div>
+    <div style="position:relative"><button class="tb-ico" id="bellb" aria-label="Notifications">${ico(IC.bell)}<span class="bdg" id="bellc" hidden></span></button><div class="tb-menu" id="bellm" hidden></div></div>
+    <div style="position:relative"><button class="me2" id="meb" aria-haspopup="true"><span class="av">${initials(u.name)}</span><div><b>${esc(u.name)}</b><span class="r">${esc(u.title)}</span></div></button>
+      <div class="tb-menu" id="umenu" hidden><div class="sec">Signed in as</div>${s.users.map(x => `<button class="usr ${x.id === u.id ? 'on' : ''}" data-u="${x.id}"><span class="av">${initials(x.name)}</span><div><b>${esc(x.name)}</b><span>${esc(x.title)}</span></div></button>`).join('')}
+      <div class="sec" style="margin-top:6px">Preferences</div>
+      <div class="sw-row"><div>Live LLM<small>Nova Pro, tokenised text only</small></div><button class="sw ${s.llm_live ? 'on' : ''}" id="llmsw" aria-label="Toggle live LLM"></button></div>
+      <div class="sw-row"><div>Demo and engineering tools<small>Simulation controls and developer screens</small></div><button class="sw ${S.demo ? 'on' : ''}" id="demosw" aria-label="Toggle demo tools"></button></div></div></div>`;
+  const menu = (btn, id) => $('#' + btn).onclick = e => { e.stopPropagation(); const m = $('#' + id); const was = m.hidden; closeMenus(); m.hidden = !was; };
+  menu('helpb', 'helpm'); menu('bellb', 'bellm'); menu('meb', 'umenu');
+  $('#tourbtn').onclick = () => window.startStory && window.startStory(); $('#helptour').onclick = () => { closeMenus(); window.startStory && window.startStory(); };
+  $('#llmsw').onclick = async e => { e.stopPropagation(); await api('/api/llm', { live: !S.status.llm_live }); S.status = await api('/api/status'); renderEnv(); $('#umenu').hidden = false; toast(S.status.llm_live ? 'Live LLM on: tokenised text only' : 'Live LLM off: local stub'); };
+  $('#demosw').onclick = e => { e.stopPropagation(); setDemo(!S.demo); $('#umenu').hidden = false; };
+  $$('#umenu [data-u]').forEach(b => b.onclick = async () => { S.user = b.dataset.u; sessionStorage.setItem('user', S.user); S.status = await api('/api/status'); S.hist = {}; S.audit = null; renderEnv(); renderNav(); toast('Signed in as ' + S.status.user.name); const h = '#/' + ROLE_LAND[role()]; if (location.hash === h) route(); else location.hash = h; });
+  renderBell();
 }
+function setDemo(on) { S.demo = on; localStorage.setItem('demo', on ? '1' : '0'); renderEnv(); renderNav(); if (['conversations'].includes(S.screen)) route(); }
+function renderBell() {
+  const m = $('#bellm'); if (!m) return; const mine = S.reqs.filter(needsMe), u = S.status.user;
+  const done = S.reqs.filter(r => r.initiator.id === u.id && ['EXECUTED', 'REJECTED'].includes(r.state)).slice(-3).reverse();
+  const c = $('#bellc'); c.hidden = !mine.length; c.textContent = mine.length;
+  m.innerHTML = `<div class="mh">Notifications</div>` + (mine.length || done.length ? mine.map(r => `<a class="mi" href="${L('privacy', r.request_id)}"><span><b>Case ${r.case}: ${r.state === 'INITIATED' ? 'recommendation needed' : 'approval needed'}</b><span class="t3">Erasure request ${esc(r.request_id)} · from ${esc(r.initiator.name)}</span></span></a>`).join('') + done.map(r => `<a class="mi" href="${L('privacy', r.request_id)}"><span><b>Case ${r.case}: request ${r.state === 'EXECUTED' ? 'completed' : 'rejected'}</b><span class="t3">${esc(r.request_id)}</span></span></a>`).join('') : '<div class="empty t3">You are all caught up.</div>');
+}
+const CR = { conversations: ['Workspace', 'Conversations'], borrowers: ['Workspace', 'Borrowers'], privacy: ['Workspace', 'Privacy requests'], audit: ['Compliance', 'Audit trail'], consent: ['Compliance', 'Consent policy'], map: ['Compliance', 'Data inventory'], architecture: ['Platform', 'Architecture'], layers: ['Platform', 'Test suites'], detection: ['Engineering', 'Detection lab'], vault: ['Engineering', 'Vault inspector'], data: ['Engineering', 'Test data'], e2e: ['Engineering', 'Scenario'] };
+function setCrumbs(extra) { const c = CR[S.screen] || ['', '']; const parts = [c[0], c[1], ...(extra ? [extra] : [])]; $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p)}</b>` : `<span>${esc(p)}</span><i>›</i>`).join(' '); document.title = `${extra ? extra + ' · ' : ''}${c[1]} · PII Vault`; }
 async function newCase(name) {
-  const c = await api('/api/session/new', { name }); S.cases = await api('/api/cases'); S.case = c.sid; S.lin = null; S.audit = null; S.hist[c.sid] = []; S.status = await api('/api/status', undefined, c.sid); renderNav(); return c;
+  const c = await api('/api/session/new', { name }); S.cases = await api('/api/cases'); S.case = c.sid; S.lin = null; S.audit = null; S.hist[c.sid] = []; renderNav(); return c;
 }
 function renderNav() {
-  const badge = s => s.id === 'conversations' ? `<span class="cnt">${S.cases.length}</span>` : s.id === 'privacy' && S.reqs.length ? `<span class="cnt">${S.reqs.length}</span>` : s.layer ? `<span class="ly">${s.layer}</span>` : '';
+  const open = S.reqs.filter(needsMe).length;
+  const badge = s => s.id === 'conversations' ? `<span class="cnt">${S.cases.length}</span>` : s.id === 'privacy' ? (open ? `<span class="cnt hot">${open}</span>` : '') : s.layer ? `<span class="ly">${s.layer}</span>` : '';
   const item = s => `<button class="ni ${S.screen === s.id ? 'on' : ''}" data-s="${s.id}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICON[s.id]}"/></svg>${esc(s.name)}${badge(s)}</button>`;
-  $('#navitems').innerHTML = ['Workspace', 'Governance', 'Engineering'].map(g => `<h6>${g}</h6>${SCREENS.filter(s => s.grp === g).map(item).join('')}`).join('');
+  const groups = ['Workspace', 'Compliance', 'Platform'].concat(S.demo || SCREENS.find(x => x.id === S.screen && x.grp === 'Developer') ? ['Developer'] : []);
+  $('#navitems').innerHTML = groups.map(g => { const its = SCREENS.filter(s => s.grp === g && allowed(s.id) && (g !== 'Platform' || S.demo || s.id === 'architecture')); return its.length ? `<h6>${g === 'Developer' ? 'Engineering' : g}</h6>${its.map(item).join('')}` : ''; }).join('');
   $$('[data-s]', $('#nav')).forEach(b => b.onclick = () => { location.hash = L(b.dataset.s); });
+  renderBell();
 }
 function route() {
-  let [, sid = 'conversations', ...rest] = location.hash.slice(1).split('/'); sid = ALIAS[sid] || sid;
+  let [, sid = ROLE_LAND[role()], ...rest] = location.hash.slice(1).split('/'); sid = ALIAS[sid] || sid;
   S.screen = (SCREENS.find(s => s.id === sid) || SCREENS[0]).id; S.param = decodeURIComponent(rest.join('/'));
-  closeDrawer(); closeModal(); renderNav(); SCR[S.screen]();
+  closeDrawer(); closeModal(); renderNav(); setCrumbs();
+  if (!allowed(S.screen)) { main().innerHTML = `<div class="restricted"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><h2>Access restricted</h2><p>${esc(S.status.user.title)} does not have access to the ${esc(SCREENS.find(s => s.id === S.screen).name)}. Switch user to continue.</p></div>`; return; }
+  SCR[S.screen]();
 }
 const main = () => $('#main');
 function sbar(id, extra = '') {
   const s = SCREENS.find(x => x.id === id);
-  return `<div class="sbar"><h1>${esc(s.name)}</h1>${s.layer ? `<span class="lyb">${s.layer}</span>` : ''}<span class="mono t3">${esc(s.mod || '')}</span><span style="margin-left:auto;display:flex;gap:8px">${extra}${s.layer ? `<button class="btn" data-info="${s.layer}">Layer details</button>` : ''}</span></div>`;
+  return `<div class="sbar"><h1>${esc(s.name)}</h1>${s.layer ? `<span class="lyb">${s.layer}</span>` : ''}<span style="margin-left:auto;display:flex;gap:8px;align-items:center">${extra}${s.layer && s.grp === 'Developer' ? `<button class="btn" data-info="${s.layer}">Layer details</button>` : ''}</span></div>`;
 }
 function bindCommon(root = main()) { $$('[data-info]', root).forEach(b => b.onclick = () => openInfo(b.dataset.info)); }
-const loading = id => { main().innerHTML = sbar(id) + '<div class="content"><div class="empty"><span class="spin"></span></div></div>'; };
+const loading = id => { main().innerHTML = sbar(id) + '<div class="content"><div class="skel-rows">' + '<div class="skel"></div>'.repeat(7) + '</div></div>'; };
+const denied = (e, what) => `<div class="restricted"><h2>${e && e.status === 403 ? 'Access restricted' : 'Something went wrong'}</h2><p>${esc(e ? e.message : '')}</p></div>`;
 
 /* ---- drawer / modal */
 function openDrawer(title, sub, html) {
@@ -166,8 +212,8 @@ function initSearch() {
   const q = $('#q'), box = $('#sres'); let idx = [], loadedAt = 0, cur = -1;
   const build = async () => {
     if (Date.now() - loadedAt < 4000) return; loadedAt = Date.now(); idx = [];
-    const [a, l, v] = await Promise.all([api('/api/audit/full'), api('/api/lineage'), api('/api/vault')]).catch(() => [null, null, null]);
-    if (a) { const seen = new Set(); a.records.forEach(r => { idx.push({ t: 'audit', k: `#${r.seq} ${r.kind_name}`, s: r.hash.slice(0, 16), h: L('audit', r.seq), x: `${r.seq} ${r.kind_name} ${r.hash} ${r.request_id || ''}` }); if (r.request_id && !seen.has(r.request_id)) { seen.add(r.request_id); idx.push({ t: 'request', k: r.request_id, s: 'all events of this request', h: L('audit', 'req:' + r.request_id), x: r.request_id }); } }); }
+    const [a, l, v] = await Promise.all([(canAudit() ? api('/api/audit/full').catch(() => null) : Promise.resolve(null)), api('/api/lineage').catch(() => null), api('/api/vault').catch(() => null)]);
+    if (a) { const seen = new Set(); a.records.forEach(r => { idx.push({ t: 'audit', k: `#${r.seq} ${r.action || r.kind_name}`, s: r.hash.slice(0, 16), h: L('audit', r.seq), x: `${r.seq} ${r.kind_name} ${r.hash} ${r.request_id || ''}` }); if (r.request_id && !seen.has(r.request_id)) { seen.add(r.request_id); idx.push({ t: 'request', k: r.request_id, s: 'all events of this request', h: L('audit', 'req:' + r.request_id), x: r.request_id }); } }); }
     if (l) { l.graph.nodes.forEach(n => idx.push({ t: 'record', k: n.id, s: n.purpose || '', h: L('map', n.id), x: n.id + ' ' + n.tokens.join(' ') })); l.stores.forEach(s => s.records.filter(r => !r.in_registry).forEach(r => idx.push({ t: 'orphan', k: r.id, s: s.store, h: L('map', s.store + ':' + r.id), x: r.id + ' ' + s.store }))); }
     if (v) v.entries.forEach(e => idx.push({ t: 'token', k: e.token, s: e.label + ' · ' + e.purpose, h: L('vault', e.token), x: e.token + ' ' + e.label + ' ' + e.key_id }));
     S.er && idx.push({ t: 'erasure', k: S.er.request_id, s: S.er.status, h: L('privacy', S.er.request_id), x: S.er.request_id });
@@ -186,7 +232,7 @@ function initSearch() {
 const STEP = { initialize: ['L4', 'Consent check and input validation'], detect: ['L1', 'Detection'], tokenise: ['L2', 'Tokenise and encrypt (one batch)'], final_audit: ['L3', 'Independent audit'], llm_dispatch: ['L3', 'LLM dispatch (tokens only)'], sanitise: ['L3', 'Sanitise reply'], rehydrate_route: ['L3', 'Rehydrate for borrower, tokenise for log'], block: ['L3', 'Block (fail closed)'] };
 const PURPOSES = ['service', 'collections', 'compliance', 'dispute', 'analytics', 'model_improvement'];
 const hue = h => parseInt((h || '0000').slice(0, 4), 16) % 360;
-const avatar = (c, big) => `<span class="avc ${big ? 'big' : ''}" style="--h:${hue(c.hash)}">${esc(String(c.case).slice(-2))}</span>`;
+const avatar = (c, big) => `<span class="avc ${big ? 'big' : ''}" style="--h:${hue(c.hash)}">${esc(c.initials || String(c.case).slice(-2))}</span>`;
 const curCase = () => S.cases.find(c => c.sid === S.case);
 const hist = () => S.hist[S.case] || [];
 const caseOfHash = h => S.cases.find(c => c.hash === String(h || '').slice(0, 16));
@@ -198,16 +244,18 @@ SCR.conversations = async function () {
   if (S.param && S.cases.some(c => c.sid === S.param) && S.param !== S.case) { S.case = S.param; S.lin = null; S.audit = null; }
   else if (!S.param) { const cur = S.cases.find(c => c.sid === S.case); if (!cur || cur.state === 'ERASED') { const a = [...S.cases].filter(c => c.state === 'ACTIVE' && c.messages).sort((x, y) => (y.last_ts || 0) - (x.last_ts || 0))[0]; if (a) { S.case = a.sid; S.lin = null; S.audit = null; } } }
   main().innerHTML = '<div class="cv"><section class="clist" id="clist"></section><section class="cthread" id="cthread"></section><aside class="cside" id="cside"></aside></div>';
-  const [d, lin, au, cs, er] = await Promise.all([api('/api/case/' + S.case), api('/api/lineage'), api('/api/audit/full'), api('/api/cases'), api('/api/erasure')]);
+  const [d, lin, cs, list] = await Promise.all([api('/api/case/' + S.case), api('/api/lineage'), api('/api/cases'), api('/api/privacy/requests')]);
   if (tk !== S.tk) return;
-  S.hist[S.case] = d.history; S.lin = lin; S.audit = au; S.cases = cs; S.reqs = er.requests; renderNav(); drawConv(true);
+  S.hist[S.case] = d.history; S.consentBy[S.case] = d.consent; S.redacted = d.redacted; S.lin = lin; S.cases = cs; S.reqs = list; renderNav(); drawConv(true);
 };
 function drawConv(scroll) { drawList(); drawThread(scroll); drawSide(); }
 
 function caseItem(c, href, on) {
+  const p = c.profile || {};
   return `<a class="ci ${on ? 'on' : ''}" href="${href}">${avatar(c)}<div class="cbody"><div class="ct"><b>Case ${c.case}</b><span class="t3">${c.last_ts ? fmtT(c.last_ts).slice(0, 5) : ''}</span></div>
+    <div class="cs">${p.product ? esc(p.product) + (p.dpd ? ' · ' + p.dpd + ' days past due' : '') : ''}</div>
     <div class="cp">${c.state === 'ERASED' ? '<i>Personal data erased</i>' : c.preview ? tokSpan(c.preview) : '<span class="t3">No messages yet</span>'}</div>
-    <div class="cm">${c.state === 'ERASED' ? pill('', 'Erased') : pill('ok', 'Active')}<span class="mono t3">${c.messages} msg</span><span class="mono t3">${esc(c.hash.slice(0, 8))}</span></div></div></a>`;
+    <div class="cm">${c.state === 'ERASED' ? pill('', 'Erased') : pill('ok', 'Active')}<span class="mono t3">${c.messages} msg</span></div></div></a>`;
 }
 function drawList() {
   const q = S.convFilter.toLowerCase();
@@ -215,68 +263,73 @@ function drawList() {
   $('#clist').innerHTML = `<div class="lh"><b>Conversations</b><span class="t3">${S.cases.length}</span><button class="btn sm pri" id="newc">New</button></div><div class="lq"><input class="in" id="cfq" placeholder="Filter by case, hash or text" value="${esc(S.convFilter)}"></div>
     <div class="litems">${items.map(c => caseItem(c, L('conversations', c.sid), c.sid === S.case)).join('') || '<div class="empty">No matching conversation</div>'}</div>`;
   $('#cfq').oninput = e => { S.convFilter = e.target.value; const p = e.target.selectionStart; drawList(); const i = $('#cfq'); i.focus(); i.setSelectionRange(p, p); };
-  $('#newc').onclick = () => openModal('New conversation', `<label class="f">Borrower name<input class="in" id="nm" placeholder="Used only to derive a keyed hash"></label><div class="t2">The name is never stored; the case is identified by a keyed hash.</div>`, '<button class="btn" id="nc">Cancel</button><button class="btn pri" id="ng">Create</button>')
-    || ($('#nc').onclick = closeModal, $('#nm').focus(), $('#ng').onclick = async () => { const c = await newCase($('#nm').value.trim() || 'Borrower'); closeModal(); location.hash = L('conversations', c.sid); });
+  $('#newc').onclick = () => {
+    openModal('New conversation', `<label class="f">Borrower name<input class="in" id="nm" placeholder="Used only to derive a keyed hash"></label>
+      <div class="grid2"><label class="f">Product<select class="in" id="np"><option>Personal loan</option><option>Two-wheeler loan</option><option>Business loan</option><option>Gold loan</option></select></label><label class="f">Language<select class="in" id="nl"><option>English</option><option>Hindi</option><option>Marathi</option><option>Kannada</option><option>Tamil</option></select></label></div>
+      <label class="f">Loan reference (last 4 digits)<input class="in" id="n4" maxlength="4" placeholder="optional"></label><div class="t2">The name is never stored; the case is identified by a keyed hash.</div>`, '<button class="btn" id="nc">Cancel</button><button class="btn pri" id="ng">Create</button>');
+    $('#nc').onclick = closeModal; $('#nm').focus();
+    $('#ng').onclick = async () => { const k = await api('/api/session/new', { name: $('#nm').value.trim() || 'Borrower', product: $('#np').value, language: $('#nl').value, loan_last4: $('#n4').value.trim() }); S.cases = await api('/api/cases'); S.case = k.sid; S.hist[k.sid] = []; S.lin = null; renderNav(); closeModal(); location.hash = L('conversations', k.sid); };
+  };
 }
 
 function trail(r, i) {
-  const l3 = r.l3, ok = r.status !== 'blocked', chips = [];
-  if (!ok) { const cd = String(r.reason).startsWith('consent'); chips.push([cd ? 'Denied by consent policy' : 'Blocked: ' + r.reason, cd ? 'L4' : 'L3', 'bad']); }
-  else {
-    chips.push(['Detected ' + r.l1.spans.length, 'L1', 'ok'], ['Encrypted', 'L2', 'ok'], [l3.retries ? 'Re-masked by audit' : 'Audited', 'L3', l3.retries ? 'warn' : 'ok'], [l3.llm_live ? 'Sent to Nova Pro' : 'Sent to LLM', 'L3', 'ok'],
-      ['Stored ' + r.l4.writes.filter(w => w.allowed).length + '/' + r.l4.writes.length, 'L4', r.l4.writes.every(w => w.allowed) ? 'ok' : 'bad']);
-    if (l3.escaped && l3.escaped.length) chips.push(['Unmasked: ' + l3.escaped.map(e => e.text).join(', ') + ' reached the LLM', 'L3', 'bad']);
-  }
-  return `<div class="trail">${chips.map(([t, ly, c]) => `<button class="st ${c}" data-pr="${i}">${c === 'ok' ? '✓' : c === 'bad' ? '✕' : '↻'} ${esc(t)}<i>${ly}</i></button>`).join('')}</div>`;
+  const l3 = r.l3, ok = r.status !== 'blocked';
+  let cls = '', txt;
+  if (!ok) { const cd = String(r.reason).startsWith('consent'); cls = 'bad'; txt = cd ? 'Denied by consent policy' : 'Blocked: ' + r.reason; }
+  else if (l3.escaped && l3.escaped.length) { cls = 'bad'; txt = 'Not protected: ' + l3.escaped.map(e => e.text).join(', ') + ' reached the AI'; }
+  else if (l3.retries) { cls = 'warn'; txt = `Re-masked by a second check · ${r.l1.spans.length + (l3.net_found || 0)} value(s) protected`; }
+  else txt = `Protected · ${r.l1.spans.length} value${r.l1.spans.length === 1 ? '' : 's'} · ${l3.ms} ms`;
+  return `<div class="prot ${cls}" data-pr="${i}" role="button" tabindex="0" title="See how this message was handled"><span class="pd"></span><b>${esc(txt)}</b><span>›</span></div>`;
 }
 function msgHtml(r, i) {
-  const cust = r.speaker !== 'Agent', sel = i === selIdx(), hd = `<div class="who"><b>${esc(r.speaker)}</b><span>${fmtT(r.ts)}</span><span class="mono">${esc(r.message_id)}</span></div>`;
+  const cust = r.speaker !== 'Agent', sel = i === selIdx(), hd = `<div class="who"><b>${esc(r.speaker)}</b><span>${S.demo ? fmtT(r.ts) : fmtT(r.ts).slice(0, 8)}</span>${S.demo ? `<span class="mono">${esc(r.message_id)}</span>` : ''}</div>`;
   if (r.status === 'erased') return `<div class="msg ${cust ? '' : 'agent'}"><span class="av">${cust ? 'C' : 'A'}</span><div class="bub gone">${hd}<div class="t3">Content erased</div></div></div>`;
   const ok = r.status !== 'blocked', l3 = r.l3, agent = S.view === 'agent';
   const body = agent ? (ok ? tokHtml(l3.llm_saw, l3.escaped) : `<span class="t3">Message withheld: ${esc(r.reason)}</span>`) : (ok ? hl(r.text, r.l1.spans) : `<span class="t3">${esc(r.text)}</span>`);
   const fi = r.l1.blind ? `<div class="fi ${l3.escaped && l3.escaped.length ? 'bad' : 'ok'}">Fault test: detector off. ${l3.escaped && l3.escaped.length ? 'The audit cannot detect names.' : 'The audit re-scan masked ' + l3.net_found + ' value(s) on retry ' + l3.retries + '.'}</div>` : '';
   const m = `<div class="msg ${cust ? '' : 'agent'} ${sel ? 'sel' : ''}" data-i="${i}"><span class="av">${cust ? 'C' : 'A'}</span><div class="bub">${hd}<div class="txt">${body}</div>${fi}${trail(r, i)}</div></div>`;
-  const bot = ok ? `<div class="msg agent bot ${sel ? 'sel' : ''}" data-i="${i}"><span class="av">AI</span><div class="bub"><div class="who"><b>${l3.llm_live ? 'Nova Pro' : 'Assistant (stub)'}</b><span>${agent ? 'as logged' : 'as the borrower sees it'}</span></div><div class="txt" style="line-height:1.6">${agent ? tokHtml(l3.log_entry || '') : esc(l3.reply_borrower)}</div></div></div>` : '';
+  const bot = ok ? `<div class="msg agent bot ${sel ? 'sel' : ''}" data-i="${i}"><span class="av">AI</span><div class="bub"><div class="who"><b>${l3.llm_live ? 'AI assistant · Nova Pro' : 'AI assistant'}</b><span>${agent ? '' : 'as the borrower sees it'}</span></div><div class="txt" style="line-height:1.6">${agent ? tokHtml(l3.log_entry || '') : esc(l3.reply_borrower)}</div></div></div>` : '';
   return m + bot;
 }
 function drawThread(scroll) {
   const c = curCase(), h = hist(), erased = c.state === 'ERASED', req = S.reqs.find(r => r.sid === c.sid);
+  if (role() !== 'agent') S.view = 'agent';
   const typed = ($('#ctext') || {}).value || '';
-  $('#cthread').innerHTML = `<div class="th"><div class="thl">${avatar(c, 1)}<div><b>Case ${c.case}</b><div class="mono t3">${esc(c.hash)}</div></div>${erased ? pill('', 'Erased') : pill('ok', 'Active')}</div>
-      <div class="seg" id="segview" title="Protected view is what agents, logs and the LLM see. Original text is shown for the demo only."><button data-v="agent" class="${S.view === 'agent' ? 'on' : ''}">Protected view</button><button data-v="orig" class="${S.view === 'orig' ? 'on' : ''}">Original text</button></div></div>
-    <div class="msgs" id="msgs">${erased ? `<div class="sysmsg ok"><b>Personal data erased</b><span>${req ? `Request ${rEr(req.request_id)} · ${esc(req.status)} · audit ${rSeq(req.audit_seq)}` : 'This borrower was erased.'}</span></div>` : ''}${erased ? '' : h.map(msgHtml).join('') || '<div class="empty"><b>No messages yet</b><span>Send a message below or run a simulation.</span></div>'}</div>
-    ${erased ? '' : `<div class="composer2"><div class="simbar"><span class="t3">Simulate</span><select id="scn" class="in sm"><option value="">Scenario…</option>${SCN.map((s, i) => `<option value="${i}">${esc(s[0])}</option>`).join('')}</select>
+  const p = c.profile || {}, meta = [p.product, p.loan_ref && 'Loan ' + p.loan_ref, p.dpd ? p.dpd + ' days past due' : null, p.outstanding ? '₹' + fmt(p.outstanding) + ' outstanding' : null, p.language, p.channel].filter(Boolean);
+  setCrumbs('Case ' + c.case);
+  const canReq = !erased && ['agent', 'privacy_officer'].includes(role()) && !S.reqs.some(r => r.sid === c.sid && ['INITIATED', 'RECOMMENDED', 'APPROVED'].includes(r.state));
+  const sim = S.demo && role() === 'agent';
+  $('#cthread').innerHTML = `<div class="th"><div class="thl">${avatar(c, 1)}<div><div style="display:flex;gap:8px;align-items:center"><b>Case ${c.case}</b>${erased ? pill('', 'Erased') : pill('ok', 'Active')}</div><div class="case-meta">${meta.map(x => `<span>${esc(x)}</span>`).join('')}</div></div></div>
+      <div class="acts">${canReq ? `<a class="btn" href="${L('privacy', 'new:' + c.sid)}">Privacy request</a>` : ''}${sim ? `<div class="seg" id="segview" title="Protected view is what agents, logs and the LLM see. The borrower's screen is shown for the demo only."><button data-v="agent" class="${S.view === 'agent' ? 'on' : ''}">Protected view</button><button data-v="orig" class="${S.view === 'orig' ? 'on' : ''}">Borrower's screen</button></div>` : ''}</div></div>
+    <div class="msgs" id="msgs">${erased ? `<div class="sysmsg ok"><b>Personal data erased</b><span>${req ? `Request ${rEr(req.request_id)} · ${esc(req.status)} · audit ${rSeq(req.audit_seq)}` : 'This borrower was erased.'}</span></div>` : ''}${erased ? '' : h.map(msgHtml).join('') || '<div class="empty"><b>No messages yet</b><span>Messages from this borrower appear here.</span></div>'}</div>
+    ${erased ? '' : role() !== 'agent' ? '<div class="roleb">Read-only. You are viewing the protected form of this conversation; only the Collections agent role can send messages.</div>' : `<div class="composer2">${sim ? `<div class="simbar"><span class="t3">Simulation</span><select id="scn" class="in sm"><option value="">Scenario…</option>${SCN.map((s, i) => `<option value="${i}">${esc(s[0])}</option>`).join('')}</select>
       <button class="chip ${S.gw.detector === 'blind' ? 'on' : ''}" id="fault" title="Fault injection: Layer 1 returns nothing, so the audit net has to catch it">Detector off (test)</button>
-      <label class="t3">Purpose <select id="purp" class="in sm">${PURPOSES.map(p => `<option ${S.gw.purpose === p ? 'selected' : ''}>${p}</option>`).join('')}</select></label></div>
-      <form class="composer" id="cf"><div class="seg" id="segsp">${['Customer', 'Agent'].map(x => `<button type="button" data-v="${x}" class="${S.gw.speaker === x ? 'on' : ''}">${x}</button>`).join('')}</div><input class="in" id="ctext" autocomplete="off" placeholder="Message as ${S.gw.speaker.toLowerCase()} (use fake details)" value="${esc(typed)}" aria-label="Message"><button class="btn pri">Send</button></form></div>`}`;
+      <label class="t3">Purpose <select id="purp" class="in sm">${PURPOSES.map(p => `<option ${S.gw.purpose === p ? 'selected' : ''}>${p}</option>`).join('')}</select></label></div>` : ''}
+      <form class="composer" id="cf">${sim ? `<div class="seg" id="segsp">${['Customer', 'Agent'].map(x => `<button type="button" data-v="${x}" class="${S.gw.speaker === x ? 'on' : ''}">${x}</button>`).join('')}</div>` : ''}<input class="in" id="ctext" autocomplete="off" placeholder="${sim ? 'Message as ' + S.gw.speaker.toLowerCase() + ' (use fake details)' : 'Write a message…'}" value="${esc(typed)}" aria-label="Message"><button class="btn pri">Send</button></form></div>`}`;
   $$('#segview button').forEach(b => b.onclick = () => { S.view = b.dataset.v; drawThread(); });
   $$('#segsp button').forEach(b => b.onclick = () => { S.gw.speaker = b.dataset.v; drawThread(); });
   $$('.msg[data-i]').forEach(e => e.onclick = ev => { S.selMsg[S.case] = Number(e.dataset.i); if (ev.target.closest('[data-pr]')) S.panel = 'protection'; drawThread(); drawSide(); });
-  $$('[data-pr]').forEach(b => b.onclick = ev => { ev.stopPropagation(); S.selMsg[S.case] = Number(b.dataset.pr); S.panel = 'protection'; drawThread(); drawSide(); });
-  if (!erased) {
-    $('#fault').onclick = () => { S.gw.detector = S.gw.detector === 'blind' ? 'normal' : 'blind'; drawThread(); };
+  $$('[data-pr]').forEach(b => { const go = ev => { ev.stopPropagation(); S.selMsg[S.case] = Number(b.dataset.pr); S.panel = 'protection'; drawThread(); drawSide(); }; b.onclick = go; b.onkeydown = ev => { if (ev.key === 'Enter') go(ev); }; });
+  if (!erased && role() === 'agent') {
+    if (sim) { $('#fault').onclick = () => { S.gw.detector = S.gw.detector === 'blind' ? 'normal' : 'blind'; drawThread(); };
     $('#purp').onchange = e => S.gw.purpose = e.target.value;
-    $('#scn').onchange = async e => { const v = e.target.value; e.target.value = ''; if (v !== '') await playScn(Number(v)); };
+    $('#scn').onchange = async e => { const v = e.target.value; e.target.value = ''; if (v !== '') await playScn(Number(v)); }; }
     $('#cf').onsubmit = async e => { e.preventDefault(); const t = $('#ctext').value.trim(); if (!t) return; $('#ctext').value = ''; await send(t); };
     $('#ctext').focus();
   }
   const m = $('#msgs'); if (scroll) m.scrollTop = m.scrollHeight;
 }
 
-function decisionsFor(c) {
-  const by = {}; (S.audit ? S.audit.records : []).filter(r => (r.borrower_hash || '').startsWith(c.hash)).forEach(r => {
-    if (!['write_allowed', 'write_rejected', 'CONSENT_DENIED'].includes(r.kind_name)) return; const p = r.purpose || 'service'; by[p] = by[p] || { ok: 0, no: 0 }; r.kind_name === 'write_allowed' ? by[p].ok++ : by[p].no++;
-  });
-  return by;
-}
+function decisionsFor(c) { const d = S.consentBy[c.sid] || {}, o = {}; Object.keys(d).forEach(k => o[k] = { ok: d[k].allowed, no: d[k].refused }); return o; }
 function borrowerPanel(c) {
   const stores = S.lin ? S.lin.stores : [], dec = decisionsFor(c), req = S.reqs.find(r => r.sid === c.sid), held = stores.reduce((a, s) => a + s.count, 0), unreg = stores.reduce((a, s) => a + s.unregistered_records, 0);
   return `<div class="bp-head">${avatar(c, 1)}<div><b>Case ${c.case}</b><div class="mono t3">${esc(c.hash)}</div></div></div>
+    ${c.profile && c.profile.product ? `<h5>Account</h5>${kv([['Product', esc(c.profile.product)], ['Loan', mono(c.profile.loan_ref)], ['Days past due', c.profile.dpd], ['Outstanding', c.profile.outstanding ? '₹' + fmt(c.profile.outstanding) : null], ['Language', esc(c.profile.language)], ['Channel', esc(c.profile.channel)], ['Assigned to', esc(c.profile.assignee)]])}<div class="t3" style="font-size:11.5px;margin-top:4px">Demo data</div>` : ''}
     <h5>Protection</h5>${kv([['Borrower key', c.key_present ? pill('ok', 'active') : pill('', 'destroyed')], ['Encrypted values', c.values], ['Messages', c.messages]])}
     <h5>Data held</h5>${stores.length ? tbl(['Store', '>Records', '>Untracked'], stores.map(s => `<tr><td class="mono">${esc(s.store.replace('unmapped:', ''))}</td><td class="r mono">${s.count}</td><td class="r mono ${s.unregistered_records ? 'bad' : ''}">${s.unregistered_records}</td></tr>`)) : '<div class="t3">Nothing stored.</div>'}
     <div class="t2" style="margin-top:6px">${held} records${unreg ? ` · <b class="bad">${unreg} not in the registry</b>` : ''} · <a href="${L('borrowers', c.sid)}">Open profile</a></div>
     <h5>Consent by purpose</h5>${Object.keys(dec).length ? tbl(['Purpose', '>Allowed', '>Refused'], Object.entries(dec).map(([p, v]) => `<tr><td>${esc(p)}</td><td class="r mono ok">${v.ok}</td><td class="r mono ${v.no ? 'bad' : ''}">${v.no}</td></tr>`)) : '<div class="t3">No decisions yet.</div>'}
-    <h5>Privacy request</h5>${req ? `<div>${rEr(req.request_id)} ${pill('ok', req.status)}</div>` : c.state === 'ERASED' ? '<div class="t3">Erased.</div>' : `<a class="btn" href="${L('privacy', 'new:' + c.sid)}">Start erasure request</a>`}`;
+    <h5>Privacy request</h5>${req ? `<div>${rEr(req.request_id)} ${statePill(req)}</div>` : c.state === 'ERASED' ? '<div class="t3">Erased.</div>' : ['agent', 'privacy_officer'].includes(role()) ? `<a class="btn" href="${L('privacy', 'new:' + c.sid)}">Start erasure request</a>` : '<div class="t3">None.</div>'}`;
 }
 function protectionPanel() {
   const i = selIdx(), r = hist()[i]; if (!r || r.status === 'erased') return '<div class="empty"><b>No message selected</b><span>Select a message to see how each layer handled it.</span></div>';
@@ -300,13 +353,14 @@ function drawSide() {
   $$('#cside [data-p]').forEach(b => b.onclick = () => { S.panel = b.dataset.p; drawSide(); });
 }
 async function refreshConv() {
-  const [lin, au, cs] = await Promise.all([api('/api/lineage'), api('/api/audit/full'), api('/api/cases')]); S.lin = lin; S.audit = au; S.cases = cs; renderNav();
+  const [d, lin, cs, list] = await Promise.all([api('/api/case/' + S.case), api('/api/lineage'), api('/api/cases'), api('/api/privacy/requests')]);
+  S.hist[S.case] = d.history; S.consentBy[S.case] = d.consent; S.lin = lin; S.cases = cs; S.reqs = list; renderNav();
   if (S.screen === 'conversations') drawConv(true);
 }
 async function send(text, o = {}) {
   if (S.busy && !o.force) return null; S.busy = true;
   try {
-    const r = await api('/api/message', { text, speaker: o.speaker || S.gw.speaker, purpose: o.purpose || S.gw.purpose, detector: o.detector || S.gw.detector });
+    const r = await api('/api/message', { text, speaker: o.speaker || S.gw.speaker, purpose: o.purpose || S.gw.purpose, detector: o.detector || S.gw.detector }, undefined, o.user);
     (S.hist[S.case] = S.hist[S.case] || []).push(r); S.selMsg[S.case] = S.hist[S.case].length - 1; S.audit = null; S.lin = null;
     if (S.screen === 'conversations' && !o.quiet) await refreshConv();
     return r;
@@ -355,7 +409,7 @@ SCR.vault = async function () {
 
 /* ================================================================ L4 Consent */
 SCR.consent = async function () {
-  loading('consent'); const tk = ++S.tk; const [mx, au] = await Promise.all([api('/api/consent/matrix'), api('/api/audit/full')]); if (tk !== S.tk) return; S.audit = au;
+  loading('consent'); const tk = ++S.tk; const [mx, au] = await Promise.all([api('/api/consent/matrix'), api('/api/audit/full').catch(() => ({ records: [] }))]); if (tk !== S.tk) return;
   const cell = (st, p) => { const c = mx.cells.find(x => x.store === st && x.purpose === p); return `<td><span class="mc ${c.rule} ${S.cm.store === st && S.cm.purpose === p ? 'sel' : ''}" data-cell="${st}|${p}">${{ allow: 'ALLOW', explicit_consent: 'CONSENT', deny: 'DENY' }[c.rule]}</span></td>`; };
   const dec = au.records.filter(r => ['write_allowed', 'write_rejected', 'write_failed', 'CONSENT_DENIED'].includes(r.kind_name));
   main().innerHTML = sbar('consent') + `<div class="content"><div class="grid21"><div class="panel"><div class="ph"><b>Policy</b>${pill('', 'default deny')}${pill('warn', 'our reading of purpose limitation, not legal advice')}</div><table class="tbl mx"><thead><tr><th>Store</th>${mx.purposes.map(p => `<th>${p}</th>`).join('')}</tr></thead><tbody>${mx.stores.map(st => `<tr><td class="mono">${st}</td>${mx.purposes.map(p => cell(st, p)).join('')}</tr>`).join('')}</tbody></table></div>
@@ -364,7 +418,7 @@ SCR.consent = async function () {
       <label class="f">Purpose<select id="cp" class="in">${mx.purposes.map(s => `<option ${S.cm.purpose === s ? 'selected' : ''}>${s}</option>`).join('')}</select></label>
       <label class="f">Consent ID<input id="cid" class="in" placeholder="CN-…" value="${esc(S.cm.cid || '')}"></label>
       <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="cx" ${S.cm.explicit ? 'checked' : ''}> Explicit consent for this purpose</label>
-      <button class="btn pri" id="try">Submit write</button><div id="tryres"></div></div></div></div>
+      <button class="btn pri" id="try" ${['privacy_officer', 'dpo'].includes(role()) ? '' : 'disabled title="Requires the privacy officer or data protection officer role"'}>Submit write</button><div id="tryres"></div></div></div></div>
     <div class="panel"><div class="ph"><b>Decisions</b>${pill('', dec.length + ' recorded')}<span class="t3">From the audit chain, newest first</span></div><div style="overflow:auto">${tbl(['Audit', 'Time', 'Decision', 'Store', 'Record', 'Purpose', 'Consent ID', 'Reason', 'Request'], dec.slice().reverse().map(r => `<tr><td>${rSeq(r.seq)}</td><td class="mono t3 nw">${fmtT(r.ts)}</td><td>${yes(r.kind_name === 'write_allowed', 'allowed', r.kind_name === 'CONSENT_DENIED' ? 'gateway denied' : r.kind_name === 'write_failed' ? 'failed' : 'rejected')}</td><td class="mono">${esc(r.store || 'logs')}</td><td>${r.record_id ? rRec(((r.store === 'logs' ? 'log:' : r.store === 'eval_sets' ? 'eval:' : 'chunk:') + r.record_id)) : '<span class="t3">none</span>'}</td><td>${esc(r.purpose || '')}</td><td class="mono">${esc(r.consent_id || '')}</td><td class="mono t2">${esc(r.reason || '')}</td><td>${r.request_id ? rReq(r.request_id) : ''}</td></tr>`))}</div></div></div>`;
   bindCommon();
   $$('[data-cell]').forEach(c => c.onclick = () => { const [st, p] = c.dataset.cell.split('|'); S.cm = { ...S.cm, store: st, purpose: p }; SCR.consent(); });
@@ -422,65 +476,88 @@ function lineageSvg(d) {
   return g + '</svg>';
 }
 
-/* ================================================================ Privacy requests: the DPDP workflow (L6, with L2 key destruction and L7 evidence) */
+/* ================================================================ Privacy requests: DPDP erasure under maker-checker (initiate → recommend → approve → execute) */
+const STATE = { INITIATED: ['warn', 'Awaiting recommendation'], RECOMMENDED: ['acc', 'Awaiting approval'], APPROVED: ['acc', 'Executing'], EXECUTED: ['ok', 'Completed'], REJECTED: ['bad', 'Rejected'] };
+const REASON = { borrower_request: 'Borrower request', consent_withdrawn: 'Consent withdrawn', retention_expired: 'Retention period ended' };
+const statePill = r => { const [c, t] = STATE[r.state] || ['', r.state]; return pill(c, t); };
 SCR.privacy = async function () {
   const tk = ++S.tk;
   main().innerHTML = '<div class="pv"><section class="clist" id="plist"></section><section class="pdet" id="pdet"></section></div>';
-  const [er, cs] = await Promise.all([api('/api/erasure'), api('/api/cases')]); if (tk !== S.tk) return;
-  S.cases = cs; S.reqs = er.requests; renderNav(); drawPrivacy();
+  const [list, cs] = await Promise.all([api('/api/privacy/requests'), api('/api/cases')]); if (tk !== S.tk) return;
+  S.cases = cs; S.reqs = list; renderNav(); drawPrivacy();
 };
 async function drawPrivacy() {
   const reqs = S.reqs, p = S.param, isNew = p.startsWith('new') || (!p && !reqs.length), sel = !isNew ? (p || reqs[reqs.length - 1].request_id) : '';
-  $('#plist').innerHTML = `<div class="lh"><b>Privacy requests</b><span class="t3">${reqs.length}</span><a class="btn sm pri" href="${L('privacy', 'new')}">New request</a></div><div class="litems">${reqs.slice().reverse().map(r => `<a class="ci ${r.request_id === sel ? 'on' : ''}" href="${L('privacy', r.request_id)}"><span class="avc ok">✓</span><div class="cbody"><div class="ct"><b class="mono">${esc(r.request_id)}</b><span class="t3">${fmtT(r.ts).slice(0, 5)}</span></div><div class="cp">Erasure of personal data · Case ${r.case}</div><div class="cm">${yes(r.clean, r.status, r.status)}<span class="mono t3">${r.found} records</span></div></div></a>`).join('') || '<div class="empty"><b>No requests</b><span>Requests you process appear here.</span></div>'}</div>`;
+  const canNew = ['agent', 'privacy_officer'].includes(role());
+  $('#plist').innerHTML = `<div class="lh"><b>Privacy requests</b><span class="t3">${reqs.length}</span>${canNew ? `<a class="btn sm pri" href="${L('privacy', 'new')}">New request</a>` : ''}</div><div class="litems">${reqs.some(needsMe) ? '<div class="qhead">Needs your action</div>' : ''}${reqs.slice().reverse().sort((a, b) => needsMe(b) - needsMe(a)).map(r => `<a class="ci ${r.request_id === sel ? 'on' : ''}" href="${L('privacy', r.request_id)}"><span class="avc ${r.state === 'EXECUTED' ? 'ok' : ''}">${r.state === 'EXECUTED' ? '✓' : r.state === 'REJECTED' ? '✕' : '…'}</span><div class="cbody"><div class="ct"><b class="mono">${esc(r.request_id)}</b><span class="t3">${fmtT(r.created).slice(0, 5)}</span></div><div class="cp">Erasure · Case ${r.case} · ${esc(REASON[r.reason] || r.reason)}</div><div class="cm">${statePill(r)}<span class="t3">${esc(r.initiator.name)}</span></div></div></a>`).join('') || '<div class="empty"><b>No requests</b></div>'}</div>`;
   const d = $('#pdet');
   if (isNew) return privForm(d, p.startsWith('new:') ? p.slice(4) : null);
-  const row = reqs.find(r => r.request_id === sel), er = S.erFull[sel];
-  if (!row) { d.innerHTML = '<div class="empty"><b>Request not found</b></div>'; return; }
-  d.innerHTML = privDetail(row, er);
-  if (S.anim === sel) { S.anim = ''; $$('.stp').forEach((s, i) => { s.classList.remove('done'); setTimeout(() => s.classList.add('done'), 160 * (i + 1)); }); }
-  const pr = $('#cprint'); if (pr) pr.onclick = () => window.print();
-  const dl = $('#cdl'); if (dl) dl.onclick = () => { const t = certText(row, er); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/plain' })); a.download = `erasure-certificate-${row.request_id}.txt`; a.click(); };
+  d.innerHTML = '<div class="skel-rows">' + '<div class="skel"></div>'.repeat(4) + '</div>';
+  try { const r = await api('/api/privacy/requests/' + encodeURIComponent(sel)); d.innerHTML = privDetail(r); setCrumbs(r.request_id); bindPriv(r); } catch (e) { d.innerHTML = denied(e); }
 }
 async function privForm(d, pre) {
-  const active = S.cases.filter(c => c.state === 'ACTIVE' && c.messages); const sid = (pre && active.find(c => c.sid === pre) ? pre : (active.find(c => c.sid === S.case) || active[0] || {}).sid);
-  if (!sid) { d.innerHTML = '<div class="empty"><b>No active borrower to process</b><span>All cases are already erased.</span></div>'; return; }
+  const open = new Set(S.reqs.filter(r => ['INITIATED', 'RECOMMENDED', 'APPROVED'].includes(r.state)).map(r => r.sid));
+  const act = S.cases.filter(c => c.state === 'ACTIVE' && c.messages && !open.has(c.sid)); const sid = (pre && act.find(c => c.sid === pre) ? pre : (act.find(c => c.sid === S.case) || act[0] || {}).sid);
+  if (!sid) { d.innerHTML = '<div class="empty"><b>No eligible borrower</b><span>Every active borrower already has an open request.</span></div>'; return; }
   const [lin, v] = await Promise.all([api('/api/lineage', undefined, sid), api('/api/vault', undefined, sid)]); const c = S.cases.find(x => x.sid === sid);
   const held = lin.stores.reduce((a, s) => a + s.count, 0), un = lin.stores.reduce((a, s) => a + s.unregistered_records, 0);
   d.innerHTML = `<div class="pform"><h2>New privacy request</h2>
-    <label class="f">Borrower<select id="pb" class="in">${active.map(x => `<option value="${x.sid}" ${x.sid === sid ? 'selected' : ''}>Case ${x.case} · ${esc(x.hash.slice(0, 10))}</option>`).join('')}</select></label>
+    <label class="f">Borrower<select id="pb" class="in">${act.map(x => `<option value="${x.sid}" ${x.sid === sid ? 'selected' : ''}>Case ${x.case} · ${esc(x.hash.slice(0, 10))}</option>`).join('')}</select></label>
     <label class="f">Request type<select class="in"><option>Erasure of personal data</option></select></label>
-    <div><div class="t2" style="font-weight:600;margin-bottom:6px">Scope found for this borrower</div>${kv([['Stores holding records', lin.stores.map(s => s.store.replace('unmapped:', '')).join(', ') || 'none'], ['Records', held], ['Not in the registry', un ? `<b class="bad">${un}</b>` : '0'], ['Encrypted values', v.entries.length], ['Borrower key', c.key_present ? pill('ok', 'active') : pill('', 'destroyed')]])}</div>
-    <label class="chk"><input type="checkbox" id="pplant" ${c.planted ? 'checked disabled' : ''}> Add copies the registry does not know about before processing <span class="t3">(test setup: simulates a debug log, a derived summary and a crash dump)</span></label>
-    <label class="chk"><input type="checkbox" id="pconf"> Delete every copy found and destroy the borrower key. This cannot be undone.</label>
-    <div><button class="btn pri" id="pgo" disabled>Process request</button></div></div>`;
+    <label class="f">Reason<select id="preason" class="in">${Object.entries(REASON).map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></label>
+    <label class="f">Comment<textarea id="pnote" class="in" rows="2" placeholder="Optional. Do not include personal data."></textarea></label>
+    <div><div class="t2" style="font-weight:600;margin-bottom:6px">Data held for this borrower</div>${kv([['Stores', lin.stores.map(s => s.store.replace('unmapped:', '')).join(', ') || 'none'], ['Records', held], ['Not in the registry', un ? `<b class="bad">${un}</b>` : '0'], ['Encrypted values', v.entries.length], ['Borrower key', c.key_present ? pill('ok', 'active') : pill('', 'destroyed')]])}</div>
+    <div class="alert"><div>You are initiating. A privacy officer must recommend and a data protection officer must approve; the approver cannot be the initiator or the recommender.</div></div>
+    <div><button class="btn pri" id="pgo">Submit request</button></div></div>`;
   $('#pb').onchange = e => { location.hash = L('privacy', 'new:' + e.target.value); };
-  $('#pconf').onchange = e => $('#pgo').disabled = !e.target.checked;
   $('#pgo').onclick = async () => {
-    $('#pgo').disabled = true; $('#pgo').innerHTML = '<span class="spin"></span> Processing…';
-    try {
-      if ($('#pplant').checked && !$('#pplant').disabled) await api('/api/plant', {}, sid);
-      const er = await api('/api/erase', {}, sid); S.erFull[er.request_id] = er; S.anim = er.request_id; S.hist[sid] = (S.hist[sid] || []).map(h => ({ turn: h.turn, message_id: h.message_id, ts: h.ts, speaker: h.speaker, status: 'erased' }));
-      S.audit = null; S.lin = null; S.cases = await api('/api/cases'); S.reqs = (await api('/api/erasure')).requests; renderNav(); location.hash = L('privacy', er.request_id);
-    } catch (e) { toast(e.message, 5000); $('#pgo').disabled = false; $('#pgo').textContent = 'Process request'; }
+    $('#pgo').disabled = true;
+    try { const r = await api('/api/privacy/requests', { sid, reason: $('#preason').value, note: $('#pnote').value }); S.reqs = await api('/api/privacy/requests'); renderNav(); toast('Request submitted'); location.hash = L('privacy', r.request_id); }
+    catch (e) { toast(e.message, 5000); $('#pgo').disabled = false; }
   };
 }
-const ESTEPS = [['discover', 'Discover', 'Search every store, including unregistered ones'], ['delete', 'Delete', 'Remove each copy found'], ['verify', 'Verify', 'Search again from scratch'], ['shred', 'Destroy key', 'Make remaining ciphertext unreadable'], ['audit', 'Record', 'Write the chained erasure record']];
-function certText(row, e) {
-  if (!e) return `Erasure request ${row.request_id}\nStatus: ${row.status}\n`;
-  return `CERTIFICATE OF ERASURE\nRequest: ${e.request_id}\nSubject (keyed hash): ${e.full_borrower_hash}\nStatus: ${e.status}\nDate: ${fmtD(e.ts)}\nRecords removed: ${Object.values(e.stores_before).reduce((a, b) => a + b, 0)}\nVault entries: ${e.vault_before} -> ${e.vault_after}\nBorrower key destroyed: ${e.key_present ? 'no' : 'yes'}\nIndependent scan, raw values in store files: ${e.raw_before} -> ${e.raw_after}\nAudit record: #${e.audit_seq}  ${e.full_hash}\n\n${e.proof}\n`;
+function tracker(r) {
+  const h = Object.fromEntries(r.history.map(x => [x.step, x])); const wait = { recommended: 'Privacy officer', approved: 'Data protection officer' };
+  const st = (k, n, sub) => { const x = h[k], done = !!x, rej = k === 'rejected'; return `<div class="trk ${done ? 'done' : ''} ${rej ? 'rej' : ''}"><span class="dot">${done ? (rej ? '✕' : '✓') : ''}</span><b>${n}</b>${done ? `<span>${esc(x.actor.name)} <span class="t3">· ${esc(ROLE_NAME[x.actor.role] || x.actor.role)}</span></span><span class="mono t3">${fmtT(x.ts)} · ${rSeq(x.audit_seq)}</span>${x.note ? `<span class="t2">“${esc(x.note)}”</span>` : ''}` : `<span class="t3">${sub}</span>`}</div>`; };
+  const rejected = h.rejected;
+  return `<div class="tracker">${st('initiated', 'Initiated', '')}${st('recommended', 'Recommended', 'Waiting for a ' + wait.recommended.toLowerCase())}${rejected ? st('rejected', 'Rejected', '') : st('approved', 'Approved', 'Waiting for the ' + wait.approved.toLowerCase())}${st('executed', 'Executed', 'Runs after approval')}</div>`;
 }
-function privDetail(row, e) {
-  const c = S.cases.find(x => x.sid === row.sid);
-  const head = `<div class="pdh"><div><div class="mono t3">${esc(row.request_id)}</div><h2>Erasure of personal data</h2><div class="t2">Case ${row.case} · keyed hash ${mono(row.borrower_hash.slice(0, 16))} · received ${fmtD(row.ts)}</div></div><div class="pda">${yes(row.clean, row.status, row.status)}<a class="btn" href="${L('audit', row.audit_seq)}">Audit record #${row.audit_seq}</a></div></div>`;
-  if (!e) return head + '<div class="alert warn" style="margin:16px">Detail is kept only for requests processed in this browser session.</div>';
+function privActions(r) {
+  const u = S.status.user, prior = r.history.map(h => h.actor.id), s = r.state;
+  if (s === 'EXECUTED' || s === 'REJECTED') return '';
+  let can = false, msg = '';
+  if (s === 'INITIATED') { can = role() === 'privacy_officer' && u.id !== r.initiator.id; msg = u.id === r.initiator.id ? 'You initiated this request, so another person must recommend it.' : role() !== 'privacy_officer' ? 'Waiting for a privacy officer to recommend.' : ''; }
+  if (s === 'RECOMMENDED') { can = role() === 'dpo' && !prior.includes(u.id); msg = prior.includes(u.id) ? 'You took part earlier in this request, so another person must approve it.' : role() !== 'dpo' ? 'Waiting for the data protection officer to approve.' : ''; }
+  const canReject = ['privacy_officer', 'dpo'].includes(role()) && ['INITIATED', 'RECOMMENDED'].includes(s);
+  return `<div class="panel"><div class="ph"><b>Decision</b></div><div class="pb" style="display:grid;gap:10px">${msg ? `<div class="alert warn"><div>${esc(msg)}</div></div>` : ''}${can || canReject ? `<textarea class="in" id="dnote" rows="2" placeholder="${s === 'INITIATED' ? 'Comment (optional). A rejection needs a reason.' : 'Comment (optional). A rejection needs a reason.'}"></textarea><div class="row">${can ? `<button class="btn pri" id="dgo">${s === 'INITIATED' ? 'Recommend' : 'Approve and execute'}</button>` : ''}${canReject ? '<button class="btn dng" id="drej">Reject</button>' : ''}</div>` : ''}</div></div>`;
+}
+function bindPriv(r) {
+  const act = async (path, label) => { try { const res = await api(`/api/privacy/requests/${encodeURIComponent(r.request_id)}/${path}`, { note: ($('#dnote') || {}).value || '' }); S.reqs = await api('/api/privacy/requests'); S.cases = await api('/api/cases'); S.audit = null; S.lin = null; renderNav(); toast(label); S.anim = path === 'approve' ? r.request_id : ''; drawPrivacy(); } catch (e) { toast(e.message, 6000); } };
+  const g = $('#dgo'); if (g) g.onclick = () => { g.disabled = true; g.innerHTML = '<span class="spin"></span>'; act(r.state === 'INITIATED' ? 'recommend' : 'approve', r.state === 'INITIATED' ? 'Recommended' : 'Approved and executed'); };
+  const j = $('#drej'); if (j) j.onclick = () => act('reject', 'Rejected');
+  const pr = $('#cprint'); if (pr) pr.onclick = () => window.print();
+  const dl = $('#cdl'); if (dl) dl.onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([certText(r, r.result)], { type: 'text/plain' })); a.download = `erasure-certificate-${r.request_id}.txt`; a.click(); };
+  if (S.anim === r.request_id) { S.anim = ''; $$('.stp').forEach((s, i) => { s.classList.remove('done'); setTimeout(() => s.classList.add('done'), 160 * (i + 1)); }); }
+}
+const ESTEPS = [['discover', 'Discover', 'Search every store, including unregistered ones'], ['delete', 'Delete', 'Remove each copy found'], ['verify', 'Verify', 'Search again from scratch'], ['shred', 'Destroy key', 'Make remaining ciphertext unreadable'], ['audit', 'Record', 'Write the chained erasure record']];
+function certText(r, e) {
+  if (!e) return `Privacy request ${r.request_id}\nState: ${r.state}\n`;
+  return `CERTIFICATE OF ERASURE\nRequest: ${r.request_id}\nSubject (keyed hash): ${e.full_borrower_hash}\nStatus: ${e.status}\nDate (UTC): ${fmtD(e.ts)}\nInitiated by: ${r.initiator.name}\n${r.history.filter(h => h.step !== 'initiated').map(h => `${h.step[0].toUpperCase() + h.step.slice(1)} by: ${h.actor.name} (${ROLE_NAME[h.actor.role] || h.actor.role})`).join('\n')}\nRecords removed: ${Object.values(e.stores_before).reduce((a, b) => a + b, 0)}\nVault entries: ${e.vault_before} -> ${e.vault_after}\nBorrower key destroyed: ${e.key_present ? 'no' : 'yes'}\nIndependent scan, raw values in store files: ${e.raw_before} -> ${e.raw_after}\nAudit record: #${e.audit_seq}  ${e.full_hash}\n\n${e.proof}\n`;
+}
+function privDetail(r) {
+  const e = r.result;
+  const head = `<div class="pdh"><div><div class="mono t3">${esc(r.request_id)}</div><h2>Erasure of personal data</h2><div class="t2">Case ${r.case} · ${esc(REASON[r.reason] || r.reason)} · keyed hash ${mono(r.borrower_hash.slice(0, 16))} · submitted ${fmtD(r.created)}</div></div><div class="pda">${statePill(r)}${r.audit_seq != null ? `<a class="btn" href="${L('audit', r.audit_seq)}">Audit record #${r.audit_seq}</a>` : ''}</div></div>`;
+  const body = `<div class="pdb">${tracker(r)}${privActions(r)}`;
+  if (!e) return head + body + (r.note ? `<div class="panel"><div class="ph"><b>Comment from the initiator</b></div><div class="pb">${esc(r.note)}</div></div>` : '') + '</div>';
   const rec = e.record, line = k => { const t = e.trace.find(x => x.startsWith(k)); return t ? t.slice(t.indexOf(':') + 1).trim() : ''; };
   const stepper = `<div class="stepper">${ESTEPS.map(([k, n, s]) => `<div class="stp done"><span class="dot">✓</span><b>${n}</b><span class="t2">${esc(s)}</span><span class="mono t3">${esc(line(k).slice(0, 120))}</span></div>`).join('')}<div class="stp done"><span class="dot">✓</span><b>Certificate</b><span class="t2">Issued below</span></div></div>`;
   const total = Object.values(e.stores_before).reduce((a, b) => a + b, 0);
-  const cert = `<div class="doc" id="cert"><div class="dochead"><div><div class="docmark">PII Vault</div><h3>Certificate of erasure</h3></div><div class="r"><div class="mono">${esc(e.request_id)}</div><div class="t2">${fmtD(e.ts)}</div></div></div>
-    ${kv([['Subject (keyed hash)', mono(e.full_borrower_hash)], ['Request', 'Erasure of personal data'], ['Outcome', yes(e.clean, e.status, e.status)], ['Records removed', `${total} across ${rec.stores.length} store(s)`], ['Not in the registry', (rec.unregistered_stores_with_hits || []).map(mono).join(' ') || 'none'], ['Vault entries', `${e.vault_before} → ${e.vault_after}`], ['Borrower key', e.key_present ? pill('bad', 'still present') : pill('ok', 'destroyed')],
-      ['Independent file scan', `raw values in store files ${e.raw_before} → ${e.raw_after}`], ['Former token readable', esc(e.probe)], ['Audit record', `${rSeq(e.audit_seq)} ${mono(e.full_hash.slice(0, 32) + '…')}`], ['Chain', e.chain.ok ? pill('ok', 'intact') : pill('bad', 'broken')]])}
+  const apv = r.history.filter(h => h.step !== 'initiated').map(h => [h.step[0].toUpperCase() + h.step.slice(1) + ' by', `${esc(h.actor.name)} <span class="t3">· ${esc(ROLE_NAME[h.actor.role] || h.actor.role)}</span>`]);
+  const cert = `<div class="doc" id="cert"><div class="dochead"><div><div class="docmark">PII Vault</div><h3>Certificate of erasure</h3></div><div class="r"><div class="mono">${esc(r.request_id)}</div><div class="t2">${fmtD(e.ts)}</div></div></div>
+    ${kv([['Subject (keyed hash)', mono(e.full_borrower_hash)], ['Request', 'Erasure of personal data · ' + esc(REASON[r.reason] || r.reason)], ['Initiated by', `${esc(r.initiator.name)} <span class="t3">· ${esc(ROLE_NAME[r.initiator.role] || r.initiator.role)}</span>`], ...apv, ['Outcome', yes(e.clean, e.status, e.status)], ['Records removed', `${total} across ${rec.stores.length} store(s)`], ['Not in the registry', (rec.unregistered_stores_with_hits || []).map(mono).join(' ') || 'none'], ['Vault entries', `${e.vault_before} → ${e.vault_after}`], ['Borrower key', e.key_present ? pill('bad', 'still present') : pill('ok', 'destroyed')],
+      ['Independent file scan', `raw values in store files ${e.raw_before} → ${e.raw_after}`], ['Audit record', `${rSeq(e.audit_seq)} ${mono(e.full_hash.slice(0, 32) + '…')}`], ['Chain', e.chain.ok ? pill('ok', 'intact') : pill('bad', 'broken')]])}
     <div class="docnote"><b>What this shows.</b> None of the discovery methods found a remaining copy after deletion, and a separate plain file scan found no raw value.<br><b>What it does not show.</b> That no copy exists in a store or encoding the methods cannot see (encrypted blobs, images, stores outside the root, backups).</div></div>`;
-  return head + `<div class="pdb">${stepper}<div class="grid2"><div class="panel"><div class="ph"><b>Where the data was found</b></div>${tbl(['Store', '>Before', '>Found', '>Deleted', '>After', 'Zero'], rec.stores.map(s => `<tr><td class="mono">${esc(s.store.replace('unmapped:', ''))}</td><td class="r mono">${e.stores_before[s.store] ?? ''}</td><td class="r mono">${s.found}</td><td class="r mono">${s.deleted}</td><td class="r mono">${e.stores_after[s.store] ?? 0}</td><td>${yes(s.verified_zero)}</td></tr>`))}</div>
+  return head + body + stepper + `<div class="grid2"><div class="panel"><div class="ph"><b>Where the data was found</b></div>${tbl(['Store', '>Before', '>Found', '>Deleted', '>After', 'Zero'], rec.stores.map(s => `<tr><td class="mono">${esc(s.store.replace('unmapped:', ''))}</td><td class="r mono">${e.stores_before[s.store] ?? ''}</td><td class="r mono">${s.found}</td><td class="r mono">${s.deleted}</td><td class="r mono">${e.stores_after[s.store] ?? 0}</td><td>${yes(s.verified_zero)}</td></tr>`))}</div>
     <div class="panel"><div class="ph"><b>Independent verification</b><span class="t3">plain file scan, not the agent</span></div>${tbl(['Check', '>Before', '>After', 'Result'], [['Raw values in store files', e.raw_before, e.raw_after, e.raw_after === 0], ['Vault entries', e.vault_before, e.vault_after, e.vault_after === 0], ['Borrower key present', 'yes', e.key_present ? 'yes' : 'no', !e.key_present]].map(([n, b, a, ok]) => `<tr><td>${n}</td><td class="r mono">${b}</td><td class="r mono">${a}</td><td>${yes(ok, 'pass', 'fail')}</td></tr>`))}</div></div>
     <div class="panel"><div class="ph"><b>Discovery methods</b><span class="t3">${rec.methods_run.length} ran · ${rec.methods.length} found copies</span></div><div class="pb chips">${rec.methods_run.map(m => `<span class="pill ${rec.methods.some(f => f.startsWith(m.split('(')[0]) || m.startsWith(f.split('(')[0])) ? 'acc' : ''}">${esc(m)}</span>`).join('')}</div></div>
     <div class="certbar"><b>Certificate</b><span style="flex:1"></span><button class="btn" id="cdl">Download</button><button class="btn pri" id="cprint">Print</button></div>${cert}
@@ -496,33 +573,33 @@ const detailOf = r => {
   return Object.entries(r).filter(([x]) => !skip.has(x)).map(([x, v]) => `${x}=${v}`).join(' ');
 };
 const subjectOf = r => r.record_id ? `${r.store}:${r.record_id}` : r.type === 'erasure' ? r.request_id : '';
-/* ================================================================ Borrowers: profile and where this person's data lives (L2, L4, L5) */
+/* ================================================================ Borrowers: profile, where the data lives (L2, L4, L5) */
 SCR.borrowers = async function () {
   const tk = ++S.tk; if (S.param && S.cases.some(c => c.sid === S.param)) S.case = S.param;
   main().innerHTML = '<div class="pv"><section class="clist" id="plist"></section><section class="pdet" id="pdet"><div class="empty"><span class="spin"></span></div></section></div>';
-  const [cs, er] = await Promise.all([api('/api/cases'), api('/api/erasure')]); S.cases = cs; S.reqs = er.requests;
+  const [cs, list] = await Promise.all([api('/api/cases'), api('/api/privacy/requests')]); S.cases = cs; S.reqs = list;
   $('#plist').innerHTML = `<div class="lh"><b>Borrowers</b><span class="t3">${cs.length}</span></div><div class="litems">${[...cs].map(c => caseItem(c, L('borrowers', c.sid), c.sid === S.case)).join('')}</div>`;
-  const [lin, au, v] = await Promise.all([api('/api/lineage'), api('/api/audit/full'), api('/api/vault')]); if (tk !== S.tk) return; S.lin = lin; S.audit = au;
-  const c = curCase(), req = S.reqs.find(r => r.sid === c.sid), dec = decisionsFor(c);
-  const acts = au.records.filter(r => (r.borrower_hash || '').startsWith(c.hash));
-  const tab = S.bTab, tabs = [['overview', 'Overview'], ['lineage', 'Data lineage'], ['activity', 'Activity']];
-  $('#pdet').innerHTML = `<div class="pdh"><div class="bp-head">${avatar(c, 1)}<div><h2 style="margin:0">Case ${c.case}</h2><div class="mono t3">${esc(c.hash)}</div></div></div><div class="pda">${c.state === 'ERASED' ? pill('', 'Erased') : pill('ok', 'Active')}${req ? `<a class="btn" href="${L('privacy', req.request_id)}">Erasure ${esc(req.request_id)}</a>` : c.messages ? `<a class="btn pri" href="${L('privacy', 'new:' + c.sid)}">Start erasure request</a>` : ''}</div></div>
+  const [lin, d, v, au] = await Promise.all([api('/api/lineage'), api('/api/case/' + S.case), api('/api/vault'), canAudit() ? api('/api/audit/full') : Promise.resolve(null)]); if (tk !== S.tk) return; S.lin = lin; if (au) S.audit = au;
+  const c = curCase(), req = S.reqs.filter(r => r.sid === c.sid).pop(), dec = d.consent;
+  const acts = au ? au.records.filter(r => (r.borrower_hash || '').startsWith(c.hash)) : [];
+  const tab = canAudit() || S.bTab !== 'activity' ? S.bTab : 'overview', tabs = [['overview', 'Overview'], ['lineage', 'Data lineage']].concat(canAudit() ? [['activity', 'Activity']] : []);
+  $('#pdet').innerHTML = `<div class="pdh"><div class="bp-head">${avatar(c, 1)}<div><h2 style="margin:0">Case ${c.case}</h2><div class="mono t3">${esc(c.hash)}</div></div></div><div class="pda">${c.state === 'ERASED' ? pill('', 'Erased') : pill('ok', 'Active')}${req ? `<a class="btn" href="${L('privacy', req.request_id)}">Request ${esc(req.request_id)}</a>` : c.messages && ['agent', 'privacy_officer'].includes(role()) ? `<a class="btn pri" href="${L('privacy', 'new:' + c.sid)}">Start erasure request</a>` : ''}</div></div>
     <div class="tabs" style="padding:0 20px">${tabs.map(([k, n]) => `<button data-bt="${k}" class="${tab === k ? 'on' : ''}">${n}</button>`).join('')}</div><div class="pdb">${
-    tab === 'overview' ? `<div class="grid2"><div class="panel"><div class="ph"><b>Identity and protection</b></div><div class="pb">${kv([['Case', c.case], ['Keyed hash', mono(c.hash)], ['Borrower ID', mono(c.borrower)], ['Conversation', mono(c.conversation)], ['State', c.state === 'ERASED' ? pill('', 'ERASED') : pill('ok', 'ACTIVE')], ['Borrower key', c.key_present ? pill('ok', 'active') + ' ' + mono(v.keys[0] ? v.keys[0].key_id : '') : pill('', 'destroyed')], ['Encrypted values', `${c.values} · <a href="${L('vault')}">Vault inspector</a>`], ['Messages', c.messages]])}</div></div>
-      <div class="panel"><div class="ph"><b>Where this person's data lives</b></div>${tbl(['Store', 'File', '>Records', '>Untracked'], lin.stores.map(s => `<tr><td class="mono">${esc(s.store.replace('unmapped:', ''))}</td><td class="mono t3">${esc(s.path.split('/').pop())}</td><td class="r mono">${s.count}</td><td class="r mono ${s.unregistered_records ? 'bad' : ''}">${s.unregistered_records}</td></tr>`))}<div class="pb t2">Untracked = in a store but not in the lineage registry. <a href="${L('map')}">Data inventory</a></div></div></div>
-      <div class="panel"><div class="ph"><b>Consent decisions</b><span class="t3">by purpose, from the audit trail</span></div>${tbl(['Purpose', '>Allowed', '>Refused'], Object.entries(dec).map(([p, x]) => `<tr><td>${esc(p)}</td><td class="r mono ok">${x.ok}</td><td class="r mono ${x.no ? 'bad' : ''}">${x.no}</td></tr>`))}</div>`
+    tab === 'overview' ? `<div class="grid2"><div class="panel"><div class="ph"><b>Identity and protection</b></div><div class="pb">${kv([['Case', c.case], ['Product', c.profile && c.profile.product ? esc(c.profile.product) : null], ['Loan', c.profile && c.profile.loan_ref ? mono(c.profile.loan_ref) : null], ['Days past due', c.profile && c.profile.dpd != null ? c.profile.dpd : null], ['Outstanding', c.profile && c.profile.outstanding ? '₹' + fmt(c.profile.outstanding) : null], ['Assigned to', c.profile ? esc(c.profile.assignee || '') : null], ['Keyed hash', mono(c.hash)], ['State', c.state === 'ERASED' ? pill('', 'ERASED') : pill('ok', 'ACTIVE')], ['Borrower key', c.key_present ? pill('ok', 'active') + ' ' + mono(v.keys[0] ? v.keys[0].key_id : '') : pill('', 'destroyed')], ['Encrypted values', c.values], ['Messages', c.messages]])}</div></div>
+      <div class="panel"><div class="ph"><b>Where this person's data lives</b></div>${tbl(['Store', 'File', '>Records', '>Untracked'], lin.stores.map(s => `<tr><td class="mono">${esc(s.store.replace('unmapped:', ''))}</td><td class="mono t3">${esc(s.path.split('/').pop())}</td><td class="r mono">${s.count}</td><td class="r mono ${s.unregistered_records ? 'bad' : ''}">${s.unregistered_records}</td></tr>`))}<div class="pb t2">Untracked: in a store but not in the lineage registry.</div></div></div>
+      <div class="panel"><div class="ph"><b>Consent decisions</b><span class="t3">by purpose</span></div>${tbl(['Purpose', '>Allowed', '>Refused'], Object.entries(dec).map(([p, x]) => `<tr><td>${esc(p)}</td><td class="r mono ok">${x.allowed}</td><td class="r mono ${x.refused ? 'bad' : ''}">${x.refused}</td></tr>`))}</div>`
     : tab === 'lineage' ? `<div class="panel"><div class="ph"><b>Data lineage</b><span class="t3">borrower → conversation → records → embeddings</span></div><div class="pb" style="overflow:auto">${lineageSvg(lin)}</div></div>`
     : `<div class="panel"><div class="ph"><b>Activity</b>${pill('', acts.length + ' records')}</div><div class="feed">${feedHtml(feedItems(acts), 40)}</div></div>`}</div>`;
   $$('[data-bt]').forEach(b => b.onclick = () => { S.bTab = b.dataset.bt; SCR.borrowers(); });
 };
 
-/* ================================================================ Audit trail: a readable activity feed over the L7 chain, with the raw log behind it */
+/* ================================================================ Audit trail (L7): events with actor, source, trace, outcome; reading it is itself audited */
 function feedItems(recs) {
   const items = [], by = new Map();
   recs.forEach(r => {
     if (r.type === 'erasure') { items.push({ kind: 'erasure', ts: r.ts, recs: [r], r }); return; }
     if (r.kind_name && r.kind_name.startsWith('write_')) { items.push({ kind: 'write', ts: r.ts, recs: [r], r }); return; }
-    if (r.request_id) { let g = by.get(r.request_id); if (!g) { g = { kind: 'msg', ts: r.ts, recs: [], req: r.request_id }; by.set(r.request_id, g); items.push(g); } g.recs.push(r); return; }
+    if (r.category === 'gateway' && r.request_id) { let g = by.get(r.request_id); if (!g) { g = { kind: 'msg', ts: r.ts, recs: [], req: r.request_id }; by.set(r.request_id, g); items.push(g); } g.recs.push(r); return; }
     items.push({ kind: 'other', ts: r.ts, recs: [r], r });
   });
   return items.sort((a, b) => b.ts - a.ts);
@@ -532,100 +609,125 @@ function feedHtml(items, max = 200) {
   return items.slice(0, max).map(g => {
     const first = g.recs[0], cs = caseOfHash(first.borrower_hash), cl = cs ? `<a class="ref" href="${L('borrowers', cs.sid)}">Case ${cs.case}</a>` : '', k = new Set(g.recs.map(r => r.kind_name));
     let title, sub, tone = 'ok', chips = '';
-    if (g.kind === 'erasure') { const r = g.r; title = 'Erasure completed'; sub = `${rEr(r.request_id)} · ${esc(r.status)} · ${r.passes} pass(es)`; tone = r.status === 'ERASED_VERIFIED' ? 'ok' : 'bad'; }
+    if (g.kind === 'erasure') { const r = g.r; title = 'Erasure completed'; sub = `${rEr(r.request_id)} · ${esc(r.status)}`; tone = r.status === 'ERASED_VERIFIED' ? 'ok' : 'bad'; }
     else if (g.kind === 'write') { const r = g.r, okw = r.kind_name === 'write_allowed'; title = okw ? `Stored in ${r.store}` : 'Write refused'; sub = okw ? `${esc(r.purpose)} · ${rRec(({ logs: 'log:', vector_store: 'chunk:', eval_sets: 'eval:' }[r.store] || r.store + ':') + r.record_id)}` : `${esc(r.store)} ← ${esc(r.purpose)} · ${mono(r.reason || '')}`; tone = okw ? 'ok' : 'bad'; }
     else if (g.kind === 'msg') {
       const vals = g.recs.filter(r => r.kind_name === 'L2_TOKENISE_COMPLETE').reduce((a, r) => a + (r.values || 0), 0), last = g.recs[g.recs.length - 1], deny = g.recs.find(r => r.kind_name === 'CONSENT_DENIED'), blk = g.recs.find(r => r.kind_name === 'L3_BLOCKED');
       title = deny ? 'Message denied by consent policy' : blk ? 'Message blocked' : 'Message processed'; tone = deny || blk ? 'bad' : 'ok';
-      sub = `${first.purpose || ''}${vals ? ` · ${vals} value(s) protected` : ''} · ${last.latency_ms ?? ''} ms · ${rReq(g.req)}`;
+      sub = `${esc(first.actor.name)} · ${first.purpose || ''}${vals ? ` · ${vals} value(s) protected` : ''} · ${last.latency_ms ?? ''} ms`;
       if (g.recs.filter(r => r.kind_name === 'L2_TOKENISE_COMPLETE').length > 1) chips += pill('warn', 'audit re-masked');
       if (k.has('LEAK_PREVENTED')) chips += pill('acc', 'leak prevented');
       if (deny) chips += pill('bad', esc(deny.reason || ''));
-    } else { title = first.kind_name; sub = ''; }
-    return `<div class="fi2"><span class="fdot ${tone}"></span><div class="fbody"><div class="ft"><b>${esc(title)}</b><span class="mono t3">${fmtT(g.ts)}</span></div><div class="fs">${cl}${cl ? ' · ' : ''}${sub}</div>${chips ? `<div class="fc">${chips}</div>` : ''}
-      <details><summary>${g.recs.length} record(s)</summary>${tbl(['Seq', 'Event', 'Hash'], g.recs.map(r => `<tr><td>${rSeq(r.seq)}</td><td class="mono">${esc(r.kind_name)}</td><td class="mono t3">${esc(r.hash.slice(0, 12))}</td></tr>`))}</details></div></div>`;
+    } else { title = first.action || first.kind_name; sub = `${esc(first.actor.name)} · ${esc(first.outcome)}`; tone = ['denied', 'failure', 'blocked'].includes(first.outcome) ? 'bad' : 'ok'; }
+    return `<div class="fi2"><span class="fdot ${tone}"></span><div class="fbody"><div class="ft"><b>${esc(title)}</b><span class="mono t3">${(first.ts_utc || '').slice(11, 23)} UTC</span></div><div class="fs">${cl}${cl ? ' · ' : ''}${sub}</div>${chips ? `<div class="fc">${chips}</div>` : ''}
+      <details><summary>${g.recs.length} record(s)</summary>${tbl(['Seq', 'Action', 'Hash'], g.recs.map(r => `<tr><td>${rSeq(r.seq)}</td><td class="mono">${esc(r.action || r.kind_name)}</td><td class="mono t3">${esc(r.hash.slice(0, 12))}</td></tr>`))}</details></div></div>`;
   }).join('');
 }
+const CATS = [['gateway', 'Gateway'], ['consent', 'Consent'], ['privacy', 'Privacy'], ['erasure', 'Erasure'], ['access', 'Access'], ['audit_access', 'Audit access']];
+const OUTS = ['success', 'denied', 'blocked', 'failure'];
+const RANGES = [['all', 'All time'], ['15', 'Last 15 min'], ['60', 'Last hour'], ['1440', 'Last 24 hours']];
+const AF0 = () => ({ q: '', cats: [], outs: [], actor: '', range: 'all', case: '', trace: '' });
+const PRESETS = [['All activity', AF0()], ['Needs attention', { ...AF0(), outs: ['denied', 'blocked', 'failure'] }], ['Privacy workflow', { ...AF0(), cats: ['privacy', 'erasure'] }], ['Audit access', { ...AF0(), cats: ['audit_access'] }]];
+const outPill = o => pill(o === 'success' ? 'ok' : o === 'blocked' ? 'warn' : o === 'denied' || o === 'failure' ? 'bad' : '', o);
+const resOf = r => r.resource ? `${r.resource.type} ${r.resource.id || ''}` : (subjectOf(r) || (r.request_id ? 'request ' + sh(r.request_id, 14) : ''));
+function auditFiltered() {
+  const f = S.af, now = Date.now() / 1000, q = f.q.toLowerCase();
+  return S.audit.records.filter(r => (!f.cats.length || f.cats.includes(r.category)) && (!f.outs.length || f.outs.includes(r.outcome)) && (!f.actor || (r.actor && r.actor.id === f.actor)) && (!f.case || (r.borrower_hash || '').startsWith(f.case))
+    && (!f.trace || r.trace_id === f.trace) && (f.range === 'all' || r.ts >= now - Number(f.range) * 60) && (!q || JSON.stringify(r).toLowerCase().includes(q)));
+}
 SCR.audit = async function () {
-  loading('audit'); const tk = ++S.tk; const a = S.audit = await api('/api/audit/full'); await loadCasesOnly(); if (tk !== S.tk) return;
-  if (S.param && S.param.startsWith('req:')) { S.af.q = S.param.slice(4); S.auTab = 'raw'; }
-  const kinds = {}; a.records.forEach(r => kinds[r.kind_name] = (kinds[r.kind_name] || 0) + 1);
-  main().innerHTML = sbar('audit', `<button class="btn" id="ver">Verify chain</button><button class="btn dng" id="tam">Tamper test</button><a class="btn" href="/api/audit/export">Export JSONL</a>`) + `<div class="content">
-    <div class="alert ${a.chain.ok ? 'ok' : 'bad'}" id="vbanner"><div><b>${a.chain.ok ? 'Chain intact' : 'Chain broken at #' + a.chain.bad_seq}</b> · ${a.length} records · head ${mono(a.head.slice(0, 24) + '…')} · ${esc(a.algorithm)}</div></div>
-    <div class="panel"><div class="tabs"><button data-at="feed" class="${S.auTab === 'feed' ? 'on' : ''}">Activity</button><button data-at="raw" class="${S.auTab === 'raw' ? 'on' : ''}">Raw records<i>${a.length}</i></button></div>
-    <div class="toolbar"><select id="acase" class="in"><option value="">All borrowers</option>${S.cases.map(c => `<option value="${c.hash}" ${S.af.case === c.hash ? 'selected' : ''}>Case ${c.case}</option>`).join('')}</select>
-      ${S.auTab === 'raw' ? `<input id="aq" class="in" style="width:260px" placeholder="Filter: request id, event, store, record, hash…" value="${esc(S.af.q)}"><div class="chips" id="ak">${Object.entries(kinds).sort().map(([k, n]) => `<button class="chip ${S.af.kinds.includes(k) ? 'on' : ''}" data-k="${esc(k)}">${esc(k)}<b>${n}</b></button>`).join('')}</div>` : ''}<span style="flex:1"></span><span class="t2" id="acount"></span></div>
-    ${S.auTab === 'feed' ? '<div class="feed" id="afeed"></div>' : '<div style="overflow:auto;max-height:calc(100vh - 330px)" id="atable"></div>'}</div></div>`;
-  bindCommon();
+  loading('audit'); const tk = ++S.tk; let a;
+  try { a = S.audit = await api('/api/audit/full'); } catch (e) { main().innerHTML = denied(e); return; }
+  S.cases = await api('/api/cases'); if (tk !== S.tk) return;
+  if (S.param && S.param.startsWith('req:')) S.af = { ...AF0(), q: S.param.slice(4) };
+  if (S.param && S.param.startsWith('trace:')) S.af = { ...AF0(), trace: S.param.slice(6) };
+  const actors = [...new Map(a.records.map(r => [r.actor.id, r.actor])).values()];
+  main().innerHTML = sbar('audit', `<button class="btn" id="ver">Verify chain</button><button class="btn" id="exp">Export</button><button class="btn dng" id="tam">Tamper test</button>`) + `<div class="content">
+    <div class="alert ${a.chain.ok ? 'ok' : 'bad'}" id="vbanner"><div><b>${a.chain.ok ? 'Chain intact' : 'Chain broken at #' + a.chain.bad_seq}</b> · ${a.length} records · head ${mono(a.head.slice(0, 20) + '…')} · ${esc(a.algorithm)} · anchor: <span class="t3">not configured</span></div></div>
+    <div class="panel"><div class="tabs"><button data-at="events" class="${S.auTab !== 'feed' ? 'on' : ''}">Events</button><button data-at="feed" class="${S.auTab === 'feed' ? 'on' : ''}">Timeline</button></div>
+    <div class="toolbar" style="gap:6px">${PRESETS.map(([n], i) => `<button class="chip" data-ps="${i}">${n}</button>`).join('')}<span style="width:1px;height:18px;background:var(--line2);margin:0 4px"></span>
+      <select id="frange" class="in sm">${RANGES.map(([k, n]) => `<option value="${k}" ${S.af.range === k ? 'selected' : ''}>${n}</option>`).join('')}</select>
+      <select id="factor" class="in sm"><option value="">Any actor</option>${actors.map(x => `<option value="${esc(x.id)}" ${S.af.actor === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
+      <select id="fcase" class="in sm"><option value="">All borrowers</option>${S.cases.map(c => `<option value="${c.hash}" ${S.af.case === c.hash ? 'selected' : ''}>Case ${c.case}</option>`).join('')}</select>
+      <input id="aq" class="in sm" style="width:220px" placeholder="Search id, trace, action…" value="${esc(S.af.q)}"><span style="flex:1"></span><span class="t2" id="acount"></span></div>
+    <div class="toolbar" style="gap:6px;border-top:0;padding-top:0"><span class="t3" style="font-size:11.5px">Category</span><div class="chips" id="fcat">${CATS.map(([k, n]) => `<button class="chip ${S.af.cats.includes(k) ? 'on' : ''}" data-c="${k}">${n}</button>`).join('')}</div><span class="t3" style="font-size:11.5px;margin-left:10px">Outcome</span><div class="chips" id="fout">${OUTS.map(k => `<button class="chip ${S.af.outs.includes(k) ? 'on' : ''}" data-o="${k}">${k}</button>`).join('')}</div>${S.af.trace ? `<button class="chip on" id="ftr">Trace ${esc(S.af.trace.slice(0, 8))} ✕</button>` : ''}</div>
+    ${S.auTab === 'feed' ? '<div class="feed" id="afeed"></div>' : '<div class="aud" id="atable"></div>'}</div></div>`;
+  bindCommon(); drawAudit();
   $$('[data-at]').forEach(b => b.onclick = () => { S.auTab = b.dataset.at; SCR.audit(); });
-  $('#acase').onchange = e => { S.af.case = e.target.value; S.auTab === 'feed' ? drawFeed() : drawAudit(); };
-  if (S.auTab === 'feed') drawFeed(); else {
-    drawAudit(); $('#aq').oninput = e => { S.af.q = e.target.value; drawAudit(); };
-    $$('#ak .chip').forEach(c => c.onclick = () => { const k = c.dataset.k; S.af.kinds = S.af.kinds.includes(k) ? S.af.kinds.filter(x => x !== k) : [...S.af.kinds, k]; c.classList.toggle('on'); drawAudit(); });
-  }
-  $('#ver').onclick = verifyChain; $('#tam').onclick = tamper;
+  $$('[data-ps]').forEach(b => b.onclick = () => { S.af = { ...PRESETS[b.dataset.ps][1] }; SCR.audit(); });
+  $('#frange').onchange = e => { S.af.range = e.target.value; drawAudit(); }; $('#factor').onchange = e => { S.af.actor = e.target.value; drawAudit(); }; $('#fcase').onchange = e => { S.af.case = e.target.value; drawAudit(); };
+  $('#aq').oninput = e => { S.af.q = e.target.value; drawAudit(); };
+  $$('#fcat .chip').forEach(c => c.onclick = () => { const k = c.dataset.c; S.af.cats = S.af.cats.includes(k) ? S.af.cats.filter(x => x !== k) : [...S.af.cats, k]; c.classList.toggle('on'); drawAudit(); });
+  $$('#fout .chip').forEach(c => c.onclick = () => { const k = c.dataset.o; S.af.outs = S.af.outs.includes(k) ? S.af.outs.filter(x => x !== k) : [...S.af.outs, k]; c.classList.toggle('on'); drawAudit(); });
+  if ($('#ftr')) $('#ftr').onclick = () => { S.af.trace = ''; SCR.audit(); };
+  $('#ver').onclick = verifyChain; $('#tam').onclick = tamper; $('#exp').onclick = exportAudit;
   if (/^\d+$/.test(S.param)) showAudit(Number(S.param));
 };
-async function loadCasesOnly() { S.cases = await api('/api/cases'); }
-function drawFeed() {
-  const recs = S.audit.records.filter(r => !S.af.case || (r.borrower_hash || '').startsWith(S.af.case) || (r.type === 'erasure' && r.borrower_hash && r.borrower_hash.startsWith(S.af.case)));
-  const items = feedItems(recs); $('#afeed').innerHTML = feedHtml(items); $('#acount').textContent = `${items.length} events from ${recs.length} records`;
-}
-
-/* ================================================================ Architecture: the layers as a system, with live figures */
-SCR.architecture = async function () {
-  loading('architecture'); const tk = ++S.tk; const [au, cs, mx] = await Promise.all([api('/api/audit/full'), api('/api/cases'), api('/api/consent/matrix')]); if (tk !== S.tk) return; S.cases = cs;
-  const ev = au.records, active = cs.filter(c => c.state === 'ACTIVE').length, vals = cs.reduce((a, c) => a + c.values, 0), keys = cs.filter(c => c.key_present).length;
-  const wa = ev.filter(r => r.kind_name === 'write_allowed').length, wr = ev.filter(r => r.kind_name === 'write_rejected' || r.kind_name === 'CONSENT_DENIED').length;
-  const msgs = new Set(ev.filter(r => r.kind_name === 'L3_STARTED').map(r => r.request_id)).size, blocked = ev.filter(r => r.kind_name === 'L3_BLOCKED').length, prevented = ev.filter(r => r.kind_name === 'LEAK_PREVENTED').length;
-  const t = id => { const x = S.tests[id]; return x && !x.running ? `<span class="${x.ok ? 'ok' : 'bad'}">${x.ok ? '✓ ' + x.passed : '✕ ' + x.failed}</span>` : ''; };
-  const box = (id, name, stat, note) => `<button class="ab" data-ab="${id}"><span class="abh"><b>${id}</b><span>${esc(name)}</span></span><span class="abs">${stat}</span><span class="abn">${note}</span><span class="abt">${t(id)}</span></button>`;
-  const ar = (lbl) => `<span class="ar"><i>${esc(lbl)}</i><b>→</b></span>`;
-  main().innerHTML = sbar('architecture', '<button class="btn" id="runall">Run all test suites</button>') + `<div class="content"><div class="arch">
-    <div class="alane"><div class="actor"><b>Borrower</b><span>call or chat</span></div>${ar('raw text')}${box('L1', 'Detection', `${msgs} messages scanned`, 'rules · spoken-number engine · model')}${ar('spans')}${box('L2', 'Vault', `${vals} values · ${keys} keys`, 'AES-256-GCM, a key per borrower')}${ar('tokens only')}${box('L3', 'Gateway', `${msgs - blocked} sent · ${blocked} blocked`, `audit net · ${prevented} leak(s) prevented`)}${ar('masked text')}<div class="actor llm"><b>LLM</b><span>${S.status.llm_live ? 'Nova Pro' : 'stub'} · tokens only</span></div></div>
-    <div class="avert"><span>writes go through L4</span></div>
-    <div class="alane">${box('L4', 'Consent policy', `${wa} allowed · ${wr} refused`, `${mx.stores.length} stores × ${mx.purposes.length} purposes, default deny`)}${ar('tagged record')}<div class="store"><b>Stores</b><span>logs · vector store · eval sets</span><span>${cs.reduce((a, c) => a + c.messages, 0)} messages stored</span></div>${ar('refs')}${box('L5', 'Lineage registry', `${active} active · ${cs.length - active} erased`, 'where every copy went')}</div>
-    <div class="avert"><span>erasure request</span></div>
-    <div class="alane"><div class="actor"><b>Privacy request</b><span>DPDP erasure</span></div>${ar('')}${box('L6', 'Erasure agent', `${S.reqs.length} request(s) processed`, 'discover · delete · verify · shred key')}<span class="ar" style="flex:1;place-items:start;text-align:left;padding-left:16px"><i>searches the stores and destroys the L2 key</i></span></div>
-    <div class="abus"><span class="abh"><b>L7</b><span>Tamper-evident audit trail</span></span><span class="abs">${ev.length} records · chain ${au.chain.ok ? '<span class="ok">intact</span>' : '<span class="bad">broken</span>'}</span><span class="abn">every layer above writes here · hash(prev + record) · keyed borrower hashes</span><span class="abt"><button class="btn sm" data-ab="L7">Details</button> <a class="btn sm" href="${L('audit')}">Open</a> ${t('L7')}</span></div>
-    <div class="aside2">${box('L0', 'Test data', '25,000 synthetic rows', 'scores every layer; final split sealed')}${box('L8', 'Scenario', 'end to end', 'one borrower through all layers')}</div></div></div>`;
-  bindCommon(); $$('[data-ab]').forEach(b => b.onclick = () => openInfo(b.dataset.ab));
-  $('#runall').onclick = async () => { $('#runall').disabled = true; for (const id of Object.keys(S.content.suites)) await runTests(id); SCR.architecture(); };
-};
-
 function drawAudit() {
-  const a = S.audit, q = S.af.q.toLowerCase(); let rows = a.records.filter(r => (!S.af.case || (r.borrower_hash || '').startsWith(S.af.case)) && (!S.af.kinds.length || S.af.kinds.includes(r.kind_name)) && (!q || JSON.stringify(r).toLowerCase().includes(q)));
-  const total = rows.length; rows = rows.slice().reverse().slice(0, 400); $('#acount').textContent = `${total} of ${a.length} records` + (total > 400 ? ' (newest 400 shown)' : '');
-  $('#atable').innerHTML = tbl(['Seq', 'Time', 'Event', 'Request', 'Borrower', 'Purpose', 'Subject', 'Detail', 'Hash', ''], rows.map(r => `<tr data-row="${r.seq}"><td class="mono">${r.seq}</td><td class="mono t3 nw">${fmtT(r.ts)}</td><td class="mono nw"><b>${esc(r.kind_name)}</b></td><td class="mono t3">${esc(sh(r.request_id, 15))}</td><td class="mono t3">${esc((r.borrower_hash || '').slice(0, 8))}</td><td>${esc(r.purpose || '')}</td><td class="mono">${esc(subjectOf(r))}</td><td class="mono t2" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(detailOf(r))}">${esc(detailOf(r))}</td><td class="mono t3">${esc(r.hash.slice(0, 10))}</td><td>${r._verify.hash_ok && r._verify.link_ok ? '<span class="ok">✓</span>' : '<span class="bad">✕</span>'}</td></tr>`));
+  const rows = auditFiltered(), a = S.audit; $('#acount').textContent = `${rows.length} of ${a.length} records`;
+  if (S.auTab === 'feed') { $('#afeed').innerHTML = feedHtml(feedItems(rows), 150); return; }
+  const shown = rows.slice().reverse().slice(0, 500);
+  $('#atable').innerHTML = tbl(['Seq', 'Time (UTC)', 'Actor', 'Action', 'Resource', 'Outcome', 'Borrower', 'Source IP', 'Trace', ''], shown.map(r => { const cs = caseOfHash(r.borrower_hash); return `<tr data-row="${r.seq}"><td class="mono">${r.seq}</td><td class="mono t2 nw">${esc((r.ts_utc || '').slice(11, 23))}</td><td class="nw">${esc(r.actor.name)} <span class="t3">${r.actor.type === 'service' ? 'service' : esc(ROLE_NAME[r.actor.role] || r.actor.role)}</span></td><td class="mono nw"><b>${esc(r.action)}</b></td><td class="mono t2 trunc" title="${esc(resOf(r))}">${esc(resOf(r))}</td><td>${outPill(r.outcome)}</td><td class="nw">${cs ? 'Case ' + cs.case : '<span class="t3">none</span>'}</td><td class="mono t3">${esc((r.source || {}).ip || '')}</td><td class="mono t3">${esc((r.trace_id || '').slice(0, 8))}</td><td>${r._verify.hash_ok && r._verify.link_ok ? '<span class="ok">✓</span>' : '<span class="bad">✕</span>'}</td></tr>`; }));
   $$('#atable [data-row]').forEach(r => r.onclick = () => showAudit(Number(r.dataset.row)));
 }
 function showAudit(seq) {
-  const a = S.audit, r = a.records[seq]; if (!r) return; const prev = a.records[seq - 1], next = a.records[seq + 1], same = a.records.filter(x => x.request_id && x.request_id === r.request_id);
-  const skip = new Set(['hash', 'prev_hash', 'kind_name', '_verify']);
+  const a = S.audit, r = a.records[seq]; if (!r) return; const prev = a.records[seq - 1], next = a.records[seq + 1], same = a.records.filter(x => x.trace_id && x.trace_id === r.trace_id), cs = caseOfHash(r.borrower_hash);
+  const SKIP = new Set(['hash', 'prev_hash', 'kind_name', '_verify', 'seq', 'ts', 'ts_utc', 'actor', 'source', 'trace_id', 'span_id', 'request_id', 'borrower_hash', 'action', 'category', 'service', 'outcome', 'env', 'schema', 'resource', 'event', 'kind', 'type']);
+  const ctx = Object.entries(r).filter(([k]) => !SKIP.has(k)).map(([k, v]) => [k, mono(typeof v === 'object' ? JSON.stringify(v) : v)]);
   const raw = JSON.stringify(Object.fromEntries(Object.entries(r).filter(([k]) => k !== 'kind_name' && k !== '_verify')), null, 2);
-  openDrawer(`#${r.seq} · <span class="mono">${esc(r.kind_name)}</span>`, r._verify.hash_ok && r._verify.link_ok ? pill('ok', 'verified') : pill('bad', 'invalid'), `
-    <h4>Integrity</h4>${kv([['Sequence', `${r.seq} ${r._verify.seq_ok ? pill('ok', 'in order') : pill('bad', 'out of order')}`], ['Timestamp', mono(fmtD(r.ts))], ['Record hash', cp(r.hash)], ['Recomputed', r._verify.hash_ok ? pill('ok', 'hash matches body') : pill('bad', 'hash does not match')],
-      ['Previous hash', (prev ? rSeq(prev.seq) + ' ' : '') + mono(r.prev_hash.slice(0, 20) + '…')], ['Link', r._verify.link_ok ? pill('ok', 'matches previous record') : pill('bad', 'broken')], ['Next record', next ? rSeq(next.seq) + ' ' + mono(next.kind_name) : 'head of the chain'], ['Algorithm', esc(a.algorithm)]])}
-    <h4>Fields</h4>${kv(Object.entries(r).filter(([k]) => !skip.has(k) && k !== 'seq' && k !== 'ts').map(([k, v]) => [k, mono(typeof v === 'object' ? JSON.stringify(v) : v)]))}
-    <h4>References</h4>${kv([['Request', r.request_id ? rReq(r.request_id) + ` <span class="t3">${same.length} record(s)</span>` : null], ['Borrower (keyed hash)', r.borrower_hash ? `<a href="${L('audit', 'req:' + r.borrower_hash)}" class="ref">${esc(r.borrower_hash.slice(0, 16))}…</a>` : null], ['Record', r.record_id ? rRec(({ logs: 'log:', vector_store: 'chunk:', eval_sets: 'eval:' }[r.store] || r.store + ':') + r.record_id) : null], ['Erasure request', r.type === 'erasure' ? rEr(r.request_id) : null], ['Purpose', r.purpose ? mono(r.purpose) : null], ['Consent ID', r.consent_id ? mono(r.consent_id) : null]])}
-    ${same.length > 1 ? `<h4>Same request</h4>${tbl(['Seq', 'Event', 'Time'], same.map(x => `<tr class="${x.seq === r.seq ? 'sel' : ''}"><td>${rSeq(x.seq)}</td><td class="mono">${esc(x.kind_name)}</td><td class="mono t3">${fmtT(x.ts)}</td></tr>`))}` : ''}
-    <h4>Raw record <button class="btn sm ghost" onclick="copyText(document.getElementById('rawrec').textContent)">Copy</button></h4><pre class="code" id="rawrec">${esc(raw)}</pre>`);
-  $$('#drawer a.ref').forEach(l => l.addEventListener('click', () => { }));
+  openDrawer(`#${r.seq} · <span class="mono">${esc(r.action)}</span>`, outPill(r.outcome), `
+    <h4>What</h4>${kv([['Action', mono(r.action)], ['Category', esc(r.category)], ['Resource', mono(resOf(r))], ['Outcome', outPill(r.outcome)], ['Event', mono(r.event || r.kind || r.type)]])}
+    <h4>Who</h4>${kv([['Actor', `${esc(r.actor.name)} <span class="t3">· ${esc(ROLE_NAME[r.actor.role] || r.actor.role)}</span>`], ['Actor ID', mono(r.actor.id)], ['Actor type', esc(r.actor.type)], ['On behalf of', cs ? `<a class="ref" href="${L('borrowers', cs.sid)}">Case ${cs.case}</a> ${mono((r.borrower_hash || '').slice(0, 16))}` : null]])}
+    <h4>Where and when</h4>${kv([['Time (UTC)', mono(r.ts_utc)], ['Source IP', r.source ? mono(r.source.ip) : null], ['Session', r.source ? mono(r.source.session_id) : null], ['User agent', r.source ? mono(r.source.user_agent) : null], ['Channel', r.source ? esc(r.source.channel) : null], ['Service', mono(r.service)], ['Environment', esc(r.env)]])}
+    ${ctx.length ? `<h4>Why and context</h4>${kv(ctx)}` : ''}
+    <h4>Correlation</h4>${kv([['Trace ID', r.trace_id ? `<a class="ref" href="${L('audit', 'trace:' + r.trace_id)}">${esc(r.trace_id)}</a>` : null], ['Span ID', r.span_id ? mono(r.span_id) : null], ['Request', r.request_id ? rReq(r.request_id) : null], ['Schema', mono(r.schema)]])}
+    <h4>Integrity</h4>${kv([['Sequence', `${r.seq} ${r._verify.seq_ok ? pill('ok', 'in order') : pill('bad', 'out of order')}`], ['Record hash', cp(r.hash)], ['Recomputed', r._verify.hash_ok ? pill('ok', 'matches body') : pill('bad', 'does not match')], ['Previous', (prev ? rSeq(prev.seq) + ' ' : '') + mono(r.prev_hash.slice(0, 20) + '…')], ['Link', r._verify.link_ok ? pill('ok', 'matches previous') : pill('bad', 'broken')], ['Next', next ? rSeq(next.seq) + ' ' + mono(next.action) : 'head of the chain']])}
+    ${same.length > 1 ? `<h4>Same trace</h4>${tbl(['Seq', 'Action', 'Outcome'], same.map(x => `<tr class="${x.seq === r.seq ? 'sel' : ''}"><td>${rSeq(x.seq)}</td><td class="mono">${esc(x.action)}</td><td>${outPill(x.outcome)}</td></tr>`))}` : ''}
+    <h4>Raw record <button class="btn sm ghost" onclick="copyText(document.getElementById('rawrec').textContent)">Copy</button></h4><pre class="code" id="rawrec">${esc(raw)}</pre>
+    <div class="t3" style="margin-top:10px;font-size:12px">Opening a record is itself written to the audit trail.</div>`);
+  api('/api/audit/access', { action: 'AUDIT_VIEW', ref: 'seq ' + r.seq }).catch(() => { });
 }
 async function verifyChain() {
   const t = performance.now(); const a = S.audit = await api('/api/audit/full'); const ms = (performance.now() - t).toFixed(0);
   const h = a.records.filter(r => r._verify.hash_ok).length, l = a.records.filter(r => r._verify.link_ok).length, q = a.records.filter(r => r._verify.seq_ok).length;
+  await api('/api/audit/access', { action: 'AUDIT_VERIFY', ref: 'chain', result: a.chain.ok ? 'intact' : 'broken' }).catch(() => { });
   $('#vbanner').className = 'alert ' + (a.chain.ok ? 'ok' : 'bad');
-  $('#vbanner').innerHTML = `<div><b>${a.chain.ok ? 'Chain intact' : 'Chain broken at #' + a.chain.bad_seq}</b> · recomputed ${a.length} hashes in ${ms} ms · hash matches ${h}/${a.length} · links ${l}/${a.length} · sequence ${q}/${a.length} · head ${mono(a.head)}<div class="t2">The head must be anchored somewhere write-once for this to defend against a full rewrite. Not built.</div></div>`; drawAudit();
+  $('#vbanner').innerHTML = `<div><b>${a.chain.ok ? 'Chain intact' : 'Chain broken at #' + a.chain.bad_seq}</b> · recomputed ${a.length} hashes in ${ms} ms · hashes ${h}/${a.length} · links ${l}/${a.length} · sequence ${q}/${a.length} · head ${mono(a.head)}<div class="t2">Without a write-once anchor for the head hash, a full rewrite of the file would not be detected. Not configured.</div></div>`;
+}
+async function exportAudit() {
+  try {
+    const r = await fetch('/api/audit/export', { headers: { 'x-user': S.user, 'x-session': S.sid } }); if (!r.ok) throw new Error((await r.json()).detail || r.statusText);
+    const blob = await r.blob(), sha = r.headers.get('X-Audit-SHA256'), n = r.headers.get('X-Audit-Records'); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `audit-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.jsonl`; a.click();
+    openModal('Audit export', kv([['Records', n], ['Chain', r.headers.get('X-Audit-Chain-Ok') === 'true' ? pill('ok', 'intact at export') : pill('bad', 'broken')], ['SHA-256 of the file', cp(sha)], ['Exported by', esc(S.status.user.name)]]) + '<div class="t2">The export is recorded in the audit trail with this digest.</div>', '<button class="btn pri" id="mok">Close</button>'); $('#mok').onclick = closeModal;
+  } catch (e) { toast(e.message, 5000); }
 }
 async function tamper() {
   try {
     const t = await api('/api/audit/tamper', {}), a = S.audit; const win = a.records.filter(r => r.seq >= t.edited_seq - 1 && r.seq <= t.edited_seq + 3);
     openModal('Tamper test (on a copy of the log)', `${kv([['Record edited', rSeq(t.edited_seq)], ['Field', mono(t.field)], ['Change', `${mono(t.old)} → ${mono(t.new)}`], ['Verification of the copy', pill('bad', 'BROKEN at #' + t.detected_at)], ['Reason', mono(t.reason)], ['Real log', t.real_log_intact ? pill('ok', 'untouched and intact') : pill('bad', 'affected')]])}
-      <div class="chain">${win.map(r => `<div class="blk ${r.seq >= t.edited_seq ? 'bad' : ''}"><span class="t3">#${r.seq}</span><span class="nm">${esc(r.kind_name)}</span><span class="t3">${esc(r.hash.slice(0, 10))}</span></div>`).join('')}</div>
-      <div class="t2">Every record from the edited one onward no longer chains.</div>`, '<button class="btn pri" id="mok">Close</button>'); $('#mok').onclick = closeModal;
+      <div class="chain">${win.map(r => `<div class="blk ${r.seq >= t.edited_seq ? 'bad' : ''}"><span class="t3">#${r.seq}</span><span class="nm">${esc(r.action)}</span><span class="t3">${esc(r.hash.slice(0, 10))}</span></div>`).join('')}</div><div class="t2">Every record from the edited one onward no longer chains.</div>`, '<button class="btn pri" id="mok">Close</button>'); $('#mok').onclick = closeModal;
   } catch (e) { toast(e.message, 4000); }
 }
+async function loadCasesOnly() { S.cases = await api('/api/cases'); }
+
+/* ================================================================ Architecture: the layers as a system, with live figures */
+SCR.architecture = async function () {
+  loading('architecture'); const tk = ++S.tk; const [st, cs, mx, reqs] = await Promise.all([api('/api/stats'), api('/api/cases'), api('/api/consent/matrix'), api('/api/privacy/requests')]); if (tk !== S.tk) return; S.cases = cs; S.reqs = reqs;
+  const active = cs.filter(c => c.state === 'ACTIVE').length, vals = cs.reduce((a, c) => a + c.values, 0), keys = cs.filter(c => c.key_present).length;
+  const t = id => { const x = S.tests[id]; return x && !x.running ? `<span class="${x.ok ? 'ok' : 'bad'}">${x.ok ? '✓ ' + x.passed + ' tests' : '✕ ' + x.failed + ' failing'}</span>` : ''; };
+  const box = (id, name, stat, note) => `<button class="ab" data-ab="${id}"><span class="abh"><b>${id}</b><span>${esc(name)}</span></span><span class="abs">${stat}</span><span class="abn">${note}</span><span class="abt">${t(id)}</span></button>`;
+  const ar = lbl => `<span class="ar"><i>${esc(lbl)}</i><b>→</b></span>`;
+  main().innerHTML = sbar('architecture', '<a class="btn" href="/api/architecture.jpg" target="_blank" rel="noopener">Open diagram</a><button class="btn" id="runall">Run all test suites</button>') + `<div class="content"><div class="arch">
+    <div class="alane"><div class="actor"><b>Borrower</b><span>call or chat</span></div>${ar('raw text')}${box('L1', 'Detection', `${st.messages} messages scanned`, 'rules · spoken-number engine · model')}${ar('spans')}${box('L2', 'Vault', `${vals} values · ${keys} keys`, 'AES-256-GCM, a key per borrower')}${ar('tokens only')}${box('L3', 'Gateway', `${st.messages - st.blocked} sent · ${st.blocked} blocked`, `audit net · ${st.leaks_prevented} leak(s) prevented`)}${ar('masked text')}<div class="actor llm"><b>LLM</b><span>${S.status.llm_live ? 'Nova Pro' : 'stub'} · tokens only</span></div></div>
+    <div class="avert"><span>writes go through L4</span></div>
+    <div class="alane">${box('L4', 'Consent policy', `${st.writes_allowed} allowed · ${st.writes_refused} refused`, `${mx.stores.length} stores × ${mx.purposes.length} purposes, default deny`)}${ar('tagged record')}<div class="store"><b>Stores</b><span>logs · vector store · eval sets</span><span>${cs.reduce((a, c) => a + c.messages, 0)} messages stored</span></div>${ar('refs')}${box('L5', 'Lineage registry', `${active} active · ${cs.length - active} erased`, 'where every copy went')}</div>
+    <div class="avert"><span>erasure request: initiate → recommend → approve</span></div>
+    <div class="alane"><div class="actor"><b>Privacy request</b><span>DPDP erasure</span></div>${ar('')}${box('L6', 'Erasure agent', `${reqs.length} request(s) · ${reqs.filter(r => r.state === 'EXECUTED').length} executed`, 'discover · delete · verify · shred key')}<span class="ar" style="flex:1;place-items:start;text-align:left;padding-left:16px"><i>searches the stores and destroys the L2 key</i></span></div>
+    <div class="abus"><span class="abh"><b>L7</b><span>Tamper-evident audit trail</span></span><span class="abs">${st.records} records · chain ${st.chain_ok ? '<span class="ok">intact</span>' : '<span class="bad">broken</span>'} · ${st.denied_access} access denial(s)</span><span class="abn">every layer writes here · actor, role, source, trace id, outcome · hash(prev + record)</span><span class="abt"><button class="btn sm" data-ab="L7">Details</button> ${canAudit() ? `<a class="btn sm" href="${L('audit')}">Open</a>` : ''} ${t('L7')}</span></div>
+    <div class="aside2">${box('L0', 'Test data', '25,000 synthetic rows', 'scores every layer; final split sealed')}${box('L8', 'Application', 'roles · maker-checker · certificate', 'conversations, privacy requests, audit trail')}</div></div></div>`;
+  bindCommon(); $$('[data-ab]').forEach(b => b.onclick = () => openInfo(b.dataset.ab));
+  $('#runall').onclick = async () => { $('#runall').disabled = true; for (const id of Object.keys(S.content.suites)) await runTests(id); SCR.architecture(); };
+};
 
 /* ================================================================ L0 Test data */
 SCR.data = async function () {
@@ -654,28 +756,38 @@ SCR.e2e = function () {
 async function runE2E() {
   const t0 = performance.now(), e = S.e2e = { running: true, log: [], checks: [] };
   const log = (l, m) => { e.log.push({ t: ((performance.now() - t0) / 1000).toFixed(2).padStart(6), l, m: esc(m) }); if (S.screen === 'e2e') { SCR.e2e(); } };
+  const tryCall = async (path, body, user) => { try { await api(path, body, undefined, user); return { ok: true }; } catch (er) { return { ok: false, status: er.status, msg: er.message }; } };
   try {
-    await newCase('Scenario borrower'); S.e2e = e; log('L3', `new case ${S.status.case}: fresh borrower key, same workspace`);
+    await newCase('Scenario borrower'); S.e2e = e; log('L3', `new case ${S.cases.find(c => c.sid === S.case).case}: fresh borrower key, same workspace`);
     const runs = [];
-    for (const [who, text] of CALL) { const r = await send(text, { speaker: who, force: true, purpose: 'service', detector: 'normal' }); if (!r) throw new Error('message failed'); runs.push(r); log('L3', `${who.padEnd(8)} ${r.status} · ${r.l3.ms} ms · ${r.l1.spans.length} masked · ${r.l7.events.length} events · ${r.request_id}`); await sleep(200); }
-    const toks = runs.map(r => new Set(r.l2.tokens_this_message)), phoneTok = [...toks[3]].filter(t => toks[5].has(t));
-    const last = runs[runs.length - 1];
+    for (const [who, text] of CALL) { const r = await send(text, { speaker: who, force: true, purpose: 'service', detector: 'normal', user: 'asha', quiet: true }); if (!r) throw new Error('message failed'); runs.push(r); log('L3', `${who.padEnd(8)} ${r.status} · ${r.l3.ms} ms · ${r.l1.spans.length} masked · ${r.l7.events.length} events · ${r.request_id}`); await sleep(150); }
+    const toks = runs.map(r => new Set(r.l2.tokens_this_message)), phoneTok = [...toks[3]].filter(t => toks[5].has(t)), last = runs[runs.length - 1];
     log('L2', `${last.l2.entries.length} encrypted entries under key ${last.l2.keys[0].key_id}`);
-    const a1 = await api('/api/consent/try', { store: 'eval_sets', purpose: 'service' }); log('L4', `eval_sets ← service: ${a1.allowed ? 'written' : 'rejected'} (${a1.reason}) audit #${a1.event.seq}`);
-    const a2 = await api('/api/consent/try', { store: 'eval_sets', purpose: 'model_improvement', explicit: true, consent_id: 'CN-DEMO-1' }); log('L4', `eval_sets ← model_improvement + consent CN-DEMO-1: ${a2.allowed ? 'written' : 'rejected'} (${a2.reason}) audit #${a2.event.seq}`);
-    const pl = await api('/api/plant', {}); log('L5', `${pl.planted.length} copies added outside the registry: ${pl.planted.map(p => p.store + ':' + p.id).join(', ')}`);
-    const lin = await api('/api/lineage'); const regRecs = lin.graph.nodes.filter(n => ['log', 'chunk', 'eval'].includes(n.kind)).length, tot = lin.stores.reduce((a, s) => a + s.count, 0), unreg = lin.stores.reduce((a, s) => a + s.unregistered_records, 0);
-    log('L5', `registry knows ${regRecs} records; stores hold ${tot}; ${unreg} not in registry`);
-    const er = await api('/api/erase', {}); S.erFull[er.request_id] = er; S.reqs = (await api('/api/erasure')).requests; renderNav(); er.trace.forEach(t => log('L6', t)); log('L6', `${er.request_id} → ${er.status} in ${er.secs}s · audit #${er.audit_seq}`);
-    log('L8', `independent scan: raw values ${er.raw_before} → ${er.raw_after} · vault entries ${er.vault_before} → ${er.vault_after} · key present ${er.key_present} · token read: ${er.probe}`);
-    const au = S.audit = await api('/api/audit/full'); const tm = await api('/api/audit/tamper', {}); S.status = await api('/api/status'); renderEnv();
-    log('L7', `chain ${au.chain.ok ? 'intact' : 'BROKEN'} (${au.length} records) · edit to #${tm.edited_seq} ${tm.copy_verifies ? 'NOT detected' : 'detected'} · real log intact: ${tm.real_log_intact}`);
+    const a1 = await api('/api/consent/try', { store: 'eval_sets', purpose: 'service' }, undefined, 'rohit'); log('L4', `eval_sets ← service: ${a1.allowed ? 'written' : 'rejected'} (${a1.reason}) audit #${a1.event.seq}`);
+    const a2 = await api('/api/consent/try', { store: 'eval_sets', purpose: 'model_improvement', explicit: true, consent_id: 'CN-DEMO-1' }, undefined, 'rohit'); log('L4', `eval_sets ← model_improvement + consent CN-DEMO-1: ${a2.allowed ? 'written' : 'rejected'} (${a2.reason}) audit #${a2.event.seq}`);
+    const pl = await api('/api/plant', {}); log('L5', `${pl.planted.length} copies added outside the registry`);
+    const lin = await api('/api/lineage'), unreg = lin.stores.reduce((a, s) => a + s.unregistered_records, 0); log('L5', `registry knows ${lin.graph.nodes.filter(n => ['log', 'chunk', 'eval'].includes(n.kind)).length} records; ${unreg} stored copies are not in it`);
+    const rq = await api('/api/privacy/requests', { sid: S.case, reason: 'borrower_request' }, undefined, 'asha'); log('L8', `${rq.request_id} initiated by Asha Rao (Collections agent)`);
+    const cantApprove = await tryCall(`/api/privacy/requests/${rq.request_id}/approve`, {}, 'asha'); log('L8', `Asha tries to approve: ${cantApprove.ok ? 'ALLOWED' : 'refused (' + cantApprove.status + ')'}`);
+    const selfRec = await tryCall(`/api/privacy/requests/${rq.request_id}/recommend`, {}, 'asha'); log('L8', `Asha tries to recommend her own request: ${selfRec.ok ? 'ALLOWED' : 'refused (' + selfRec.status + ')'}`);
+    await api(`/api/privacy/requests/${rq.request_id}/recommend`, { note: 'identity verified' }, undefined, 'rohit'); log('L8', 'recommended by Rohit Mehta (Privacy officer)');
+    const early = await tryCall(`/api/privacy/requests/${rq.request_id}/approve`, {}, 'rohit'); log('L8', `Rohit tries to approve: ${early.ok ? 'ALLOWED' : 'refused (' + early.status + ')'}`);
+    const done = await api(`/api/privacy/requests/${rq.request_id}/approve`, {}, undefined, 'meera'); log('L8', `approved by Meera Iyer (Data protection officer) → ${done.state}`);
+    const full = await api('/api/privacy/requests/' + rq.request_id), er = full.result; er.trace.forEach(t => log('L6', t)); log('L6', `${er.status} in ${er.secs}s · audit #${er.audit_seq}`);
+    log('L8', `independent scan: raw values ${er.raw_before} → ${er.raw_after} · vault entries ${er.vault_before} → ${er.vault_after} · key present ${er.key_present}`);
+    const au = S.audit = await api('/api/audit/full', undefined, undefined, 'vikram'), tm = await api('/api/audit/tamper', {}, undefined, 'vikram'); S.reqs = await api('/api/privacy/requests'); renderNav();
+    const agentAudit = await tryCall('/api/audit/full', undefined, 'asha');
+    log('L7', `chain ${au.chain.ok ? 'intact' : 'BROKEN'} (${au.length} records) · edit to #${tm.edited_seq} ${tm.copy_verifies ? 'NOT detected' : 'detected'} · agent reading the audit trail: ${agentAudit.ok ? 'ALLOWED' : 'refused (' + agentAudit.status + ')'}`);
+    const env = au.records.find(r => r.action === 'privacy.request.approve' && r.request_id === rq.request_id);
     e.checks = [['All 10 turns passed the gateway', '10 / 10 ok', `${runs.filter(r => r.status === 'ok').length} / 10 ok`, runs.every(r => r.status === 'ok')],
       ['Number said in two pieces becomes one token', 'shared token', phoneTok.join(' ') || 'none', phoneTok.length > 0],
       ['Service data refused for eval_sets', 'rejected', a1.allowed ? 'written' : 'rejected', !a1.allowed], ['Same write with explicit consent', 'written', a2.allowed ? 'written' : 'rejected', a2.allowed],
-      ['Copies outside the registry found', '≥ 1 unregistered store', (er.record.unregistered_stores_with_hits || []).join(', ') || 'none', (er.record.unregistered_stores_with_hits || []).length > 0],
+      ['Agent cannot approve an erasure', 'refused', cantApprove.ok ? 'allowed' : 'refused ' + cantApprove.status, !cantApprove.ok], ['Initiator cannot recommend own request', 'refused', selfRec.ok ? 'allowed' : 'refused ' + selfRec.status, !selfRec.ok],
+      ['Privacy officer cannot approve', 'refused', early.ok ? 'allowed' : 'refused ' + early.status, !early.ok], ['Data protection officer approves, erasure runs', 'EXECUTED', done.state, done.state === 'EXECUTED'],
       ['Erasure status', 'ERASED_VERIFIED', er.status, er.status === 'ERASED_VERIFIED'], ['Raw values left in store files', '0', String(er.raw_after), er.raw_after === 0],
       ['Vault entries and key', '0 entries, key destroyed', `${er.vault_after} entries, key ${er.key_present ? 'present' : 'destroyed'}`, er.vault_after === 0 && !er.key_present],
+      ['Audit record carries actor, IP, trace', 'present', env && env.actor && env.source && env.trace_id ? `${env.actor.id} · ${env.source.ip} · ${env.trace_id.slice(0, 8)}` : 'missing', !!(env && env.actor && env.source && env.trace_id)],
+      ['Agent cannot read the audit trail', 'refused', agentAudit.ok ? 'allowed' : 'refused ' + agentAudit.status, !agentAudit.ok],
       ['Audit chain verifies', 'intact', au.chain.ok ? 'intact' : 'broken', au.chain.ok], ['Tampering is detected', 'detected, real log intact', `${tm.copy_verifies ? 'missed' : 'detected'}, real log ${tm.real_log_intact ? 'intact' : 'affected'}`, !tm.copy_verifies && tm.real_log_intact]];
   } catch (err) { log('ERR', err.message); e.checks = [['Scenario completed', 'completed', err.message, false]]; }
   e.running = false; if (S.screen === 'e2e') SCR.e2e();
