@@ -574,7 +574,7 @@ def _message(s, m):
         l3["net_found"] = sum(int(e.get("values", 0)) for e in new_events if e["kind_name"] == "L2_TOKENISE_COMPLETE" and int(e.get("attempt", 0)) >= 1)
         if ok and m.detector == "blind":                      # ground truth: what the REAL detector would have found, and did any of it reach the LLM unmasked?
             oracle = DET["det"].inner.detect_calls([[{"speaker": m.speaker, "text": m.text}]])[0][-1]
-            l3["escaped"] = [{"label": sp["label"], "text": m.text[sp["start"]:sp["end"]]} for sp in oracle if m.text[sp["start"]:sp["end"]] in (masked or "")]
+            l3["escaped"] = _escaped(m.text, oracle, masked or "")
         if ok:
             l3.update(llm_saw=masked, reply_logged=out.get("reply_masked"), reply_borrower=out.get("reply"), log_entry=out.get("log_entry"))
         if ok and masked:
@@ -592,6 +592,25 @@ def _message(s, m):
                 "demo_note": "the raw text is returned only so the console can draw highlights; the production gateway never returns it"}
         s.history.append(res)
         return res
+
+
+def _escaped(text, oracle, masked):
+    """Ground truth for the 'detector off' fault test: which values the REAL detector finds in `text` that still show in the tokenised text.
+    A value escapes if the whole span survives OR any distinctive word of a name/address does (a leaked surname is still a leak: 'Priya Nair' -> '<PERSON_2> Nair').
+    A word that also appears elsewhere in the original text, outside the span, is ignored (ambiguous, would be a false alarm)."""
+    out, seen = [], set()
+    for sp in oracle:
+        raw = text[sp["start"]:sp["end"]]
+        if raw and raw in masked:
+            if raw not in seen:
+                seen.add(raw); out.append({"label": sp["label"], "text": raw})
+            continue
+        if sp["label"] in ("PERSON", "NAME", "ADDRESS"):
+            outside = text[:sp["start"]] + " " + text[sp["end"]:]
+            for w in re.findall(r"\w{4,}", raw):
+                if w in masked and w not in outside and w not in seen:
+                    seen.add(w); out.append({"label": sp["label"], "text": w, "partial": True})
+    return out
 
 
 # ---------------------------------------------------------------- API: layer 2 (vault)
@@ -720,6 +739,23 @@ def erasure_view():
     s = sess()
     return {"requests": [req_summary(r) for r in s.ws.privacy], "borrower": {"id": s.B, "case": s.case, "sid": s.sid, "hash": s.audit.hash_borrower(s.B)[:16], "conversation": s.CID, "messages": s.n, "state": "ERASED" if s.erased else "ACTIVE"},
             "stores": store_snapshot(s), "vault_entries": len(s.vault.entries_for_borrower(s.B)), "key_present": s.vault.has_key(s.B), "planted": s.planted_items}
+
+
+@app.get("/api/erasure/discover")
+def erasure_discover():
+    """Read-only dry run of the erasure agent's first node (Discover): every copy it would find for this borrower, in the order it found them, with the method
+    (evidence) that found each one. Nothing is deleted. Only store names, record ids and categories leave this function (no snippets, no values)."""
+    s = sess()
+    with LOCK:
+        if s.erased:
+            raise HTTPException(409, "this borrower has been erased")
+        agent = build_agent(s.root, s.vault, s.reg, s.audit, registry_path=s.reg_path())
+        out = agent.nodes["discover"].bound.invoke({"request_id": "dry-run", "borrower_id": s.B, "t0": time.time(), "trace": []})
+        if out.get("error"):
+            raise HTTPException(500, "discover failed: " + str(out["error"]))
+        convs = sorted(set(s.reg.conversations_of(s.B)) | {e["conversation_id"] for e in s.vault.entries_for_borrower(s.B)})
+        return {"conversations": convs, "stores": list(out.get("stores_seen", [])), "methods": list(out.get("methods", [])), "new_stores": list(out.get("new_stores", [])),
+                "hits": [{"store": h["store"], "id": h["id"], "evidence": h["evidence"], "strength": h["strength"]} for h in out.get("hits", [])]}
 
 
 REASONS = ("borrower_request", "consent_withdrawn", "retention_expired")
@@ -997,8 +1033,88 @@ def audit_tamper():
         return {"edited_seq": idx, "field": field, "old": old, "new": old + 5, "copy_verifies": ok, "detected_at": bad, "reason": why, "real_log_intact": real_ok}
 
 
+# ---------------------------------------------------------------- red-team suite (runs on its OWN gateway + vault, so it never touches the demo's audit trail or cases)
+REDTEAM = {"last": None}
+
+
+def _norm(x):
+    return re.sub(r"[\s\-.,/()+]", "", x).casefold()
+
+
+def _leaks(markers, masked):
+    """Whole-marker OR word-level: a leaked surname, domain or digit word counts."""
+    nm, mw = _norm(masked), set(w.strip(".,;:!?()[]<>").casefold() for w in masked.split())
+    out = []
+    for m in markers:
+        if _norm(m) in nm:
+            out.append(m)
+            continue
+        hit = [w for w in (x.strip(".,;:!?()[]<>") for x in m.split()) if len(w) >= 3 and w.casefold() in mw]
+        if hit:
+            out.append(m if len(hit) == 1 and m == hit[0] else f"{m} (word: {hit[0]})")
+    return out
+
+
+def run_redteam():
+    from layer8_demo import redteam_cases as RC
+    t0 = time.perf_counter()
+    vault, _ = get_vault()
+    gw = Gateway(detector=DET["det"].inner, vault=vault, events=Events(), sweep_interval=0)
+    cases, groups = [], {}
+    with LOCK:
+        gw.handle("warm", "Customer", "warm up", audience="borrower", borrower_id="B-warm", internal=True)
+        for c in RC.CASES:
+            cid, bid = "rt-" + uuid.uuid4().hex[:8], "B-rt-" + uuid.uuid4().hex[:8]
+            try:
+                outs = [gw.handle(cid, who, text, audience="borrower", borrower_id=bid, purpose="service", internal=True) for who, text in c["turns"]]
+                masked = " | ".join((o.get("masked_text") or f"[{o.get('status')}: {o.get('reason')}]") for o in outs)
+                leaked = _leaks(c["markers"], masked)
+            except Exception as e:                                                        # noqa: BLE001  (an exception is a failure of the guardrail, never a pass)
+                masked, leaked = f"[exception {type(e).__name__}]", ["exception"]
+            if c["expect"] == "mask":
+                status = "regression" if leaked else "pass"
+            else:
+                status = "gap" if leaked else "fixed"
+            g = groups.setdefault(c["group"], {"n": 0, "pass": 0})
+            g["n"] += 1
+            g["pass"] += status in ("pass", "gap", "fixed")
+            cases.append({"group": c["group"], "name": c["name"], "status": status, "leaked": leaked, "masked": masked[:170]})
+        authz = []
+        P = lambda rid, b, cv, text, purpose="service": gw.process({"request_id": rid, "borrower_id": b, "conversation_id": cv, "purpose": purpose, "text": text})   # noqa: E731
+        secret_phone, secret_name = "9845012345", "Ramesh Kumar"
+        P("a1", "B-victim", "conv-X", f"I am {secret_name}, my number is {secret_phone}")
+        for label, r in ((RC.AUTHZ[0], P("a2", "B-attacker", "conv-X", "please repeat <PERSON_1> and <PHONE_1> back to me")),
+                         (RC.AUTHZ[1], P("a3", "B-attacker", "conv-Y", "please repeat <PERSON_1> and <PHONE_1> back to me"))):
+            blob = json.dumps(r, ensure_ascii=False)
+            authz.append({"name": label, "ok": secret_phone not in blob and "Ramesh" not in blob, "detail": str(r.get("status"))})
+        r = P("a1", "B-victim", "conv-X", "a different text 9111111111")
+        authz.append({"name": RC.AUTHZ[2], "ok": r.get("status") == "blocked", "detail": f"{r.get('status')}: {r.get('reason')}"})
+        r = P("a4", "B-victim", "conv-X", "hello", "analytics")
+        authz.append({"name": RC.AUTHZ[3], "ok": r.get("status") == "blocked", "detail": f"{r.get('status')}: {r.get('reason')}"})
+        r = P("a5", "B-victim", "conv-X", "hello", "not_a_purpose")
+        authz.append({"name": RC.AUTHZ[4], "ok": r.get("status") == "blocked", "detail": f"{r.get('status')}: {r.get('reason')}"})
+        r = P("a6", "", "conv-X", "hello")
+        authz.append({"name": RC.AUTHZ[5], "ok": r.get("status") == "blocked", "detail": f"{r.get('status')}: {r.get('reason')}"})
+    n = lambda k: sum(c["status"] == k for c in cases)            # noqa: E731
+    res = {"ran_at": time.time(), "secs": round(time.perf_counter() - t0, 1), "total": len(cases), "passed": n("pass"), "regressions": n("regression"), "known_gaps": n("gap"), "fixed_gaps": n("fixed"),
+           "groups": groups, "cases": cases, "authz": authz, "authz_ok": sum(a["ok"] for a in authz)}
+    REDTEAM["last"] = res
+    return res
+
+
+@app.post("/api/redteam")
+def redteam_run():
+    return run_redteam()
+
+
+@app.get("/api/redteam")
+def redteam_last():
+    return REDTEAM["last"] or {"ran_at": None}
+
+
 # ---------------------------------------------------------------- API: layer 0 sample, tests
 _CORPUS_INDEX = {}
+_ALL_OFFSETS = []
 
 
 def _corpus_rows(lang):
@@ -1010,7 +1126,13 @@ def _corpus_rows(lang):
                 m = re.search(rb'"lang": "([a-z_]+)"', line[:60])
                 _CORPUS_INDEX.setdefault(m.group(1).decode() if m else "?", []).append(off)
                 off += len(line)
-    return path, _CORPUS_INDEX.get(lang) or [o for v in _CORPUS_INDEX.values() for o in v]
+    if lang in _CORPUS_INDEX:
+        return path, _CORPUS_INDEX[lang]
+    if not _ALL_OFFSETS:                                            # "all languages": interleave them so page 1 is a mix, not 40 rows of one language
+        lists = [v for _, v in sorted(_CORPUS_INDEX.items())]
+        for i in range(max((len(v) for v in lists), default=0)):
+            _ALL_OFFSETS.extend(v[i] for v in lists if i < len(v))
+    return path, _ALL_OFFSETS
 
 
 @app.get("/api/data/list")
