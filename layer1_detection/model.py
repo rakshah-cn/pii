@@ -51,17 +51,53 @@ class ModelDetector:
     def _key(t):
         return hashlib.md5(t.encode()).hexdigest()
 
-    def detect_texts(self, texts, bs=16):
-        todo = [t for t in dict.fromkeys(texts) if self._key(t) not in self.cache]
+    def detect_texts(self, texts, bs=16, contexts=None):
+        """Spans per text, offsets relative to that text.
+        contexts[i] (optional): the text of the turn BEFORE texts[i]. The model then reads  context + '\\n' + text  and only the part of each span that lies inside the text is returned
+        (a span inside the context, or the context half of a span that crosses the boundary, is dropped). A short reply such as 'Pooja.' has no context on its own; the question before it
+        tells the model it is a name. The caller passes the RAW previous turn (it is only ever read by the local model, never stored or logged here)."""
+        if contexts is None:
+            contexts = [""] * len(texts)
+        elif len(contexts) != len(texts):
+            raise ValueError("contexts must have one entry per text")
+        inputs = [(c + "\n" + t, len(c) + 1) if c else (t, 0) for t, c in zip(texts, contexts)]
+        keys = [self._key(x) for x, _ in inputs]
+        have = {}                                                        # a LOCAL view of the cache: the gateway may trim the shared dict from another thread between the check and the read
+        for k in keys:
+            v = self.cache.get(k)
+            if v is not None:
+                have[k] = v
+        todo = list(dict.fromkeys((x, k) for (x, _), k in zip(inputs, keys) if k not in have))
         if todo:
             self._load()
             for i in range(0, len(todo), bs):
                 chunk = todo[i:i + bs]
-                for t, spans in zip(chunk, self.m.detect_batch(chunk)):
-                    self.cache[self._key(t)] = [dict(label=s["label"], start=s["start"], end=s["end"]) for s in spans]
+                for (t, k), spans in zip(chunk, self.m.detect_batch([t for t, _ in chunk])):
+                    have[k] = self.cache[k] = [dict(label=s["label"], start=s["start"], end=s["end"]) for s in spans]
             if self.use_cache:
                 json.dump(self.cache, open(CACHE, "w", encoding="utf-8"))
-        return [self.cache[self._key(t)] for t in texts]
+        return [have[k] if not shift else _inside_text(have[k], shift) for (_, shift), k in zip(inputs, keys)]
+
+
+CONTEXT_CHARS = 120      # how much of the previous turn the model reads (its tail: the question is at the end). Model time grows with the input: measured p50 12 ms with no context, 25 ms with 100 chars, 35 ms with 300; the name gain is already there at 60-150 chars
+
+
+def context_tail(prev):
+    """The last CONTEXT_CHARS characters of the previous turn, not starting in the middle of a word ('' if there is no previous turn). The question is at the END of a turn, so the tail is the part worth keeping."""
+    if not prev or not prev.strip():
+        return ""
+    if len(prev) <= CONTEXT_CHARS:
+        return prev
+    cut = prev[-CONTEXT_CHARS:]
+    if not prev[-CONTEXT_CHARS - 1].isspace() and not cut[0].isspace():     # the cut fell inside a word: drop that partial word
+        m = re.search(r"\s", cut)
+        cut = cut[m.end():] if m else ""
+    return cut
+
+
+def _inside_text(spans, shift):
+    """Spans of  context + '\\n' + text  -> spans of `text` alone (shift = len(context) + 1)."""
+    return [dict(s, start=max(s["start"], shift) - shift, end=s["end"] - shift) for s in spans if s["end"] > shift]
 
 
 def suppress_orgs(text, spans):
@@ -107,3 +143,28 @@ def suppress_chatter(text, spans):
             continue
         out.append(dict(s, start=a, end=b))
     return out
+
+
+def suppress_digits(text, spans):
+    """A name has no digits. For PERSON spans: drop the words that contain a digit at either end ('Nimage 15th' -> 'Nimage', '19th' -> nothing; the model sometimes tags an ordinal as a name,
+    which also masks a DATE the downstream task needs). Spans of other labels are untouched."""
+    out = []
+    for s in spans:
+        if s["label"] != "PERSON":
+            out.append(s)
+            continue
+        a, b = s["start"], s["end"]
+        toks = [(m.start(), m.end(), m.group()) for m in re.finditer(r"\S+", text[a:b])]
+        while toks and any(c.isdigit() for c in toks[0][2]):
+            toks.pop(0)
+        while toks and any(c.isdigit() for c in toks[-1][2]):
+            toks.pop()
+        if toks:
+            out.append(dict(s, start=a + toks[0][0], end=a + toks[-1][1]))
+    return out
+
+
+def clean_model_spans(text, spans):
+    """All the filters applied to the model's spans, in this order: grow a span to whole words and drop greetings (suppress_chatter), THEN drop company names (suppress_orgs), then take digit
+    words off names (suppress_digits). The company check must come after the growing: the model can tag just 'serv' of 'Finserv', and only the whole word is a company suffix."""
+    return suppress_digits(text, suppress_orgs(text, suppress_chatter(text, spans)))

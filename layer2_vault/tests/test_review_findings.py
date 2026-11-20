@@ -276,5 +276,27 @@ def test_joining_pieces_into_a_value_the_conversation_already_holds_hands_back_t
     assert v.rehydration.rehydrate(reh_req([t3]), g).values == {t3: "9811122233"}
 
 
+# ---- names with initials (Layer 1 now stores 'S. Nadar' whole, where it used to store just 'Nadar')
+def test_initial_name_is_not_matched_inside_an_honorific():
+    from layer2_vault.core.sealed_match import SealedMaterial, NAME_FULL
+    m = SealedMaterial(["R. Rao"])
+    assert m.name("Mr. Rao called") != NAME_FULL and m.name("Dr. Rao called") != NAME_FULL and m.name("Sr. Rao called") != NAME_FULL
+    assert m.name("Mr. Rao called") is not None, "still reported (ambiguous), not silently missed"
+    assert m.name("Customer R. Rao called") == NAME_FULL
+
+
+def test_initial_name_surname_only_and_reordered_copies_are_still_reported():
+    from layer2_vault.core.sealed_match import SealedMaterial, NAME_SINGLE
+    m = SealedMaterial(["S. Nadar"])
+    for text in ("Customer Nadar called", "CRM note: NADAR S wants a call back", "CRM note: S Nadar wants a call back"):
+        assert m.name(text) == NAME_SINGLE, text
+
+
+def test_four_word_name_with_initials_is_a_name_not_an_address():
+    from layer2_vault.core.sealed_match import SealedMaterial
+    m = SealedMaterial(["Usha M. K. Tiwari"])
+    assert m.names and not m.addrs and m.name("Tiwari paid") is not None
+
+
 if __name__ == "__main__":
     run(globals())

@@ -43,4 +43,6 @@ class NameMemory:
                 if any(m.start() < e["end"] and m.end() > e["start"] for e in list(existing) + out):
                     continue
                 out.append(dict(label="PERSON", start=m.start(), end=m.end(), source="memory"))
-        return sorted(out, key=lambda x: x["start"])
+        from .expand import expand_name                                          # (imported here: expand.py also imports from this package)
+        others = [e for e in existing if e["label"] not in ("PERSON", "NAME")]
+        return sorted((expand_name(text, o, others) for o in out), key=lambda x: x["start"])        # 'S. Thorat' later in the call: the initial goes with the name

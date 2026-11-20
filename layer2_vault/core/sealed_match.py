@@ -17,6 +17,7 @@ STRONG, ADDRESS, NAME_FULL, NAME_SINGLE, NAME_EMBEDDED = "strong", "address", "n
 # letters, so it does nothing for Devanagari / Kannada / Tamil text or all-lowercase text (those still match as name_full, as before); in ALL-CAPS text any neighbouring word counts.
 _ROLE_WORDS = frozenset("""mr mrs ms miss dr shri smt sri sir madam mam maam ji dear hello hi customer borrower client agent caller name regards thanks thank bank loan account mobile
 number aadhaar aadhar pan call please yes okay ok finance credit limited ltd pvt emi today tomorrow yesterday summary summarise summarize case note notes contact re ref update""".split())
+_INITIAL = re.compile(r"(?:[^\W\d_]\.)+|[^\W\d_]\.?")         # one letter with or without a full stop, or dotted initials: 's.', 's', 'k.s.' (casefolded)
 _CAPITALISED = re.compile(r"[A-Z][a-z]+(?:[-'][A-Za-z]+)*|[A-Z]\.|[A-Z]{2,}")
 
 
@@ -49,11 +50,14 @@ class SealedMaterial:
                 self.digits.append(re.sub(r"\D", "", r))
             elif _PAN.fullmatch(r) or (re.fullmatch(r"[A-Z0-9]{8,}", r) and any(c.isdigit() for c in r)):
                 self.codes.append(r.casefold())
-            elif "," in r or len(r.split()) >= 4:
+            elif "," in r or len([w for w in r.split() if not _INITIAL.fullmatch(w)]) >= 4:        # (initials do not make a name an address: 'Usha M. K. Tiwari' is a name)
                 if len(r) >= 12:
                     self.addrs.append(" ".join(r.split()).casefold())
             elif r:
-                self.names.append(" ".join(r.split()).casefold())
+                n = " ".join(r.split()).casefold()
+                self.names.append(n)
+                if any(_INITIAL.fullmatch(w) for w in n.split()):          # 'S. Nadar': a copy that writes only the surname, or the initial differently ('Nadar S', 'NADAR S'), is still a copy
+                    self.names += [w.strip(".,") for w in n.split() if not _INITIAL.fullmatch(w) and len(w.strip(".,")) >= 3]       # (single words: reported for a human, never deleted by themselves)
         self._dpat = [re.compile(r"(?<!\d)" + (r"(?:\+?91[ \-]?|0)?" if len(d) == 10 else "")
                                  + r"[ \-]?".join(map(re.escape, d)) + r"(?!\d)") for d in self.digits]
 
@@ -77,6 +81,8 @@ class SealedMaterial:
             for n in full:
                 for m in re.finditer(re.escape(n), o, re.I):          # positions in the original-case text: the cue for 'inside a longer name' is capitalisation
                     found = True
+                    if m.start() > 0 and o[m.start() - 1].isalnum():       # the match starts inside a word ('Mr. Rao' contains 'r. rao'): not this name, report it as ambiguous
+                        continue
                     if not _embedded(o, m.start(), m.end()):
                         return NAME_FULL                              # one clean occurrence is enough
             return NAME_EMBEDDED if found else NAME_FULL

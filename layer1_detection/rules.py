@@ -6,6 +6,7 @@ Span dicts: {label,start,end,source:'rules'} plus optional `strong` (True = exac
 Labels produced here: PHONE AADHAAR ACCOUNT NUMBER_FRAGMENT PAN IFSC GSTIN VOTER_ID DRIVING_LICENCE
 PASSPORT UPI_ID EMAIL DOB MASKED_ID ID_ALNUM ADDRESS LOAN(cue-based) ACCOUNT(cue-based)."""
 import re
+import unicodedata
 
 # things that look like numbers but are NOT PII
 _EXCL = [
@@ -50,20 +51,85 @@ def overlaps(a, b, ranges):
     return any(a < e and b > s for s, e in ranges)
 
 
+# ---- address rule helpers ------------------------------------------------------------------------------------------------------------------------------------------
+# The words that introduce the house number are part of the address ('Flat 744', 'H.No. 156', 'வீட்டு எண் 172', 'घर क्रमांक 822', 'ಮನೆ ಸಂಖ್ಯೆ 658').
+_HM_LATIN = (r"h\.?\s?no\.?|d\.?\s?no\.?|house\s+(?:no\.?|number)|flat(?:\s+(?:no\.?|number))?|plot(?:\s+(?:no\.?|number))?|door(?:\s+(?:no\.?|number))?|"
+             r"room(?:\s+(?:no\.?|number))?|shop(?:\s+(?:no\.?|number))?|apt\.?|apartment|unit|block|no\.?|#")
+_HM_INDIC = (r"(?:मकान|घर|फ्लैट|फ्लॅट|प्लॉट|दुकान|सदनिका|कमरा|खोली)(?:\s+(?:नंबर|नम्बर|नं\.?|क्रमांक|संख्या|क्र\.?))?"
+             r"|(?:ಮನೆ|ಫ್ಲ್ಯಾಟ್|ಫ್ಲಾಟ್|ಪ್ಲಾಟ್|ಅಂಗಡಿ|ರೂಮ್)(?:\s+(?:ಸಂಖ್ಯೆ|ನಂಬರ್|ನಂ\.?|ಸಂ\.?))?"
+             r"|(?:வீட்டு|கதவு|அறை|கடை)\s+(?:எண்|நம்பர்)|ப்ளாட்|பிளாட்")
+_HM_ROMAN = r"(?:ghar|makan|mane|veetu|kholi|sadanika)\s+(?:number|no\.?|kramank|sankhye|ennu)"
+_HOUSE_MARKER = re.compile(rf"(?:{_HM_LATIN}|{_HM_INDIC}|{_HM_ROMAN})[\s.:#\-]*$", re.I)
+# a full stop after one of these (or after a single letter / dotted initials: 'T.', 'M.G.') is an abbreviation, not the end of a sentence
+_ABBREV = frozenset("opp nr dist tal tq po ps govt dr mr mrs ms smt shri ave mkt".split())
+_ABBREV_BEFORE_NUMBER = frozenset("rs no sec ph ext pl apt hno blk bldg".split())          # 'Rs. 5000', 'No. 12', 'Apt. 4': an abbreviation only when a number follows; 'I will pay 5000 Rs. My address ...' is a sentence end
+# a colon / semicolon that follows one of these words is part of the address ('landmark: near the temple, Pune', 'Pincode: 560034'), not a field boundary
+_ADDRESS_LABELS = frozenset("landmark near city state district dist pin pincode zip postal road street area locality sector block building flat plot village town taluka tal country".split())
+_ABBREV_TAIL = re.compile(r"[A-Za-z.]*$")
+_COMMA_NOT_IN_NUMBER = re.compile(r"(?<!\d),|,(?!\d{3}(?!\d)|\d{2},\d)")      # a comma inside a number is a thousands / lakh separator ('Rs. 7,200', '1,00,000'), not a part separator; '14,12th Main' is two parts
+
+
+def _wordchar(c):
+    return unicodedata.category(c)[0] in "LMN"
+
+
+def _house_marker_start(text, start):
+    """`start` = where the house number begins. -> the start of the marker word(s) right before it ('Flat ', 'H.No. ', 'வீட்டு எண் '), or `start` itself."""
+    lo = max(0, start - 40)                                                  # a marker is at most ~25 characters long
+    prefix = text[lo:start]
+    m = _HOUSE_MARKER.search(prefix)
+    while m and (m.start() > 0 and _wordchar(prefix[m.start() - 1]) or (m.start() == 0 and lo > 0 and _wordchar(text[lo - 1]))):       # the match starts inside another word ('piano 5'): try a later start
+        m = _HOUSE_MARKER.search(prefix, m.start() + 1)
+    return lo + m.start() if m else start
+
+
+_NOT_A_HOUSE_NUMBER = re.compile(r"@|[A-Za-z]{2,}-?\d{4,}|\d{4,}-?[A-Za-z]{2,}|[₹$]|^rs\.?$", re.I)      # a PAN, UPI id, masked card, loan id, amount: not a house number
+_SEG_WINDOW = 400                                                              # an address is much shorter than this: the scan to the left stops here (keeps the cost linear in a text with many pincodes)
+
+
+def _segment_start(text, end):
+    """Index where the sentence (or field) containing text[end-1] begins: after the last '.', '?', '!' or '।' that really ends a sentence (a '.' after an abbreviation or an initial does
+    not), or after the last ':' / ';' (a label or a field separator: 'registered residence: #448, ...') that is not itself part of the address ('Pincode: 560034')."""
+    lo = max(0, end - _SEG_WINDOW)
+    i = end
+    while i > lo:
+        i = max(text.rfind(c, lo, i) for c in ".?!:;।॥")
+        if i < 0:
+            return lo
+        c = text[i]
+        if c in ":;":
+            word = re.search(r"[^\W\d_]*$", text[max(0, i - 12):i]).group().casefold()
+            if "," not in text[i + 1:end] or word in _ADDRESS_LABELS:         # nothing address-like between it and the pincode, or an address label: not a boundary
+                continue
+            return i + 1
+        if c != ".":
+            return i + 1
+        tail = _ABBREV_TAIL.search(text, max(0, i - 8), i).group()           # the word right before this full stop, e.g. 'opp', 'T', 'M.G'
+        w = tail.strip(".").casefold()
+        nxt = text[i + 1:].lstrip()[:1]
+        isabbr = w in _ABBREV or (w in _ABBREV_BEFORE_NUMBER and (nxt.isdigit() or nxt == "#")) or re.fullmatch(r"(?:[A-Za-z]\.)*[A-Za-z]", tail)
+        if tail and isabbr and (len(tail) == 1 or not text[max(0, i - len(tail) - 1):i - len(tail)].isalnum()):
+            continue                                                         # an abbreviation: keep looking further left
+        return i + 1
+    return lo
+
+
 def _addresses(text, excl):
     """Pincode-anchored address: [house no.,] chunk, chunk ... PINCODE (needs at least one comma)."""
     out = []
-    for m in re.finditer(r"(?<!\d)[1-9]\d{5}(?!\d)", text):
-        if overlaps(m.start(), m.end(), excl):
+    for m in re.finditer(r"(?<!\d)\d{6}(?!\d)", text):                 # 6 digits, any script ('४२२४३०'); a pincode never starts with 0
+        if overlaps(m.start(), m.end(), excl) or unicodedata.decimal(text[m.start()]) == 0:
             continue
-        seg_start = max(text.rfind(c, 0, m.start()) for c in ".?!") + 1
-        parts = text[seg_start:m.start()].split(",")
+        seg_start = _segment_start(text, m.start())
+        parts = _COMMA_NOT_IN_NUMBER.split(text[seg_start:m.start()])
         if len(parts) < 2:
             continue
         first = parts[0].rstrip()
-        word = first.split(" ")[-1] if first else ""
-        if word and len(word) <= 5 and any(ch.isdigit() for ch in word):
-            start = seg_start + len(first) - len(word)           # keep a leading house number
+        word = (first.split()[-1] if first.split() else "").lstrip("\"'([{")
+        wstart = seg_start + len(first) - len(word)
+        if (word and len(word) <= 10 and any(ch.isdigit() for ch in word) and sum(ch.isdigit() for ch in word) <= 6        # '93', '12/B', '772/50', 'A-102'; not a 10-digit phone number
+                and not _NOT_A_HOUSE_NUMBER.search(word) and not overlaps(wstart, wstart + len(word), excl)):               # nor a PAN / UPI / loan id, an amount or a date
+            start = _house_marker_start(text, wstart)                                  # keep a leading house number and the words that introduce it
         else:
             start = seg_start + len(parts[0]) + 1                # drop 'It is ...' lead-in
             while start < m.start() and text[start] == " ":

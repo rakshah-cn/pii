@@ -68,7 +68,7 @@ Build order that worked: L0 data and scoreboard -> L1 detector (measured on the 
 
 | Suite | Command | Result now |
 |---|---|---|
-| L1 | `python -m layer1_detection.test_layer1` / `.test_chatter` / `.test_memory_expand` | 18 / 7 / 18 pass |
+| L1 | `python -m layer1_detection.test_layer1` / `.test_chatter` / `.test_memory_expand` / `.test_context` / `.test_initials` / `.test_address` / `.test_phone_label` | 18 / 16 / 18 / 19 / 24 / 37 / 20 pass |
 | L2 modular vault | `python -m layer2_vault.tests.run_all` | 234 pass, 9 skipped (need Postgres / scratch cluster); 242 on Postgres |
 | L3 | `python -m layer3_gateway.test_gateway` / `.test_gateway_spec` | 31 / 49 pass |
 | L4 | `python -m layer4_consent.test_consent` / `.test_guard` | 5 / 11 pass |
@@ -124,6 +124,8 @@ Build order that worked: L0 data and scoreboard -> L1 detector (measured on the 
 5. `expand.py`: absorbs `+91`, straggler digits and spoken edge words into a span.
 6. `name_memory.py`: later mentions of parts of an already-detected name ("Kumar") in the same conversation.
 7. `resolve.py`: merges overlapping spans, assigns types, joins numbers split across turns; offsets stay valid.
+
+**Changed after the final run (20 Nov, see `LAYER1_REPORT.md` last section):** the model also reads the tail of the previous turn (`model_context=True`, `CONTEXT_CHARS=120`); initials are absorbed into names (`expand_name`); the address rule takes the house-number word and survives 'opp.' / 'T.'; number labels use the head of the phrase and a stale-cue rule. Measured on dev/test: fully masked 97.2-98.0 -> 98.8-99.2%, names 93-96 -> 99%, addresses 91-94 -> 99%, +3 ms p50. The one-shot final-split number belongs to the OLD detector; the new one has not been scored on it.
 
 **Chosen fast config:** int8 ONNX, model run only on the NEWEST turn (`model_last_only=True`; earlier turns are history for cues/joining and covered by fast rules), 8 ORT threads by default (make it configurable: `make_detector(threads=)` / `GATEWAY_MODEL_THREADS`). Latency measured: p50 ~8.8 ms, p95 11.9 ms, p99 13.7 ms (short synthetic turns, loaded CPU).
 

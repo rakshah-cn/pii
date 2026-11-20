@@ -3,9 +3,10 @@
 Input : a call = list of {"speaker","text"} turns, in order.
 Output: for each turn, a list of spans {label,start,end,source}, offsets relative to that turn's text.
 """
+import inspect
 import re
 
-from .model import ModelDetector, suppress_chatter, suppress_orgs
+from .model import ModelDetector, clean_model_spans, context_tail
 from .resolve import resolve_call
 from .normalise import normalise
 from . import rules, spoken_engine
@@ -21,19 +22,34 @@ ARM_ON_CUE, ARM_ON_FRAGMENT = 6, 3
 
 class Detector:
     def __init__(self, use_rules=True, use_model=True, model_path="models/chitragupta", resolve=True,
-                 model_last_only=False, model_backend="torch"):
+                 model_last_only=False, model_backend="torch", model_context=True):
         # model_last_only=True: run the (slow) model only on the NEWEST turn of each call; earlier turns are history
         # for cues/joining, which the fast rules cover. Default False keeps the scoreboard behaviour.
+        # model_context=True: the model also reads the PREVIOUS turn (so a bare 'Pooja.' after 'May I know your name?' is recognised); False = the old, text-alone behaviour.
         self.use_rules, self.use_model, self.resolve = use_rules, use_model, resolve
-        self.model_last_only = model_last_only
+        self.model_last_only, self.model_context = model_last_only, model_context
         self.model = ModelDetector(model_path, backend=model_backend) if use_model else None
+
+    def _model_contexts(self, calls, idx):
+        """The previous turn (its tail) for every turn the model will read, or None when there is nothing to give (flag off, first turns only, or an older model object without the `contexts` argument)."""
+        if not self.model_context:
+            return None
+        try:
+            params = inspect.signature(self.model.detect_texts).parameters
+            if "contexts" not in params and not any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()):
+                return None                                              # an older model object / adapter that cannot take the context: it gets the plain text
+        except (TypeError, ValueError):
+            return None
+        ctxs = [context_tail(calls[ci][ti - 1]["text"]) if ti > 0 else "" for ci, ti in idx]
+        return ctxs if any(ctxs) else None
 
     def detect_calls(self, calls):
         model_out = None
         if self.model:
             idx = [(ci, ti) for ci, c in enumerate(calls) for ti in range(len(c))
                    if not self.model_last_only or ti == len(c) - 1]
-            res = self.model.detect_texts([calls[ci][ti]["text"] for ci, ti in idx])
+            texts, ctxs = [calls[ci][ti]["text"] for ci, ti in idx], self._model_contexts(calls, idx)
+            res = self.model.detect_texts(texts, contexts=ctxs) if ctxs else self.model.detect_texts(texts)
             model_out = [[[] for _ in c] for c in calls]
             for (ci, ti), spans in zip(idx, res):
                 model_out[ci][ti] = spans
@@ -54,7 +70,7 @@ class Detector:
                     armed = max(armed, ARM_ON_FRAGMENT) if sp else max(0, armed - 1)
                     spans += sp
                 if model_out:
-                    ms = suppress_chatter(text, suppress_orgs(text, model_out[ci][ti]))
+                    ms = clean_model_spans(text, model_out[ci][ti])
                     spans += [dict(s, source="model") for s in ms]
                 spans = expand_spans(text, spans)          # absorb +91 / straggler digits / spoken edge words
                 spans += nm.find(text, spans)              # later mentions of a detected name's parts

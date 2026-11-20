@@ -7,6 +7,10 @@ For every number-like span:
   EDGES  absorb ONE spoken digit word just outside either end ('zero', 'shunya', 'ondu', 'double' ...).
          Ambiguous words ('one', 'do', 'oh') are absorbed only next to SPOKEN spans, not next to written digits.
 Never expands into amounts/dates (rules.excluded_ranges).  Offsets stay valid on the original text.
+
+For every NAME span (PERSON, from the model or the name memory):
+  INITIALS  absorb the initials next to it ('S. Nadar', 'K.S. Rao', 'Usha M. Tiwari'): the model finds the surname and leaves 'S.' visible, or stops after the initial letter.
+            Never an honorific ('Mr.'), never a label ('Plan B.'), never into a number / id span next to it. No surname is taken after an initial (it swallowed the next sentence's first word).
 """
 import re
 
@@ -80,6 +84,55 @@ def expand_span(text, span, excl):
     return dict(span, start=s, end=e) if (s, e) != (span["start"], span["end"]) else span
 
 
+# ---- names: initials --------------------------------------------------------------------------------------------------------------------------------------------
+NAMES = ("PERSON", "NAME")
+_INITIALS_LEFT = re.compile(r"(?<![A-Za-z0-9.])(?:[A-Z]\.[ ]?)+$")        # 'S. ' / 'K. S. ' / 'K.S. ' right before the name
+_INITIAL_RIGHT = re.compile(r"[ ]?[A-Z]\.(?![A-Za-z0-9])")                # ' B.' right after the name (one capital letter and its full stop)
+_ENDS_ON_INITIAL = re.compile(r"(?:^|[\s.])[A-Z]$")
+_WINDOW = 40                                                              # a run of more than ~10 initials is not a name: only this much text before the span is searched (keeps the cost linear)
+# a capital letter + full stop right after one of these is a label ('Plan B.', 'Section A.', 'Vitamin C.'), not an initial
+_LABEL_WORDS = frozenset("plan section option part category vitamin type grade class item step point figure fig table appendix annexure schedule clause group batch stage level tier".split())
+
+
+def _clear(a, b, others):
+    return not any(a < o["end"] and b > o["start"] for o in others)
+
+
+def expand_name(text, span, others=()):
+    """Grow a NAME span over the initials next to it (see the module docstring). `others` = the spans of other kinds in this turn (numbers, ids): the name never grows into characters
+    they cover (a name merged into a number fragment would be retyped as a number). Returns the span itself when nothing changes. No surname is absorbed after an initial: it
+    would also swallow the first word of the next sentence ('Ravi K. Monday ...')."""
+    a, b = span["start"], span["end"]
+    s, e = a, b
+    if text[a:a + 1] == "." and a >= 1 and text[a - 1].isupper() and text[a - 1].isascii() and (a == 1 or not (text[a - 2].isalnum() or text[a - 2] == ".")):
+        s = a - 1                                                        # the model's span starts at the dot of the initial ('. Murthy'): take the letter too
+    lo = max(0, s - _WINDOW)
+    m = _INITIALS_LEFT.search(text[lo:s])
+    if m:
+        cand = lo + m.start()
+        before = text[:cand].split()
+        word = before[-1].strip(".,;:!?()\"'").casefold() if before and text[cand - 1:cand].isspace() else ""
+        if (cand == 0 or not (text[cand - 1].isalnum() or text[cand - 1] == ".")) and word not in _LABEL_WORDS and _clear(cand, s, others):
+            s = cand
+    if _ENDS_ON_INITIAL.search(text[a:b]) and text[b:b + 1] == "." and _clear(b, b + 1, others):      # the span stops on an initial letter and left its full stop out ('Renuka S' + '.')
+        e = b + 1
+    while True:
+        m = _INITIAL_RIGHT.match(text, e)
+        if not m or not _clear(e, m.end(), others):
+            break
+        e = m.end()
+    return dict(span, start=s, end=e) if (s, e) != (a, b) else span
+
+
 def expand_spans(text, spans):
     excl = rules.excluded_ranges(text)
-    return [expand_span(text, sp, excl) if sp["label"] in NUMERIC else sp for sp in spans]
+    others = [sp for sp in spans if sp["label"] not in NAMES]
+    out = []
+    for sp in spans:
+        if sp["label"] in NUMERIC:
+            out.append(expand_span(text, sp, excl))
+        elif sp["label"] in NAMES and sp.get("source") in ("model", "memory"):
+            out.append(expand_name(text, sp, others))
+        else:
+            out.append(sp)
+    return out

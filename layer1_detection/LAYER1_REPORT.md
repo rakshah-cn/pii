@@ -1,10 +1,12 @@
 # Layer 1 (detection): final report
 
+> **UPDATE, Fri 20 Nov, after the one-shot final run:** Layer 1 was changed AFTER `corpus_final` was scored, at the owner's request (section 'Changes after the final run' at the end). The final-split numbers below belong to the detector AS IT WAS at 01:46-01:49 IST. The changed detector has NOT been scored on `corpus_final`.
+
 Detector: rules + spoken-number engine (cross-turn memory) + Chitragupta (int8) + resolver (types, joined numbers) + span expansion + name memory + chatter suppression. Synthetic data, gold labels; **optimistic for real data**.
 
 ## How to read the final split (added by hand after the run)
 
-`corpus_final` was scored ONCE, on 20 Nov 01:46-01:49 IST, after Layers 0-2 and the gateway were frozen; nothing in Layer 0/1 was changed before or after, and nothing will be tuned on it.
+`corpus_final` was scored ONCE, on 20 Nov 01:46-01:49 IST, after Layers 0-2 and the gateway were frozen; nothing in Layer 0/1 was changed before it. (Layer 1 WAS changed afterwards, see the update note at the top: this final number belongs to the OLD detector.)
 
 - **Same score as test, as expected from the same generator:** fully masked 96.9% (test 97.0%), masked 98.4% (test 98.4%), right label 90.6% (test 89.0%). This says we did not overfit to the dev/test ROWS; it does NOT say how real transcripts will score (all three splits come from one generator).
 - **The one number that moved: false alarms on PII-free calls, 6.7% (50/745) on final vs 2.9% (20/694) on test.** The chatter stoplist was written after looking at test failures, so the test figure was optimistic; the final figure is the honest one for unseen text from this generator, and real chatter will differ.
@@ -145,3 +147,44 @@ _The final run's own measurement, taken while the machine was heavily loaded by 
 - every score is on our own synthetic data; real transcripts will score lower by an unknown amount
 - spoken tens and double/triple are not covered for Hindi/Marathi/Kannada/Tamil; digit-word lists and ASR spellings are unverified by native speakers
 - the greeting stoplist and company-suffix list were tuned on our failures
+
+
+## Changes after the final run (Fri 20 Nov, about 04:00-07:30 IST)
+
+After the one-shot final score, the owner asked for Layer 1 to be strengthened. A read-only analysis of 3,000 dev calls found where recall was lost; the cheap, measured fixes were then built, each with tests written first. `corpus_final` was NOT re-scored: the 96.9% / 98.4% / 90.6% above are for the OLD detector.
+
+**What changed** (all in `layer1_detection/`, plus one matcher in `layer2_vault/core/sealed_match.py`; 109 new Layer 1 tests, 152 in the layer):
+1. **Previous-turn context for the model** (`Detector(model_context=True)`, `ModelDetector.detect_texts(contexts=)`, `CONTEXT_CHARS=120`). The model reads `<tail of the previous turn> + newline + <this turn>`; only spans inside this turn are kept. A bare 'Pooja.' after 'May I know your name?' is now recognised. Live gateway and offline scoreboard behave the same.
+2. **Initials in names** (`expand.expand_name`, also used by the name memory): 'S. Nadar', 'K.S. Rao', 'Usha M. Tiwari'. Never an honorific or a label ('Plan B.'), never grows into a number span, no surname is guessed after an initial.
+3. **Address rule** (`rules.py`): the house-number word is part of the address ('Flat', 'H.No.', 'வீட்டு எண்', 'घर क्रमांक', 'ಫ್ಲ್ಯಾಟ್'), house numbers like '772/50', a full stop after 'opp.' / 'T.' does not end the address, a ':' label does (not 'Pincode:'), commas inside '7,200' are not separators, '।' ends a sentence.
+4. **Number labels** (`resolve.py`, labels only, never what is masked): 'the mobile number linked to your loan' is a phone question; a mobile-shaped 10-digit number said 2+ turns after a loan / account cue is a PHONE (a cue after the number in the same turn wins).
+5. Two defects the tests exposed: the company-name check now runs after spans are grown to whole words ('Finserv' was split into 'Orchid' + 'serv'); a name never contains a digit ('19th', 'Nimage 15th' were tagged as names).
+6. `sealed_match.py` (erasure matcher): a stored name no longer matches inside a longer word ('R. Rao' inside 'Mr. Rao'), and the words of an initial-bearing name are also searched alone (ambiguous, never auto-deleted).
+
+**Measured** (outputs of the real int8 model, run one input at a time as the gateway does; synthetic data; before = committed code, after = changed code, identical inputs):
+
+| set | calls | fully masked | masked (>=50%) | right label | PII-free calls with a false alarm |
+|---|---|---|---|---|---|
+| dev, analysed (OPTIMISTIC: the fixes were designed from its errors) | 3,000 | 97.8 -> 99.2 | 99.0 -> 99.6 | 89.0 -> 91.2 | 37 -> 38 of 464 |
+| dev, never examined | 3,000 | 98.0 -> 99.1 | 99.1 -> 99.5 | 88.7 -> 90.4 | 43 -> 39 of 474 |
+| test (examined in earlier sessions, not for these fixes) | 3,750 | 97.2 -> 98.8 | 98.5 -> 99.6 | 89.1 -> 90.5 | 25 -> 40 of 694 |
+
+Fully masked by type (same three sets): NAME 95.3 -> 98.9 / 95.8 -> 99.0 / 93.1 -> 99.3; ADDRESS 90.9 -> 99.1 / 93.8 -> 99.1 / 93.5 -> 98.5; PAN 97.5 -> 98.7 / 96.8 -> 97.7 / 97.0 -> 97.7; the other types did not change (already 97.6-100%). PHONE right label 68.6 -> 81.9 / 64.2 -> 74.5 / 70.5 -> 74.3; ACCOUNT right label -0.3 / -0.3 / -0.4 and LOAN -0.4 / 0.0 / -0.5 (a few 10-digit loan / account numbers are retyped as phones).
+Must NOT be masked: dates touched 21 -> 13, 31 -> 18, 66 -> 7; amounts 4 -> 5, 6 -> 3, 3 -> 1; company names 2 -> 0, 4 -> 0, 1 -> 0.
+Older sets from other generators (hard_dev, llm_hard, synth_dev, v2_dev; 1,310 calls): no regression; v2_dev 97.7 -> 99.8% fully masked.
+Latency, gateway configuration, real model, 160 messages, quiet machine: p50 9.3 -> 12.1 ms, p95 13.0 -> 16.9, p99 14.6 -> 17.6-21.7 with short previous turns; with a long previous turn (~160 characters, cut to 120) p50 18.5, p95 22, p99 24-27 (one spike of 35 ms and one of 52 ms seen in 2 x 160 messages). Budget 50 ms.
+
+**The cost, stated plainly**
+- False alarms per PII-free TURN rose slightly (per 1,000 turns: 9.8 -> 10.4, 12.0 -> 12.5, 5.3 -> 8.1). On the test split the call-level count (25 -> 40) is mostly one repeated phrase ('hapta baddal msg aala', 10 calls). The extra false alarms are ordinary Marathi / Kannada / Tamil words tagged as names.
+- The context makes the model miss a name it used to catch in about 0.05% of gold spans (6 of 15,555, all romanised Indic text). A 'union with the context-free pass' would remove this and cost one more model pass per turn (+~10 ms) and about +3% false-alarm calls; it was NOT built.
+- Through the real gateway (300 test conversations, 559 gold values; measured with the first version of the fixes, before the review round): values that reached the LLM text 11 (2.0%) -> 5 (0.9%), intact copies 7 -> 1; but the gateway's 85% over-masking rule blocked 3 messages (old: 0): two ID pieces said alone ('Modalu SPZ', 'Shuruaat 9302') that are now masked completely, and 'Ondu nimisha' ('one minute', a false alarm).
+
+**Not shown / known limits**
+- All numbers come from one generator that we wrote. Real ASR text (no capitals, no punctuation, spelling noise) is untested. The rules for PAN and loan ids are case-sensitive and were already weak on lower-cased text in the old code (PAN 95% -> 12% when the whole text is lower-cased).
+- The address marker lists, the initials rule and the stale-cue threshold (2 turns) were tuned by counting errors on this corpus; the marker lists include the spellings our generator uses. Unlisted spellings leave the marker word visible. Initials in native script (Devanagari, Kannada, Tamil letters) are not handled.
+- Bare-name recognition needs the agent's question to have gone through the gateway and still be in its history (6 turns, 15-minute idle limit).
+- A name with initials is now stored whole ('S. Nadar'); the erasure sweep treats it like any two-word name (found only in that written form, plus its surname alone as ambiguous). Another unregistered person with the same initial and surname could be matched as 'unique'.
+- A 10-digit loan / account number said 2+ turns after its cue is typed PHONE; a number said in pieces keeps the token type issued for its first piece.
+- Pre-existing and unchanged: any 6-digit number after a comma can be taken for a pincode (amount without a currency marker); bare PAN fragments said alone are still partly missed; 'Noted' is still tagged as a name.
+- Independent review: 5 reviewers + 19 verifiers (workflow `wf_348442b4`) found 2 high / 11 medium issues in the first version; all that were confirmed regressions were fixed and have regression tests (the colon before 'Pincode:', 'Rs.' gluing sentences, the head-noun rule overriding a later cue, a PAN or loan id taken for a house number, quadratic regexes, the cache race, the surname guess).
+- For a clean number on the changed detector a fresh held-out split scored once is still needed (or a re-score of `corpus_final`, which would no longer be one-shot).

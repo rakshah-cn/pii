@@ -31,7 +31,7 @@ _CUES = [
     ("LOAN", re.compile(r"loan\s+(?:account|acct|a/c)|\bloan\b|\blan\b|agreement|application\s+(?:no|number|id)|\breference\b|\bref\b|लोन|ऋण|एग्रीमेंट|ಸಾಲ|கடன்")),
     ("AADHAAR", re.compile(r"aadhaar|aadhar|adhar|uidai|आधार|ಆಧಾರ್|ஆதார்")),
     ("PAN", re.compile(r"\bpan\b|permanent account|पैन|ಪ್ಯಾನ್|பான்")),
-    ("PHONE", re.compile(r"mobile|phone|contact|whatsapp|\byour number\b|alternate number|other number|registered number|which number|\bcall (?:me|you) on\b|मोबाइल|फोन|संपर्क|ಮೊಬೈಲ್|ಫೋನ್|மொபைல்|தொலைபேசி|போன்")),
+    ("PHONE", re.compile(r"mobile|phone|contact|whatsapp|\byour number\b|alternate number|other number|registered number|which number|\bcall (?:me|you) on\b|मोबाइल|मोबाईल|फोन|संपर्क|ಮೊಬೈಲ್|ಫೋನ್|மொபைல்|தொலைபேசி|போன்")),
     ("ACCOUNT", re.compile(r"account|\ba/c\b|\bacct\b|bank|debit|खाता|अकाउंट|ಖಾತೆ|ಅಕೌಂಟ್|கணக்கு|அக்கவுண்ட்")),
 ]
 _PARTIAL = re.compile(r"\b(last|ending|ends|end)\b|\blast\s+(?:4|four)\b|आखिरी|अंतिम|ಕೊನೆಯ|கடைசி")
@@ -49,15 +49,40 @@ def _cues(text):
     return sorted(found)
 
 
-def _cue_for(cues_by_turn, turn, s, e):
+# the word 'number' right after a cue word: 'mobile NUMBER', 'loan account NO.', 'फोन नंबर'
+_NUMWORD = re.compile(r"\s{0,3}[:=#\-]?\s{0,3}(?:numbers?\b|no\b\.?|num\b|nambar|nambr|नंबर|नम्बर|नं(?![ऀ-ॿ])|क्रमांक|संख्या|ನಂಬರ್|ಸಂಖ್ಯೆ|எண்|நம்பர்)")
+_CLAUSE_BREAK = re.compile(r"[.?!;,\n।]")
+
+
+def _pick(cues, low):
+    """The cue that names the number being asked for. With several cues in an EARLIER turn ('the mobile number linked to your loan') the cue directly followed by the word 'number'
+    ('mobile number') is the head of the phrase, not the last cue word - but only when no clause break (. ? ! ; , newline) lies between it and the last cue ('Your loan number is on file.
+    Please confirm your mobile.' is a mobile question). `low` None (cues in the number's own turn, or text unknown): the last cue, as before."""
+    if low is not None:
+        heads = [c for c in cues if _NUMWORD.match(low, c[1])]
+        if heads and not _CLAUSE_BREAK.search(low, heads[-1][1], cues[-1][0]):
+            return heads[-1]
+    return cues[-1]
+
+
+def _cue_and_age(cues_by_turn, turn, s, e, texts=None):
+    """-> (cue label or None, age): age = how many turns back the cue sits (0 = this turn). `texts` (lowercased inside) enables the head-of-phrase choice for earlier turns. A cue that comes
+    AFTER the number in the same turn ('9876543210 is my loan number') beats a stale one from an earlier turn."""
+    low = (lambda t: texts[t].casefold()) if texts else (lambda t: None)
     before = [c for c in cues_by_turn[turn] if c[1] <= s]
     if before:
-        return before[-1][2]
+        return _pick(before, None)[2], 0
+    after = [c for c in cues_by_turn[turn] if c[0] >= e]
     for t in range(turn - 1, max(-1, turn - 1 - CUE_WINDOW), -1):
         if cues_by_turn[t]:
-            return cues_by_turn[t][-1][2]
-    after = [c for c in cues_by_turn[turn] if c[0] >= e]
-    return after[0][2] if after else None
+            if after and turn - t >= STALE_CUE_AGE:
+                return after[0][2], 0
+            return _pick(cues_by_turn[t], low(t))[2], turn - t
+    return (after[0][2] if after else None), 0
+
+
+def _cue_for(cues_by_turn, turn, s, e, texts=None):
+    return _cue_and_age(cues_by_turn, turn, s, e, texts)[0]
 
 
 def _partial_intent(texts, turn):
@@ -75,8 +100,11 @@ def _clusters(spans):
     return out
 
 
-def type_span(value, cue, rule_labels, partial=False):
-    """-> (label, conf, checksum_valid or None).  `value` = digits/letters ('?' = unreadable word)."""
+STALE_CUE_AGE = 2        # a loan / account cue this many turns back (or more) no longer outvotes the shape of a mobile number
+
+
+def type_span(value, cue, rule_labels, partial=False, cue_age=0):
+    """-> (label, conf, checksum_valid or None).  `value` = digits/letters ('?' = unreadable word).  cue_age: how many turns back the cue was found (0 = this turn)."""
     isdig = value.isdigit()
     isnum = bool(re.fullmatch(r"[0-9?]+", value))        # digits, possibly with unreadable words ('?')
     n = len(value)
@@ -90,6 +118,8 @@ def type_span(value, cue, rule_labels, partial=False):
             return "CARD_NUMBER", "high", True
         if ids.phone_shape(value) and cue in (None, "PHONE"):
             return "PHONE", "high", None
+        if n == 10 and ids.phone_shape(value) and cue in ("ACCOUNT", "LOAN") and cue_age >= STALE_CUE_AGE:
+            return "PHONE", "medium", None            # a valid mobile shape; the loan / account cue is several turns old and nothing in between mentioned it
     if ids.PAN_RE.fullmatch(value) and cue in (None, "PAN"):
         return "PAN", "high", None
     if cue and n >= 3 and (isnum or cue in ("PAN", "LOAN")):
@@ -153,16 +183,16 @@ def resolve_call(texts, speakers, per_turn):
                 value = se.span_value(text, s, e) or _norm_written(slice_)
             else:
                 value = _norm_written(slice_)
-            cue = _cue_for(cues_by_turn, ti, s, e)
+            cue, cue_age = _cue_and_age(cues_by_turn, ti, s, e, texts)
             partial = _partial_intent(texts, ti) and 1 <= len(value) <= 6
-            label, conf, cs = type_span(value, cue, rule_labels, partial)
+            label, conf, cs = type_span(value, cue, rule_labels, partial, cue_age)
             sp_out = dict(base, label=label, conf=conf, uncertain=label in UNCERTAIN)
             if cs is not None:
                 sp_out["checksum_valid"] = cs
             if partial and label in JOINABLE:
                 sp_out["partial"] = True
             final[ti].append(sp_out)
-            items.append(dict(turn=ti, ref=sp_out, value=value, cue=cue, partial=partial, label=label))
+            items.append(dict(turn=ti, ref=sp_out, value=value, cue=cue, partial=partial, label=label, cue_age=cue_age))
 
     # ---- join pieces of one number said across turns -------------------------------------------------
     open_, groups = {}, []
@@ -197,7 +227,7 @@ def resolve_call(texts, speakers, per_turn):
         joined = "".join(i["value"] for i in g)
         if len(g) > 1:
             cue = g[0]["cue"] if g[0]["cue"] in JOINABLE else g[0]["label"]
-            label, conf, cs = type_span(joined, cue, [], False)
+            label, conf, cs = type_span(joined, cue, [], False, min(i["cue_age"] for i in g))
             for i in g:
                 i["ref"].update(label=label, conf=conf, uncertain=label in UNCERTAIN)
                 if cs is not None:
